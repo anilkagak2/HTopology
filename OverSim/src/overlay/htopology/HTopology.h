@@ -41,13 +41,22 @@ class HTopology : public BaseOverlay {
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
 
+  private:
+    // used in selection algorithm, for sharing variable between RPC Call & Response
+    // do think about asking Node instead of capacity
+    std::map<OverlayKey, int> queryNodesSelectionAlgo;
+    int responseRequired;       // How many of answers required?
+    OverlayKey keyParent;    // key of the parent node, which is to be replaced
+
+
+    int noOfChildren;       // current count of the children;
+    std::string buffer;     // buffer used
+    int bufferMapSize;      // size of the local buffer
+    int maxChildren;        // Maximum no. of children to be supported
+
   public:
     int nodeID;             // my ID in the overlay
     int modeOfOperation;    // GENERAL_MODE / RESCUE_MODE
-    int bufferMapSize;      // size of the local buffer
-    int maxChildren;        // Maximum no. of children to be supported
-    int noOfChildren;       // current count of the children;
-    std::string buffer;     // buffer used
 
     // Links to other nodes in the overlay
     KeyToNodeMap children;
@@ -93,10 +102,12 @@ class HTopology : public BaseOverlay {
                           const OverlayKey&);
 
     // Helpers for AddOns
-    bool canSupport (const NodeHandle& node, int noOfChildren);   // can node support noOfChildren?
+    // selection of a new parent algorithm
+    // Helpers
+    void getParametersForSelectionAlgo (OverlayKey& key);
+    void goAheadWithRestSelectionProcess (OverlayKey& key);
 
     // AddOns
-    bool selectNewParent (const OverlayKey& key);      // select replacement for node
     bool selectRescueParent ();                         // choose a rescue parent for yourself
     bool addAsRescueChild (const NodeHandle& node);     // add "node" as a rescue child
     bool removeRescueChild (const NodeHandle& node);    // remove this node from rescue children list

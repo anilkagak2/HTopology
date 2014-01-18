@@ -4627,20 +4627,40 @@ $O/overlay/gia/GiaTokenFactory.o: overlay/gia/GiaTokenFactory.cc \
 	$(INET_PROJ)/src/transport/contract/TCPSocket.h \
 	$(INET_PROJ)/src/transport/contract/TCPSocketMap.h
 $O/overlay/htopology/HMessage_m.o: overlay/htopology/HMessage_m.cc \
+	common/AbstractLookup.h \
+	common/BaseOverlay.h \
+	common/BaseRpc.h \
+	common/BaseTcpSupport.h \
 	common/BinaryValue.h \
 	common/CommonMessages_m.h \
+	common/Comparator.h \
+	common/ExtTCPSocketMap.h \
+	common/InitStages.h \
+	common/IterativeLookupConfiguration.h \
 	common/NodeHandle.h \
+	common/NodeVector.h \
 	common/OverSimMessage.h \
 	common/OverSimMessage_m.h \
 	common/OverlayKey.h \
+	common/ProxNodeHandle.h \
+	common/RecursiveLookup.h \
+	common/RpcListener.h \
+	common/RpcMacros.h \
+	common/RpcState.h \
+	common/TopologyVis.h \
 	common/TransportAddress.h \
 	common/Vector2D.h \
 	common/oversim_mapset.h \
 	overlay/htopology/HMessage_m.h \
+	overlay/htopology/HTopology.h \
 	$(INET_PROJ)/src/base/INETDefs.h \
+	$(INET_PROJ)/src/base/INotifiable.h \
 	$(INET_PROJ)/src/networklayer/contract/IPAddress.h \
 	$(INET_PROJ)/src/networklayer/contract/IPv6Address.h \
-	$(INET_PROJ)/src/networklayer/contract/IPvXAddress.h
+	$(INET_PROJ)/src/networklayer/contract/IPvXAddress.h \
+	$(INET_PROJ)/src/transport/contract/TCPCommand_m.h \
+	$(INET_PROJ)/src/transport/contract/TCPSocket.h \
+	$(INET_PROJ)/src/transport/contract/TCPSocketMap.h
 $O/overlay/htopology/HTopology.o: overlay/htopology/HTopology.cc \
 	common/AbstractLookup.h \
 	common/BaseOverlay.h \

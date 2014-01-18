@@ -127,18 +127,25 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
 
     // enters the following block if the message is of type HCapacityCall (note the shortened parameter!)
     RPC_ON_CALL(HCapacity) {
-    /*    MyNeighborCall *mrpc = (MyNeighborCall*)msg;          // get Call message
-        MyNeighborResponse *rrpc = new MyNeighborResponse();  // create response
+        HCapacityCall *mrpc = (HCapacityCall*)msg;          // get Call message
+        HCapacityResponse *rrpc = new HCapacityResponse();  // create response
         rrpc->setRespondingNode(thisNode);
-        rrpc->setPrevNeighbor(prevNode);
-        rrpc->setNextNeighbor(nextNode);
+
+        // TODO the capacity can be decided dynamically, but for now lets use the static version
+        rrpc->setCapacity(maxChildren - noOfChildren);      // set the capacity left at this node
 
         // now send the response. sendRpcResponse can automatically tell where to send it to.
         // note that sendRpcResponse will delete mrpc (aka msg)!
         sendRpcResponse(mrpc, rrpc);
-     */
+
         RPC_HANDLED = true;  // set to true, since we did handle this RPC (default is false)
         break;
+    }
+
+    RPC_ON_CALL(HSelectParent) {
+        //HSelectParentCall *mrpc = (HSelectParentCall)msg;
+
+        // TODO Do check if the request is not a fake/malicious one
     }
 
     // end the switch
@@ -151,6 +158,7 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
 
 // Called when an RPC we sent has timed out.
 // Don't delete msg here!
+// TODO
 void HTopology::handleRpcTimeout(BaseCallMessage* msg,
                                  const TransportAddress& dest,
                                  cPolymorphic* context, int rpcId,
@@ -176,48 +184,85 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
                                   simtime_t rtt) {
     // The macros are here similar. Just use RPC_ON_RESPONSE instead of RPC_ON_CALL.
 
-  /*
     // start a switch
     RPC_SWITCH_START(msg);
         // enters the following block if the message is of type MyNeighborResponse (note the shortened parameter!)
-        RPC_ON_RESPONSE(MyNeighbor) {
-            MyNeighborResponse *mrpc = (MyNeighborResponse*)msg;          // get Response message
-            callbackNeighbors(mrpc->getRespondingNode(),
-                              mrpc->getPrevNeighbor(),
-                              mrpc->getNextNeighbor());                   // call our interface function
+        RPC_ON_RESPONSE(HCapacity) {
+            HCapacityResponse *mrpc = (HCapacityResponse*)msg;          // get Response message
+            //if (queryNodesSelectionAlgo.find(mrpc->getSrcNode().getKey()) != queryNodesSelectionAlgo.end())
+            // set the capacity for the key
+            queryNodesSelectionAlgo[mrpc->getSrcNode().getKey()] = mrpc->getCapacity();
+            if (queryNodesSelectionAlgo.size() == responseRequired) {
+                goAheadWithRestSelectionProcess (keyParent);
+            }
         }
+
+        RPC_ON_RESPONSE(HSelectParent) {
+            // TODO, will there really be any response message of this sort?
+        }
+
     // end the switch
-    RPC_SWITCH_END(); */
+    RPC_SWITCH_END();
 }
 
 // AddOns
-bool HTopology::canSupport(const NodeHandle& node, int noOfChildren) {
-    // Create a message asking this question
-    // send RPC call to the node
-    // use the response, to answer the question (true/false);
-
-    return false;
-}
 
 // select replacement for node
-bool HTopology::selectNewParent (const OverlayKey& key) {
+// 1) Setting Up the required Parameters for the procedure
+void HTopology::getParametersForSelectionAlgo (OverlayKey& key) {
     if (children.find(key) == children.end()) {
         // replacement of the given node is not a responsibility of this node
-        return false;
+        return;
+    }
+
+    NodeVector nodeChildren = children[key].children;
+
+    queryNodesSelectionAlgo.clear();        // clear this variable for storing the recent values
+    responseRequired=nodeChildren.size();   // Response required
+    for (NodeVector::iterator it=nodeChildren.begin(); it!=nodeChildren.end(); ++it) {
+        // Prepare the capacity message
+        HCapacityCall *msg = new HCapacityCall();
+        NodeHandle node = *it;
+        msg->setDestinationKey(node.getKey());
+
+        // send it to the destination
+        // TODO Not sure if this is the correct way to do it
+        sendRouteRpcCall (OVERLAY_COMP, node.getKey(), msg);
+    }
+}
+
+// 2) Main procedure for deciding the replacement for keyParent
+void HTopology::goAheadWithRestSelectionProcess(OverlayKey& key) {
+    if (children.find(key) == children.end()) {
+        // replacement of the given node is not a responsibility of this node
+        return;
     }
 
     int noOfChildrenToAdd = children[key].children.size();
-    NodeVector nodeChildren = children[key].children;
-
     bool replacementDone = false;
-    for (NodeVector::iterator it=nodeChildren.begin(); it!=nodeChildren.end(); ++it) {
-        if (canSupport (*it, noOfChildrenToAdd)) {
-            // What else is to be done?
-            // Modify the existing next & prev pointers for the replacement's sibling
-            // Modify the pointers for the siblings in the current overlay
-            // And add nodeChildren as parent to the replacement node
+    std::map<OverlayKey, int>::iterator it=queryNodesSelectionAlgo.begin();
+
+    for (; it!=queryNodesSelectionAlgo.end(); ++it) {
+        // What else is to be done?
+        // Modify the existing next & prev pointers for the replacement's sibling
+        // Modify the pointers for the siblings in the current overlay
+        // And add nodeChildren as parent to the replacement node
+        int capacity = (*it).second;
+        if (capacity >= noOfChildrenToAdd) {
             replacementDone = true;
+            break;
         }
+    }
+
+    // Reset the variables used in the process
+    queryNodesSelectionAlgo.clear();
+    responseRequired=0;
+    if (replacementDone) {
+        // Inform children about the new parent
+        // replace the child with this newly selected parent (children list)
+    } else {
+        // Couldn't select a parent for the children,
+        // WHAT's THE FALL BACK OPTION?
     }
 
     // 1) Get the node's children from the handle
@@ -230,8 +275,6 @@ bool HTopology::selectNewParent (const OverlayKey& key) {
 
     // Once done with "deciding the new parent", inform the children about their new parent
     // Also inform the new parent for the same
-
-    return true;
 }
 
 // generate transfer characteristics & rank them

@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by opp_msgc 4.3 from ./HMessage.msg.
+// Generated file, do not edit! Created by opp_msgc 4.3 from overlay/htopology/HMessage.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -525,6 +525,476 @@ void *HCapacityResponseDescriptor::getFieldStructPointer(void *object, int field
         field -= basedesc->getFieldCount(object);
     }
     HCapacityResponse *pp = (HCapacityResponse *)object; (void)pp;
+    switch (field) {
+        case 0: return (void *)(&pp->getRespondingNode()); break;
+        default: return NULL;
+    }
+}
+
+Register_Class(HSelectParentCall);
+
+HSelectParentCall::HSelectParentCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+}
+
+HSelectParentCall::HSelectParentCall(const HSelectParentCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+HSelectParentCall::~HSelectParentCall()
+{
+}
+
+HSelectParentCall& HSelectParentCall::operator=(const HSelectParentCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HSelectParentCall::copy(const HSelectParentCall& other)
+{
+    this->key_var = other.key_var;
+}
+
+void HSelectParentCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+    doPacking(b,this->key_var);
+}
+
+void HSelectParentCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+    doUnpacking(b,this->key_var);
+}
+
+OverlayKey& HSelectParentCall::getKey()
+{
+    return key_var;
+}
+
+void HSelectParentCall::setKey(const OverlayKey& key)
+{
+    this->key_var = key;
+}
+
+class HSelectParentCallDescriptor : public cClassDescriptor
+{
+  public:
+    HSelectParentCallDescriptor();
+    virtual ~HSelectParentCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HSelectParentCallDescriptor);
+
+HSelectParentCallDescriptor::HSelectParentCallDescriptor() : cClassDescriptor("HSelectParentCall", "BaseCallMessage")
+{
+}
+
+HSelectParentCallDescriptor::~HSelectParentCallDescriptor()
+{
+}
+
+bool HSelectParentCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HSelectParentCall *>(obj)!=NULL;
+}
+
+const char *HSelectParentCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HSelectParentCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+}
+
+unsigned int HSelectParentCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISCOMPOUND,
+    };
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+}
+
+const char *HSelectParentCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "key",
+    };
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+}
+
+int HSelectParentCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='k' && strcmp(fieldName, "key")==0) return base+0;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HSelectParentCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "OverlayKey",
+    };
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *HSelectParentCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HSelectParentCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HSelectParentCall *pp = (HSelectParentCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HSelectParentCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HSelectParentCall *pp = (HSelectParentCall *)object; (void)pp;
+    switch (field) {
+        case 0: {std::stringstream out; out << pp->getKey(); return out.str();}
+        default: return "";
+    }
+}
+
+bool HSelectParentCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HSelectParentCall *pp = (HSelectParentCall *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *HSelectParentCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        "OverlayKey",
+    };
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+}
+
+void *HSelectParentCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HSelectParentCall *pp = (HSelectParentCall *)object; (void)pp;
+    switch (field) {
+        case 0: return (void *)(&pp->getKey()); break;
+        default: return NULL;
+    }
+}
+
+Register_Class(HSelectParentResponse);
+
+HSelectParentResponse::HSelectParentResponse(const char *name, int kind) : BaseResponseMessage(name,kind)
+{
+}
+
+HSelectParentResponse::HSelectParentResponse(const HSelectParentResponse& other) : BaseResponseMessage(other)
+{
+    copy(other);
+}
+
+HSelectParentResponse::~HSelectParentResponse()
+{
+}
+
+HSelectParentResponse& HSelectParentResponse::operator=(const HSelectParentResponse& other)
+{
+    if (this==&other) return *this;
+    BaseResponseMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HSelectParentResponse::copy(const HSelectParentResponse& other)
+{
+    this->respondingNode_var = other.respondingNode_var;
+}
+
+void HSelectParentResponse::parsimPack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimPack(b);
+    doPacking(b,this->respondingNode_var);
+}
+
+void HSelectParentResponse::parsimUnpack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimUnpack(b);
+    doUnpacking(b,this->respondingNode_var);
+}
+
+NodeHandle& HSelectParentResponse::getRespondingNode()
+{
+    return respondingNode_var;
+}
+
+void HSelectParentResponse::setRespondingNode(const NodeHandle& respondingNode)
+{
+    this->respondingNode_var = respondingNode;
+}
+
+class HSelectParentResponseDescriptor : public cClassDescriptor
+{
+  public:
+    HSelectParentResponseDescriptor();
+    virtual ~HSelectParentResponseDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HSelectParentResponseDescriptor);
+
+HSelectParentResponseDescriptor::HSelectParentResponseDescriptor() : cClassDescriptor("HSelectParentResponse", "BaseResponseMessage")
+{
+}
+
+HSelectParentResponseDescriptor::~HSelectParentResponseDescriptor()
+{
+}
+
+bool HSelectParentResponseDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HSelectParentResponse *>(obj)!=NULL;
+}
+
+const char *HSelectParentResponseDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HSelectParentResponseDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+}
+
+unsigned int HSelectParentResponseDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISCOMPOUND,
+    };
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+}
+
+const char *HSelectParentResponseDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "respondingNode",
+    };
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+}
+
+int HSelectParentResponseDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='r' && strcmp(fieldName, "respondingNode")==0) return base+0;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HSelectParentResponseDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "NodeHandle",
+    };
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *HSelectParentResponseDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HSelectParentResponseDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HSelectParentResponse *pp = (HSelectParentResponse *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HSelectParentResponseDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HSelectParentResponse *pp = (HSelectParentResponse *)object; (void)pp;
+    switch (field) {
+        case 0: {std::stringstream out; out << pp->getRespondingNode(); return out.str();}
+        default: return "";
+    }
+}
+
+bool HSelectParentResponseDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HSelectParentResponse *pp = (HSelectParentResponse *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *HSelectParentResponseDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        "NodeHandle",
+    };
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+}
+
+void *HSelectParentResponseDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HSelectParentResponse *pp = (HSelectParentResponse *)object; (void)pp;
     switch (field) {
         case 0: return (void *)(&pp->getRespondingNode()); break;
         default: return NULL;

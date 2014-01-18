@@ -22,9 +22,11 @@ cplusplus {{
 #include <NodeHandle.h>
 #include <OverlayKey.h>
 #include <CommonMessages_m.h>
+#include "HTopology.h"
 }}
 class noncobject TransportAddress;
 class noncobject NodeHandle;
+class noncobject Node;
 class noncobject OverlayKey;
 class BaseCallMessage;
 class BaseResponseMessage;
@@ -45,6 +47,15 @@ packet HCapacityCall extends BaseCallMessage {
 packet HCapacityResponse extends BaseResponseMessage {
     NodeHandle respondingNode;
     int capacity;						// can handle 'capacity' no. of children.
+};
+
+packet HSelectParentCall extends BaseCallMessage {
+    OverlayKey key;
+};
+
+packet HSelectParentResponse extends BaseResponseMessage {
+    NodeHandle respondingNode;
+    //Node newParent;				// New parent, selected by the procedure
 };
 
 packet HMessage {
