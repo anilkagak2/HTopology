@@ -19,8 +19,8 @@ package oversim.overlay.htopology;
 // Author: Anil Kag
 //
 
-// import BaseOverlay
 import oversim.common.BaseOverlay;
+import oversim.common.IOverlay;
 
 simple HTopology extends BaseOverlay
 {
@@ -28,10 +28,32 @@ simple HTopology extends BaseOverlay
         @class(HTopology);
         int bufferSizeInBytes;		// Buffer Map size used in the HTopology
         int maxChildren;			// Maximum number of children allowed at a node
+        int joinRetry;
+        double joinDelay @unit(s); // delay between join retries (sec)
         
         // TODO add parameters required for configuration purpose
         // May be we can try to configure things like
         // 1) What's the strategy to deliver the message from parent to 
         // 		all of its children?
         // 2) What about the siblings? 
+}
+
+module HTopologyModules like IOverlay
+{
+    gates:
+        input udpIn;   // gate from the UDP layer
+        output udpOut;    // gate to the UDP layer
+        input tcpIn;    // gate from the TCP layer
+        output tcpOut;    // gate to the TCP layer
+        input appIn;   // gate from the application
+        output appOut;    // gate to the application
+
+    submodules:
+        htopology: HTopology;
+
+    connections allowunconnected:
+        udpIn --> htopology.udpIn;
+        udpOut <-- htopology.udpOut;
+        appIn --> htopology.appIn;
+        appOut <-- htopology.appOut;
 }

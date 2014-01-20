@@ -2,7 +2,7 @@
 # OMNeT++/OMNEST Makefile for OverSim
 #
 # This file was generated with the command:
-#  opp_makemake -f --deep -IE:/inet/src/networklayer/common -IE:/inet/src/networklayer/rsvp_te -IE:/inet/src/networklayer/icmpv6 -IE:/inet/src/transport/tcp -IE:/inet/src/networklayer/mpls -IE:/inet/src/networklayer/ted -IE:/inet/src/networklayer/contract -IE:/inet/src/util -IE:/inet/src/transport/contract -IE:/inet/src/linklayer/mfcore -IE:/inet/src/networklayer/ldp -IE:/inet/src/applications/udpapp -IE:/inet/src/networklayer/ipv4 -IE:/inet/src/base -IE:/inet/src/util/headerserializers -IE:/inet/src/networklayer/ipv6 -IE:/inet/src/transport/sctp -IE:/inet/src/world -IE:/inet/src/applications/pingapp -IE:/inet/src/linklayer/contract -IE:/inet/src/networklayer/arp -IE:/inet/src/transport/udp -IE:/inet/src/networklayer/autorouting -LE:/inet/out/$(CONFIGNAME)/src -linet -KINET_PROJ=E:/inet
+#  opp_makemake -f --deep -I../../inet/src/networklayer/common -I../../inet/src/networklayer/rsvp_te -I../../inet/src/networklayer/icmpv6 -I../../inet/src/transport/tcp -I../../inet/src/networklayer/mpls -I../../inet/src/networklayer/ted -I../../inet/src/networklayer/contract -I../../inet/src/util -I../../inet/src/transport/contract -I../../inet/src/linklayer/mfcore -I../../inet/src/networklayer/ldp -I../../inet/src/applications/udpapp -I../../inet/src/networklayer/ipv4 -I../../inet/src/base -I../../inet/src/util/headerserializers -I../../inet/src/networklayer/ipv6 -I../../inet/src/transport/sctp -I../../inet/src/world -I../../inet/src/applications/pingapp -I../../inet/src/linklayer/contract -I../../inet/src/networklayer/arp -I../../inet/src/transport/udp -I../../inet/src/networklayer/autorouting -L../../inet/out/$(CONFIGNAME)/src -linet -KINET_PROJ=../../inet
 #
 
 # Name of target to be created (-o option)
@@ -15,29 +15,29 @@ USERIF_LIBS = $(ALL_ENV_LIBS) # that is, $(TKENV_LIBS) $(CMDENV_LIBS)
 
 # C++ include paths (with -I)
 INCLUDE_PATH = \
-    -I$(INET_PROJ)/src/networklayer/common \
-    -I$(INET_PROJ)/src/networklayer/rsvp_te \
-    -I$(INET_PROJ)/src/networklayer/icmpv6 \
-    -I$(INET_PROJ)/src/transport/tcp \
-    -I$(INET_PROJ)/src/networklayer/mpls \
-    -I$(INET_PROJ)/src/networklayer/ted \
-    -I$(INET_PROJ)/src/networklayer/contract \
-    -I$(INET_PROJ)/src/util \
-    -I$(INET_PROJ)/src/transport/contract \
-    -I$(INET_PROJ)/src/linklayer/mfcore \
-    -I$(INET_PROJ)/src/networklayer/ldp \
-    -I$(INET_PROJ)/src/applications/udpapp \
-    -I$(INET_PROJ)/src/networklayer/ipv4 \
-    -I$(INET_PROJ)/src/base \
-    -I$(INET_PROJ)/src/util/headerserializers \
-    -I$(INET_PROJ)/src/networklayer/ipv6 \
-    -I$(INET_PROJ)/src/transport/sctp \
-    -I$(INET_PROJ)/src/world \
-    -I$(INET_PROJ)/src/applications/pingapp \
-    -I$(INET_PROJ)/src/linklayer/contract \
-    -I$(INET_PROJ)/src/networklayer/arp \
-    -I$(INET_PROJ)/src/transport/udp \
-    -I$(INET_PROJ)/src/networklayer/autorouting \
+    -I../../inet/src/networklayer/common \
+    -I../../inet/src/networklayer/rsvp_te \
+    -I../../inet/src/networklayer/icmpv6 \
+    -I../../inet/src/transport/tcp \
+    -I../../inet/src/networklayer/mpls \
+    -I../../inet/src/networklayer/ted \
+    -I../../inet/src/networklayer/contract \
+    -I../../inet/src/util \
+    -I../../inet/src/transport/contract \
+    -I../../inet/src/linklayer/mfcore \
+    -I../../inet/src/networklayer/ldp \
+    -I../../inet/src/applications/udpapp \
+    -I../../inet/src/networklayer/ipv4 \
+    -I../../inet/src/base \
+    -I../../inet/src/util/headerserializers \
+    -I../../inet/src/networklayer/ipv6 \
+    -I../../inet/src/transport/sctp \
+    -I../../inet/src/world \
+    -I../../inet/src/applications/pingapp \
+    -I../../inet/src/linklayer/contract \
+    -I../../inet/src/networklayer/arp \
+    -I../../inet/src/transport/udp \
+    -I../../inet/src/networklayer/autorouting \
     -I. \
     -Iapplications \
     -Iapplications/almtest \
@@ -91,8 +91,8 @@ INCLUDE_PATH = \
 EXTRA_OBJS =
 
 # Additional libraries (-L, -l options)
-LIBS = -L$(INET_PROJ)/out/$(CONFIGNAME)/src  -linet
-LIBS += -Wl,-rpath,`abspath $(INET_PROJ)/out/$(CONFIGNAME)/src`
+LIBS = -L../../inet/out/$(CONFIGNAME)/src  -linet
+LIBS += -Wl,-rpath,`abspath ../../inet/out/$(CONFIGNAME)/src`
 
 # Output directory
 PROJECT_OUTPUT_DIR = ../out
@@ -371,7 +371,7 @@ MSGFILES = \
     tier2/simmud/SimMud.msg
 
 # Other makefile variables (-K)
-INET_PROJ=E:/inet
+INET_PROJ=../../inet
 
 #------------------------------------------------------------------------------
 
@@ -4628,10 +4628,13 @@ $O/overlay/gia/GiaTokenFactory.o: overlay/gia/GiaTokenFactory.cc \
 	$(INET_PROJ)/src/transport/contract/TCPSocketMap.h
 $O/overlay/htopology/HMessage_m.o: overlay/htopology/HMessage_m.cc \
 	common/AbstractLookup.h \
+	common/BaseApp.h \
 	common/BaseOverlay.h \
 	common/BaseRpc.h \
 	common/BaseTcpSupport.h \
 	common/BinaryValue.h \
+	common/BootstrapList.h \
+	common/BootstrapNodeHandle.h \
 	common/CommonMessages_m.h \
 	common/Comparator.h \
 	common/ExtTCPSocketMap.h \
@@ -4663,10 +4666,13 @@ $O/overlay/htopology/HMessage_m.o: overlay/htopology/HMessage_m.cc \
 	$(INET_PROJ)/src/transport/contract/TCPSocketMap.h
 $O/overlay/htopology/HTopology.o: overlay/htopology/HTopology.cc \
 	common/AbstractLookup.h \
+	common/BaseApp.h \
 	common/BaseOverlay.h \
 	common/BaseRpc.h \
 	common/BaseTcpSupport.h \
 	common/BinaryValue.h \
+	common/BootstrapList.h \
+	common/BootstrapNodeHandle.h \
 	common/CommonMessages_m.h \
 	common/Comparator.h \
 	common/ExtTCPSocketMap.h \

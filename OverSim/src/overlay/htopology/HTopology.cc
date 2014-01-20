@@ -21,6 +21,11 @@ Define_Module(HTopology);
 // To convert between IP addresses (which have bit 24 active), and keys (which don't), we'll need to set or remove this bit.
 #define BIGBIT (1 << 24)
 
+HTopology::~HTopology(){
+    // destroy self timer messages
+    cancelAndDelete(join_timer);
+}
+
 void HTopology::initialize() {
     // TODO - Generated method body
 }
@@ -36,16 +41,29 @@ void HTopology::initializeOverlay(int stage) {
 
    // get our key from our IP address
    nodeID = thisNode.getIp().get4().getInt() & ~BIGBIT;
+
+   // set the operation mode
+   modeOfOperation = GENERAL_MODE;
+
    //nodeID = thisNode.getIp();
    thisNode.setKey(OverlayKey(nodeID));     // set its key
-
-   /* next = prev = thisNode;                  // Is this CORRECT? */
 
    // initialize the rest of variables
    bufferMapSize = par("bufferSizeInBytes");
    maxChildren = par("maxChildren");
+   joinRetry = par("joinRetry");
+   joinDelay = par("joinDelay");
    noOfChildren = 0;
    buffer.resize(bufferMapSize);            // Resize the buffer map to fit the given requirement
+
+   // add some watches
+   WATCH(predecessorNode);
+   WATCH(thisNode);
+   WATCH(joinRetry);
+   WATCH(successorNode);
+
+   // self-messages
+   join_timer = new cMessage("join_timer");
 
    EV << thisNode << ": initialized." << std::endl;
 
@@ -58,14 +76,155 @@ void HTopology::setOwnNodeID() {
     thisNode.setKey(OverlayKey(nodeID));
 }
 
+void HTopology::updateTooltip() {
+    if (ev.isGUI()) {
+        std::stringstream ttString;
+
+        // show our predecessor and successor in tooltip
+        ttString << predecessorNode << endl << thisNode << endl << successorNode << endl;
+
+        getParentModule()->getParentModule()->getDisplayString().
+        setTagArg("tt", 0, ttString.str().c_str());
+        getParentModule()->getDisplayString().
+        setTagArg("tt", 0, ttString.str().c_str());
+        getDisplayString().setTagArg("tt", 0, ttString.str().c_str());
+
+        // draw an arrow to our current successor
+        showOverlayNeighborArrow(successorNode, true,
+                                 "m=m,50,0,50,0;ls=red,1");
+        showOverlayNeighborArrow(predecessorNode, false,
+                                 "m=m,50,100,50,100;ls=green,1");
+    }
+}
+
+// change the STATE of this node to state
+void HTopology::changeState (int state) {
+    switch (state){
+    case INIT:
+        state = INIT;
+        setOverlayReady(false);
+
+        // initialize predecessor pointer
+        predecessorNode = unspecifiedNode;
+        successorNode = unspecifiedNode;
+
+        updateTooltip();
+
+        // debug message
+        if (debugOutput) {
+            EV << "[Chord::changeState() @ " << thisNode.getIp()
+            << " (" << thisNode.getKey().toString(16) << ")]\n"
+            << "    Entered INIT stage"
+            << endl;
+        }
+
+        getParentModule()->getParentModule()->bubble("Enter INIT state.");
+        break;
+
+    case JOIN:
+        state = JOIN;
+
+        // initiate join process
+        cancelEvent(join_timer);
+        // workaround: prevent notificationBoard from taking
+        // ownership of join_timer message
+        take(join_timer);
+        scheduleAt(simTime(), join_timer);
+
+        // debug message
+        if (debugOutput) {
+            EV << "[Chord::changeState() @ " << thisNode.getIp()
+            << " (" << thisNode.getKey().toString(16) << ")]\n"
+            << "    Entered JOIN stage"
+            << endl;
+        }
+
+        // find a new bootstrap node and enroll to the bootstrap list
+        bootstrapNode = bootstrapList->getBootstrapNode(overlayId);
+
+        // is this the first node?
+        if (bootstrapNode.isUnspecified()) {
+            // create new cord ring
+            assert(predecessorNode.isUnspecified());
+            bootstrapNode = thisNode;
+            changeState(READY);
+            updateTooltip();
+        }
+
+        getParentModule()->getParentModule()->bubble("Enter JOIN state.");
+        break;
+
+    case READY:
+        state = READY;
+        setOverlayReady(true);
+
+        // debug message
+        if (debugOutput) {
+            EV << "[Chord::changeState() @ " << thisNode.getIp()
+            << " (" << thisNode.getKey().toString(16) << ")]\n"
+            << "    Entered READY stage"
+            << endl;
+        }
+        getParentModule()->getParentModule()->bubble("Enter READY state.");
+        break;
+    }
+}
+
+void HTopology::handleTimerEvent(cMessage* msg) {
+    // catch JOIN timer
+    if (msg == join_timer) {
+        handleJoinTimerExpired(msg);
+    }
+    // unknown self message
+    else {
+        error("HTopology::handleTimerEvent(): received self message of "
+              "unknown type!");
+    }
+}
+
+void HTopology::handleJoinTimerExpired(cMessage* msg) {
+    // only process timer, if node is not joined yet
+    if (state == READY)
+        return;
+
+    // enter state JOIN
+    if (state != JOIN)
+        changeState(JOIN);
+
+    // change bootstrap node from time to time
+    joinRetry--;
+    if (joinRetry == 0) {
+        joinRetry = par("joinRetry");
+        changeState(JOIN);
+        return;
+    }
+
+    // call JOIN RPC
+    HJoinCall* call = new HJoinCall("JoinCall");
+    call->setBitLength(JOINCALL_L(call));
+
+    RoutingType routingType = (defaultRoutingType == FULL_RECURSIVE_ROUTING ||
+                               defaultRoutingType == RECURSIVE_SOURCE_ROUTING) ?
+                              SEMI_RECURSIVE_ROUTING : defaultRoutingType;
+
+    sendRouteRpcCall(OVERLAY_COMP, bootstrapNode, thisNode.getKey(),
+                     call, NULL, routingType, joinDelay);
+
+    // schedule next join process in the case this one fails
+    cancelEvent(join_timer);
+    scheduleAt(simTime() + joinDelay, msg);
+}
+
 // Called when the module is ready to join the overlay
 void HTopology::joinOverlay() {
     // tell the simulator that we're ready
-    setOverlayReady(true);
+    changeState(INIT);
+    changeState(JOIN);
 }
 
 // Called when the module is about to be destroyed
 void HTopology::finishOverlay() {
+    bootstrapList->removeBootstrapNode(thisNode);
     // remove this node from the overlay
     setOverlayReady(false);
 

@@ -19,17 +19,22 @@
 #include <omnetpp.h>
 #include <NodeHandle.h>
 #include <string>
+#include <BootstrapList.h>
 #include "BaseOverlay.h"
 #include "HMessage_m.h"
+using std::endl;
 
 #define GENERAL_MODE 0
 #define RESCUE_MODE 1
 
+// TODO specify Node class on the lines of NodeHandle
 class Node : public NodeHandle {
   public:
     NodeVector children;
     // some more properties of a node should be kept here
 };
+
+static const Node unspecifiedNode; /**< the unspecified NodeHandle */
 
 typedef std::map<OverlayKey, Node> KeyToNodeMap;
 
@@ -40,6 +45,7 @@ class HTopology : public BaseOverlay {
   protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
+
 
   private:
     // used in selection algorithm, for sharing variable between RPC Call & Response
@@ -53,23 +59,37 @@ class HTopology : public BaseOverlay {
     std::string buffer;     // buffer used
     int bufferMapSize;      // size of the local buffer
     int maxChildren;        // Maximum no. of children to be supported
+    int joinRetry;            // Maximum no. of tries in joining the overlay
+
+    void updateTooltip ();              // shows the links in visual mode
+    void changeState (int state);       // change the STATE of this node to state
+
+    // timer messages
+    cMessage* join_timer; /**< */
+    double joinDelay;
 
   public:
     int nodeID;             // my ID in the overlay
     int modeOfOperation;    // GENERAL_MODE / RESCUE_MODE
+    TransportAddress bootstrapNode; /**< node used to bootstrap */
 
     // Links to other nodes in the overlay
     KeyToNodeMap children;
     //KeyToNodeMap siblings;
-    Node next, prev;
+    Node successorNode, predecessorNode;
     KeyToNodeMap nodesOneUp;
     KeyToNodeMap ancestors;
+
+    ~HTopology();
 
     // Basic functionalities
     void initializeOverlay(int stage);  // called when the overlay is being initialized
     void setOwnNodeID();                // (optional) called to set the key of this node (random otherwise)
     void joinOverlay();                 // called when the node is ready to join the overlay
     void finishOverlay();               // called when the module is about to be destroyed
+
+    void handleJoinTimerExpired(cMessage* msg);
+    void handleTimerEvent(cMessage*);
 
     // obligatory: called when we need the next hop to route a packet to the given key
     NodeVector* findNode(const OverlayKey& key,     // key to route to

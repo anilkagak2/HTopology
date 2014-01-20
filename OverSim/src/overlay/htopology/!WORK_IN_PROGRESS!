@@ -1,0 +1,15 @@
+Questions to be answered?
+1) Who'll be the source node? How we'll distinguish it from others?
+2) When do we assume the overlay is stabilized?
+3) What is to be done, when joinOverlay() is called?
+4) Need some timers for simulating the events, what all timers are required?
+5) What different events are required?
+	-> source generates packets a particular rate.
+	-> each node receives packet from neighbours & distribute the packet to children
+	-> Join the overlay
+	-> Keep track of deadlines & schedule in case a packet is approaching the deadline
+		- ImmediatePacketTime => if the deadline lies within this time of current time,
+			then schedule to get it asap
+			[WILL IT BE PRACTICAL? MAY BE ALL SEGMENTS ARE SCHEDULED?]
+	-> Leave the overlay
+	-> Notify failed node / continuous ping or keep track of liveliness of a node

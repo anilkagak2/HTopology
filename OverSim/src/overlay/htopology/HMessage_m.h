@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by opp_msgc 4.3 from overlay/htopology/HMessage.msg.
+// Generated file, do not edit! Created by opp_msgc 4.3 from ./HMessage.msg.
 //
 
 #ifndef _HMESSAGE_M_H_
@@ -19,12 +19,14 @@
 #include <OverlayKey.h>
 #include <CommonMessages_m.h>
 #include "HTopology.h"
+
+#define JOINCALL_L(msg) BASECALL_L(msg)
 // }}
 
 
 
 /**
- * Enum generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * Enum generated from <tt>./HMessage.msg</tt> by opp_msgc.
  * <pre>
  * enum MessageType {
  *     M_JOIN=1;				
@@ -44,7 +46,7 @@ enum MessageType {
 };
 
 /**
- * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HCapacityCall extends BaseCallMessage {
  *     OverlayKey destinationKey;
@@ -82,7 +84,7 @@ inline void doPacking(cCommBuffer *b, HCapacityCall& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, HCapacityCall& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HCapacityResponse extends BaseResponseMessage {
  *     NodeHandle respondingNode;
@@ -124,7 +126,7 @@ inline void doPacking(cCommBuffer *b, HCapacityResponse& obj) {obj.parsimPack(b)
 inline void doUnpacking(cCommBuffer *b, HCapacityResponse& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HSelectParentCall extends BaseCallMessage {
  *     OverlayKey key;
@@ -162,7 +164,7 @@ inline void doPacking(cCommBuffer *b, HSelectParentCall& obj) {obj.parsimPack(b)
 inline void doUnpacking(cCommBuffer *b, HSelectParentCall& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HSelectParentResponse extends BaseResponseMessage {
  *     NodeHandle respondingNode;
@@ -201,7 +203,92 @@ inline void doPacking(cCommBuffer *b, HSelectParentResponse& obj) {obj.parsimPac
 inline void doUnpacking(cCommBuffer *b, HSelectParentResponse& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HJoinCall extends BaseCallMessage
+ * {
+ * }
+ * </pre>
+ */
+class HJoinCall : public ::BaseCallMessage
+{
+  protected:
+
+  private:
+    void copy(const HJoinCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HJoinCall&);
+
+  public:
+    HJoinCall(const char *name=NULL, int kind=0);
+    HJoinCall(const HJoinCall& other);
+    virtual ~HJoinCall();
+    HJoinCall& operator=(const HJoinCall& other);
+    virtual HJoinCall *dup() const {return new HJoinCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+};
+
+inline void doPacking(cCommBuffer *b, HJoinCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HJoinCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HJoinResponse extends BaseResponseMessage
+ * {
+ *     int sucNum;    
+ *     NodeHandle sucNode[];    
+ *     NodeHandle preNode;    
+ * }
+ * </pre>
+ */
+class HJoinResponse : public ::BaseResponseMessage
+{
+  protected:
+    int sucNum_var;
+    NodeHandle *sucNode_var; // array ptr
+    unsigned int sucNode_arraysize;
+    NodeHandle preNode_var;
+
+  private:
+    void copy(const HJoinResponse& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HJoinResponse&);
+
+  public:
+    HJoinResponse(const char *name=NULL, int kind=0);
+    HJoinResponse(const HJoinResponse& other);
+    virtual ~HJoinResponse();
+    HJoinResponse& operator=(const HJoinResponse& other);
+    virtual HJoinResponse *dup() const {return new HJoinResponse(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual int getSucNum() const;
+    virtual void setSucNum(int sucNum);
+    virtual void setSucNodeArraySize(unsigned int size);
+    virtual unsigned int getSucNodeArraySize() const;
+    virtual NodeHandle& getSucNode(unsigned int k);
+    virtual const NodeHandle& getSucNode(unsigned int k) const {return const_cast<HJoinResponse*>(this)->getSucNode(k);}
+    virtual void setSucNode(unsigned int k, const NodeHandle& sucNode);
+    virtual NodeHandle& getPreNode();
+    virtual const NodeHandle& getPreNode() const {return const_cast<HJoinResponse*>(this)->getPreNode();}
+    virtual void setPreNode(const NodeHandle& preNode);
+};
+
+inline void doPacking(cCommBuffer *b, HJoinResponse& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HJoinResponse& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HMessage {
  *     int type enum(MessageType);			

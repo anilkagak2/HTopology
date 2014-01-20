@@ -1,0 +1,26 @@
+version 2
+run Nice-0-20140120-14:48:22-22324
+attr configname Nice
+attr datetime 20140120-14:48:22
+attr experiment Nice
+attr inifile omnetpp.ini
+attr iterationvars ""
+attr iterationvars2 $repetition=0
+attr measurement ""
+attr network oversim.underlay.simpleunderlay.SimpleUnderlayNetwork
+attr processid 22324
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+
+scalar SimpleUnderlayNetwork.underlayConfigurator 	"Terminals added" 	102
+scalar SimpleUnderlayNetwork.underlayConfigurator 	"Terminals removed" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalFunctions[0].function.observer 	"MessageObserver: Group 0000000000000000000000000000000000000001 Sent Messages" 	99079
+scalar SimpleUnderlayNetwork.globalObserver.globalFunctions[0].function.observer 	"MessageObserver: Group 0000000000000000000000000000000000000001 Received Messages" 	97698
+scalar SimpleUnderlayNetwork.globalObserver.globalFunctions[0].function.observer 	"MessageObserver: Group 0000000000000000000000000000000000000001 Delivered Percentage" 	98.60616275901
+scalar SimpleUnderlayNetwork.globalObserver.globalFunctions[0].function.observer 	"MessageObserver: Total Sent Messages" 	99079
+scalar SimpleUnderlayNetwork.globalObserver.globalFunctions[0].function.observer 	"MessageObserver: Total Received Messages" 	97698
+scalar SimpleUnderlayNetwork.globalObserver.globalFunctions[0].function.observer 	"MessageObserver: Total Delivered Percentage" 	98.60616275901
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"GlobalStatistics: Simulation Time" 	300.131328915

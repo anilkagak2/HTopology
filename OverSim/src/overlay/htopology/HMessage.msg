@@ -23,6 +23,9 @@ cplusplus {{
 #include <OverlayKey.h>
 #include <CommonMessages_m.h>
 #include "HTopology.h"
+
+#define JOINCALL_L(msg) BASECALL_L(msg)
+
 }}
 class noncobject TransportAddress;
 class noncobject NodeHandle;
@@ -57,6 +60,23 @@ packet HSelectParentResponse extends BaseResponseMessage {
     NodeHandle respondingNode;
     //Node newParent;				// New parent, selected by the procedure
 };
+
+//
+// Message used to join a chord overlay
+//
+packet HJoinCall extends BaseCallMessage
+{
+}
+
+//
+// Message used to answer to a JoinCall message
+//
+packet HJoinResponse extends BaseResponseMessage
+{
+    int sucNum;    // number of entries in the successor list
+    NodeHandle sucNode[];    // successor list of the message originator
+    NodeHandle preNode;    // in aggressiveJoinMode: predecessor hint
+}
 
 packet HMessage {
     int type enum(MessageType);			// Message type

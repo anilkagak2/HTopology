@@ -1,0 +1,20 @@
+file 1520 1390224242                                            
+version 2
+run HTestKBRConf-0-20140120-18:52:32-13896
+attr configname HTestKBRConf
+attr datetime 20140120-18:52:32
+attr experiment HTestKBRConf
+attr inifile htopology.ini
+attr iterationvars ""
+attr iterationvars2 $repetition=0
+attr measurement ""
+attr network oversim.underlay.simpleunderlay.SimpleUnderlayNetwork
+attr processid 13896
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+
+vector 1  SimpleUnderlayNetwork.globalObserver.globalStatistics  "GlobalNodeList: Number of nodes"  ETV
+1	550 970 133 742 50 3300 66 10 10 660 6600

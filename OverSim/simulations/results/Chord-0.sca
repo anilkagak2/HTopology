@@ -1,14 +1,14 @@
 version 2
-run Chord-0-20131026-15:19:39-5080
+run Chord-0-20140120-14:46:07-13092
 attr configname Chord
-attr datetime 20131026-15:19:39
+attr datetime 20140120-14:46:07
 attr experiment Chord
 attr inifile omnetpp.ini
 attr iterationvars ""
 attr iterationvars2 $repetition=0
 attr measurement ""
 attr network oversim.underlay.simpleunderlay.SimpleUnderlayNetwork
-attr processid 5080
+attr processid 13092
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -17,4 +17,4 @@ attr seedset 0
 
 scalar SimpleUnderlayNetwork.underlayConfigurator 	"Terminals added" 	4
 scalar SimpleUnderlayNetwork.underlayConfigurator 	"Terminals removed" 	0
-scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"GlobalStatistics: Simulation Time" 	4.045185023
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"GlobalStatistics: Simulation Time" 	3.927293501
