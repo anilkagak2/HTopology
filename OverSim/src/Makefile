@@ -43,6 +43,7 @@ INCLUDE_PATH = \
     -Iapplications/almtest \
     -Iapplications/dht \
     -Iapplications/giasearchapp \
+    -Iapplications/hstreaming \
     -Iapplications/i3 \
     -Iapplications/i3/i3Apps \
     -Iapplications/kbrtestapp \
@@ -107,6 +108,7 @@ OBJS = \
     $O/applications/dht/DHTDataStorage.o \
     $O/applications/giasearchapp/GIASearchApp.o \
     $O/applications/giasearchapp/SearchMsgBookkeeping.o \
+    $O/applications/hstreaming/hstreaming.o \
     $O/applications/i3/I3.o \
     $O/applications/i3/I3BaseApp.o \
     $O/applications/i3/I3Identifier.o \
@@ -456,6 +458,7 @@ clean:
 	$(Q)-rm -f applications/almtest/*_m.cc applications/almtest/*_m.h
 	$(Q)-rm -f applications/dht/*_m.cc applications/dht/*_m.h
 	$(Q)-rm -f applications/giasearchapp/*_m.cc applications/giasearchapp/*_m.h
+	$(Q)-rm -f applications/hstreaming/*_m.cc applications/hstreaming/*_m.h
 	$(Q)-rm -f applications/i3/*_m.cc applications/i3/*_m.h
 	$(Q)-rm -f applications/i3/i3Apps/*_m.cc applications/i3/i3Apps/*_m.h
 	$(Q)-rm -f applications/kbrtestapp/*_m.cc applications/kbrtestapp/*_m.h
@@ -505,7 +508,7 @@ cleanall: clean
 
 depend:
 	$(qecho) Creating dependencies...
-	$(Q)$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cc applications/*.cc applications/almtest/*.cc applications/dht/*.cc applications/giasearchapp/*.cc applications/i3/*.cc applications/i3/i3Apps/*.cc applications/kbrtestapp/*.cc applications/myapplication/*.cc applications/realworldtestapp/*.cc applications/scribe/*.cc applications/simplegameclient/*.cc applications/tcpexampleapp/*.cc applications/tierdummy/*.cc common/*.cc common/cbr/*.cc common/cbr/globalViewBuilder/*.cc overlay/*.cc overlay/bamboo/*.cc overlay/broose/*.cc overlay/chord/*.cc overlay/gia/*.cc overlay/htopology/*.cc overlay/kademlia/*.cc overlay/koorde/*.cc overlay/myoverlay/*.cc overlay/nice/*.cc overlay/ntree/*.cc overlay/pastry/*.cc overlay/pubsubmmog/*.cc overlay/quon/*.cc overlay/vast/*.cc tier2/*.cc tier2/dhttestapp/*.cc tier2/p2pns/*.cc tier2/simmud/*.cc tier3/*.cc tier3/xmlrpcinterface/*.cc tier3/xmlrpcinterface/xmlrpc++/*.cc underlay/*.cc underlay/inetunderlay/*.cc underlay/inetunderlay/ipv6/*.cc underlay/reaseunderlay/*.cc underlay/reaseunderlay/topologies/*.cc underlay/reaseunderlay/topologies/topology_example/*.cc underlay/reaseunderlay/topologies/topology_tiny_oversim/*.cc underlay/simpleunderlay/*.cc underlay/singlehostunderlay/*.cc
+	$(Q)$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cc applications/*.cc applications/almtest/*.cc applications/dht/*.cc applications/giasearchapp/*.cc applications/hstreaming/*.cc applications/i3/*.cc applications/i3/i3Apps/*.cc applications/kbrtestapp/*.cc applications/myapplication/*.cc applications/realworldtestapp/*.cc applications/scribe/*.cc applications/simplegameclient/*.cc applications/tcpexampleapp/*.cc applications/tierdummy/*.cc common/*.cc common/cbr/*.cc common/cbr/globalViewBuilder/*.cc overlay/*.cc overlay/bamboo/*.cc overlay/broose/*.cc overlay/chord/*.cc overlay/gia/*.cc overlay/htopology/*.cc overlay/kademlia/*.cc overlay/koorde/*.cc overlay/myoverlay/*.cc overlay/nice/*.cc overlay/ntree/*.cc overlay/pastry/*.cc overlay/pubsubmmog/*.cc overlay/quon/*.cc overlay/vast/*.cc tier2/*.cc tier2/dhttestapp/*.cc tier2/p2pns/*.cc tier2/simmud/*.cc tier3/*.cc tier3/xmlrpcinterface/*.cc tier3/xmlrpcinterface/xmlrpc++/*.cc underlay/*.cc underlay/inetunderlay/*.cc underlay/inetunderlay/ipv6/*.cc underlay/reaseunderlay/*.cc underlay/reaseunderlay/topologies/*.cc underlay/reaseunderlay/topologies/topology_example/*.cc underlay/reaseunderlay/topologies/topology_tiny_oversim/*.cc underlay/simpleunderlay/*.cc underlay/singlehostunderlay/*.cc
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 $O/applications/almtest/ALMTest.o: applications/almtest/ALMTest.cc \
@@ -680,6 +683,42 @@ $O/applications/giasearchapp/GIASearchApp.o: applications/giasearchapp/GIASearch
 $O/applications/giasearchapp/SearchMsgBookkeeping.o: applications/giasearchapp/SearchMsgBookkeeping.cc \
 	applications/giasearchapp/SearchMsgBookkeeping.h \
 	common/OverlayKey.h
+$O/applications/hstreaming/hstreaming.o: applications/hstreaming/hstreaming.cc \
+	applications/hstreaming/hstreaming.h \
+	common/AbstractLookup.h \
+	common/BaseApp.h \
+	common/BaseOverlay.h \
+	common/BaseRpc.h \
+	common/BaseTcpSupport.h \
+	common/BinaryValue.h \
+	common/CommonMessages_m.h \
+	common/Comparator.h \
+	common/ExtTCPSocketMap.h \
+	common/InitStages.h \
+	common/IterativeLookupConfiguration.h \
+	common/NodeHandle.h \
+	common/NodeVector.h \
+	common/OverSimMessage.h \
+	common/OverSimMessage_m.h \
+	common/OverlayKey.h \
+	common/ProxNodeHandle.h \
+	common/RecursiveLookup.h \
+	common/RpcListener.h \
+	common/RpcMacros.h \
+	common/RpcState.h \
+	common/TopologyVis.h \
+	common/TransportAddress.h \
+	common/UnderlayConfigurator.h \
+	common/Vector2D.h \
+	common/oversim_mapset.h \
+	$(INET_PROJ)/src/base/INETDefs.h \
+	$(INET_PROJ)/src/base/INotifiable.h \
+	$(INET_PROJ)/src/networklayer/contract/IPAddress.h \
+	$(INET_PROJ)/src/networklayer/contract/IPv6Address.h \
+	$(INET_PROJ)/src/networklayer/contract/IPvXAddress.h \
+	$(INET_PROJ)/src/transport/contract/TCPCommand_m.h \
+	$(INET_PROJ)/src/transport/contract/TCPSocket.h \
+	$(INET_PROJ)/src/transport/contract/TCPSocketMap.h
 $O/applications/i3/I3.o: applications/i3/I3.cc \
 	applications/i3/I3.h \
 	applications/i3/I3IPAddress.h \

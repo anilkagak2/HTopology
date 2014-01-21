@@ -24,7 +24,11 @@ cplusplus {{
 #include <CommonMessages_m.h>
 #include "HTopology.h"
 
-#define JOINCALL_L(msg) BASECALL_L(msg)
+#define JOINCALL_L(msg) 			BASECALL_L(msg)
+#define HCAPACITYCALL_L(msg) 		BASECALL_L(msg) + KEY_L
+#define HCAPACITYRESPONSE_L(msg) 	BASERESPONSE_L(msg) + NODEHANDLE_L + TYPE_L
+#define HSELECTPARENTCALL_L(msg) 	HCAPACITYCALL_L(msg)
+#define HSELECTPARENTRESPONSE_L(msg) BASERESPONSE_L(msg) + NODEHANDLE_L
 
 }}
 class noncobject TransportAddress;

@@ -293,6 +293,7 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
 
         // TODO the capacity can be decided dynamically, but for now lets use the static version
         rrpc->setCapacity(maxChildren - noOfChildren);      // set the capacity left at this node
+        rrpc->setBitLength(HCAPACITYRESPONSE_L(rrpc));
 
         // now send the response. sendRpcResponse can automatically tell where to send it to.
         // note that sendRpcResponse will delete mrpc (aka msg)!
@@ -384,6 +385,7 @@ void HTopology::getParametersForSelectionAlgo (OverlayKey& key) {
         HCapacityCall *msg = new HCapacityCall();
         NodeHandle node = *it;
         msg->setDestinationKey(node.getKey());
+        msg->setBitLength(HCAPACITYCALL_L(msg));
 
         // send it to the destination
         // TODO Not sure if this is the correct way to do it

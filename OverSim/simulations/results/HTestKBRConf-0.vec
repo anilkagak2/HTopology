@@ -1,14 +1,14 @@
 version 2
-run HTestKBRConf-0-20140120-18:52:32-13896
+run HTestKBRConf-0-20140121-12:09:38-1132
 attr configname HTestKBRConf
-attr datetime 20140120-18:52:32
+attr datetime 20140121-12:09:38
 attr experiment HTestKBRConf
 attr inifile htopology.ini
 attr iterationvars ""
 attr iterationvars2 $repetition=0
 attr measurement ""
 attr network oversim.underlay.simpleunderlay.SimpleUnderlayNetwork
-attr processid 13896
+attr processid 1132
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -82,3 +82,4 @@ vector 1  SimpleUnderlayNetwork.globalObserver.globalStatistics  "GlobalNodeList
 1	724	3200	10
 1	735	3250	10
 1	742	3300	10
+1	753	3350	10
