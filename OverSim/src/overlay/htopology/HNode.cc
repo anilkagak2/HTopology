@@ -104,6 +104,10 @@ const OverlayKey HNode::getKey() const {
     return handle.getKey();
 }
 
+const NodeHandle HNode::getHandle() const {
+    return handle;
+}
+
 const NodeVector HNode::getNodeVector () const {
     return children;
 }

@@ -81,7 +81,8 @@ void HTopology::updateTooltip() {
         std::stringstream ttString;
 
         // show our predecessor and successor in tooltip
-        ttString << predecessorNode << endl << thisNode << endl << successorNode << endl;
+        ttString << predecessorNode << endl << thisNode << endl
+                << successorNode << endl;
 
         getParentModule()->getParentModule()->getDisplayString().
         setTagArg("tt", 0, ttString.str().c_str());
@@ -90,9 +91,9 @@ void HTopology::updateTooltip() {
         getDisplayString().setTagArg("tt", 0, ttString.str().c_str());
 
         // draw an arrow to our current successor
-        showOverlayNeighborArrow(successorNode, true,
+        showOverlayNeighborArrow(successorNode.getHandle(), true,
                                  "m=m,50,0,50,0;ls=red,1");
-        showOverlayNeighborArrow(predecessorNode, false,
+        showOverlayNeighborArrow(predecessorNode.getHandle(), false,
                                  "m=m,50,100,50,100;ls=green,1");
     }
 }
@@ -105,8 +106,8 @@ void HTopology::changeState (int state) {
         setOverlayReady(false);
 
         // initialize predecessor pointer
-        predecessorNode = unspecifiedNode;
-        successorNode = unspecifiedNode;
+        predecessorNode = HNode::unspecifiedNode;
+        successorNode = HNode::unspecifiedNode;
 
         updateTooltip();
 
@@ -374,7 +375,7 @@ void HTopology::getParametersForSelectionAlgo (OverlayKey& key) {
         return;
     }
 
-    NodeVector nodeChildren = children[key].children;
+    NodeVector nodeChildren = children[key].getNodeVector();
 
     queryNodesSelectionAlgo.clear();        // clear this variable for storing the recent values
     responseRequired=nodeChildren.size();   // Response required
@@ -397,7 +398,7 @@ void HTopology::goAheadWithRestSelectionProcess(OverlayKey& key) {
         return;
     }
 
-    int noOfChildrenToAdd = children[key].children.size();
+    int noOfChildrenToAdd = children[key].getNodeVector().size();
     bool replacementDone = false;
     std::map<OverlayKey, int>::iterator it=queryNodesSelectionAlgo.begin();
 

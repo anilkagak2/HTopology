@@ -136,6 +136,7 @@ class HNode {
        * @return the key of this NodeHandle
        */
       const OverlayKey getKey() const;
+      const NodeHandle getHandle() const;
       const NodeVector getNodeVector () const;
 
       /**
