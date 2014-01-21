@@ -22,21 +22,13 @@
 #include <BootstrapList.h>
 #include "BaseOverlay.h"
 #include "HMessage_m.h"
+#include "HNode.h"
 using std::endl;
 
 #define GENERAL_MODE 0
 #define RESCUE_MODE 1
 
-// TODO specify Node class on the lines of NodeHandle
-class Node : public NodeHandle {
-  public:
-    NodeVector children;
-    // some more properties of a node should be kept here
-};
-
-static const Node unspecifiedNode; /**< the unspecified NodeHandle */
-
-typedef std::map<OverlayKey, Node> KeyToNodeMap;
+typedef std::map<OverlayKey, HNode> KeyToNodeMap;
 
 /**
  * TODO - Generated class
@@ -76,7 +68,7 @@ class HTopology : public BaseOverlay {
     // Links to other nodes in the overlay
     KeyToNodeMap children;
     //KeyToNodeMap siblings;
-    Node successorNode, predecessorNode;
+    HNode successorNode, predecessorNode;
     KeyToNodeMap nodesOneUp;
     KeyToNodeMap ancestors;
 

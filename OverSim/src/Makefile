@@ -223,6 +223,7 @@ OBJS = \
     $O/overlay/gia/GiaNeighbors.o \
     $O/overlay/gia/GiaNode.o \
     $O/overlay/gia/GiaTokenFactory.o \
+    $O/overlay/htopology/HNode.o \
     $O/overlay/htopology/HTopology.o \
     $O/overlay/kademlia/Kademlia.o \
     $O/overlay/kademlia/KademliaBucket.o \
@@ -4655,6 +4656,7 @@ $O/overlay/htopology/HMessage_m.o: overlay/htopology/HMessage_m.cc \
 	common/Vector2D.h \
 	common/oversim_mapset.h \
 	overlay/htopology/HMessage_m.h \
+	overlay/htopology/HNode.h \
 	overlay/htopology/HTopology.h \
 	$(INET_PROJ)/src/base/INETDefs.h \
 	$(INET_PROJ)/src/base/INotifiable.h \
@@ -4664,6 +4666,19 @@ $O/overlay/htopology/HMessage_m.o: overlay/htopology/HMessage_m.cc \
 	$(INET_PROJ)/src/transport/contract/TCPCommand_m.h \
 	$(INET_PROJ)/src/transport/contract/TCPSocket.h \
 	$(INET_PROJ)/src/transport/contract/TCPSocketMap.h
+$O/overlay/htopology/HNode.o: overlay/htopology/HNode.cc \
+	common/Comparator.h \
+	common/NodeHandle.h \
+	common/NodeVector.h \
+	common/OverlayKey.h \
+	common/ProxNodeHandle.h \
+	common/TransportAddress.h \
+	common/oversim_mapset.h \
+	overlay/htopology/HNode.h \
+	$(INET_PROJ)/src/base/INETDefs.h \
+	$(INET_PROJ)/src/networklayer/contract/IPAddress.h \
+	$(INET_PROJ)/src/networklayer/contract/IPv6Address.h \
+	$(INET_PROJ)/src/networklayer/contract/IPvXAddress.h
 $O/overlay/htopology/HTopology.o: overlay/htopology/HTopology.cc \
 	common/AbstractLookup.h \
 	common/BaseApp.h \
@@ -4693,6 +4708,7 @@ $O/overlay/htopology/HTopology.o: overlay/htopology/HTopology.cc \
 	common/Vector2D.h \
 	common/oversim_mapset.h \
 	overlay/htopology/HMessage_m.h \
+	overlay/htopology/HNode.h \
 	overlay/htopology/HTopology.h \
 	$(INET_PROJ)/src/base/INETDefs.h \
 	$(INET_PROJ)/src/base/INotifiable.h \
