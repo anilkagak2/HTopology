@@ -87,6 +87,15 @@ void HStreaming::handleTimerEvent(cMessage* msg) {
 void HStreaming::handleReadyMessage(CompReadyMessage* msg) {
     EV << "Got a ready message from overlay layer" << endl;
     EV << "Going to react now :)" << endl;
+
+    if (msg->getReady() && !overlay->getState()) {
+        // call join method
+        EV << "Joining the overlay" << endl;
+        overlay->join(thisNode.getKey());
+    } else{
+        EV << "Already joined the overlay" << endl;
+    }
+    delete msg;
 }
 
 /*// deliver() is called when we receive a message from the overlay.

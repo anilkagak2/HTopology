@@ -103,7 +103,7 @@ void HTopology::changeState (int state) {
     switch (state){
     case INIT:
         state = INIT;
-        setOverlayReady(false);
+        //setOverlayReady(false);
 
         // initialize predecessor pointer
         predecessorNode = HNode::unspecifiedNode;
@@ -157,7 +157,7 @@ void HTopology::changeState (int state) {
 
     case READY:
         state = READY;
-        setOverlayReady(true);
+        //setOverlayReady(true);
 
         // debug message
         if (debugOutput) {
@@ -219,6 +219,8 @@ void HTopology::handleJoinTimerExpired(cMessage* msg) {
 // Called when the module is ready to join the overlay
 void HTopology::joinOverlay() {
     // tell the simulator that we're ready
+
+    EV << "joinOverlay is called \n";
     changeState(INIT);
     changeState(JOIN);
 }
