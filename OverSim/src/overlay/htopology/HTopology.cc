@@ -54,6 +54,7 @@ void HTopology::initializeOverlay(int stage) {
    joinRetry = par("joinRetry");
    joinDelay = par("joinDelay");
    noOfChildren = 0;
+   isSource = false;
    buffer.resize(bufferMapSize);            // Resize the buffer map to fit the given requirement
 
    // add some watches
@@ -66,6 +67,8 @@ void HTopology::initializeOverlay(int stage) {
    join_timer = new cMessage("join_timer");
 
    EV << thisNode << ": initialized." << std::endl;
+   // Now overlay is ready
+   setOverlayReady(true);
 
    /*rpcTimer = new cMessage("RPC timer: initialized the node");
    scheduleAt(simTime() + 5, rpcTimer);*/
@@ -145,11 +148,16 @@ void HTopology::changeState (int state) {
 
         // is this the first node?
         if (bootstrapNode.isUnspecified()) {
-            // create new cord ring
+            // Initialize this Node as the source node
+            EV << "Source node started the overlay." << endl;
             assert(predecessorNode.isUnspecified());
+            isSource = true;
             bootstrapNode = thisNode;
             changeState(READY);
             updateTooltip();
+        } else {
+            EV << thisNode << ": is going to join the overlay" << endl;
+            // TODO rest of the join algorithm
         }
 
         getParentModule()->getParentModule()->bubble("Enter JOIN state.");

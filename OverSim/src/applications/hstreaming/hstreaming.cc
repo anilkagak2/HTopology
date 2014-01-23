@@ -88,7 +88,13 @@ void HStreaming::handleReadyMessage(CompReadyMessage* msg) {
     EV << "Got a ready message from overlay layer" << endl;
     EV << "Going to react now :)" << endl;
 
-    if (msg->getReady() && !overlay->getState()) {
+    EV << "Layer:" << msg->getComp() << endl;
+    if (msg->getComp() == OVERLAY_COMP) {
+        EV << "Layer is OVERLAY" << endl;
+    }
+
+    // If the flags ready==TRUE && overlay->state!=TRUE && readyComponent==OVERLAY
+    if (msg->getReady() && !overlay->getState() && msg->getComp()==OVERLAY_COMP) {
         // call join method
         EV << "Joining the overlay" << endl;
         overlay->join(thisNode.getKey());

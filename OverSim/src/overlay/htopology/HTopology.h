@@ -51,7 +51,9 @@ class HTopology : public BaseOverlay {
     std::string buffer;     // buffer used
     int bufferMapSize;      // size of the local buffer
     int maxChildren;        // Maximum no. of children to be supported
-    int joinRetry;            // Maximum no. of tries in joining the overlay
+    int joinRetry;          // Maximum no. of tries in joining the overlay
+
+    bool isSource;          // true if its the source
 
     void updateTooltip ();              // shows the links in visual mode
     void changeState (int state);       // change the STATE of this node to state
