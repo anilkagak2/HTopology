@@ -112,6 +112,10 @@ const NodeVector HNode::getNodeVector () const {
     return children;
 }
 
+void HNode::setHandle(NodeHandle handle) {
+    this->handle = handle;
+}
+
 //private
 inline void HNode::assertUnspecified( const HNode& node) const {
     if ( this->isUnspecified() || node.isUnspecified() )

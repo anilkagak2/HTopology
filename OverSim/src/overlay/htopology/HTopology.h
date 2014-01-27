@@ -17,6 +17,7 @@
 #define __OVERSIM_HTOPOLOGY_H_
 
 #include <omnetpp.h>
+#include <queue>
 #include <NodeHandle.h>
 #include <string>
 #include <BootstrapList.h>
@@ -46,7 +47,6 @@ class HTopology : public BaseOverlay {
     int responseRequired;       // How many of answers required?
     OverlayKey keyParent;    // key of the parent node, which is to be replaced
 
-
     int noOfChildren;       // current count of the children;
     std::string buffer;     // buffer used
     int bufferMapSize;      // size of the local buffer
@@ -60,15 +60,21 @@ class HTopology : public BaseOverlay {
 
     // timer messages
     cMessage* join_timer; /**< */
+    cMessage *packetGenTimer;
     double joinDelay;
+    double packetGenRate;
 
   public:
     int nodeID;             // my ID in the overlay
     int modeOfOperation;    // GENERAL_MODE / RESCUE_MODE
     TransportAddress bootstrapNode; /**< node used to bootstrap */
 
+    // TODO
+    // Queue for storing the packets -> source need infinite queue, others need fixed size
+
     // Links to other nodes in the overlay
-    KeyToNodeMap children;
+    HNode parent;
+    KeyToNodeMap children, rescueChildren;
     //KeyToNodeMap siblings;
     HNode successorNode, predecessorNode;
     KeyToNodeMap nodesOneUp;
@@ -76,13 +82,18 @@ class HTopology : public BaseOverlay {
 
     ~HTopology();
 
+    bool IsSource () { return isSource; }
+
     // Basic functionalities
     void initializeOverlay(int stage);  // called when the overlay is being initialized
     void setOwnNodeID();                // (optional) called to set the key of this node (random otherwise)
     void joinOverlay();                 // called when the node is ready to join the overlay
     void finishOverlay();               // called when the module is about to be destroyed
 
+    int capacity () {return maxChildren - noOfChildren; }
     void handleJoinTimerExpired(cMessage* msg);
+    void schedulePacketGeneration ();
+    void handlePacketGenerationTimer (cMessage *msg);
     void handleTimerEvent(cMessage*);
 
     // obligatory: called when we need the next hop to route a packet to the given key

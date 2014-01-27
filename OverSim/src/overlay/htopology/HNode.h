@@ -139,6 +139,8 @@ class HNode {
       const NodeHandle getHandle() const;
       const NodeVector getNodeVector () const;
 
+      void setHandle (NodeHandle handle);
+
       /**
        * indicates if this NodeHandle is specified
        *

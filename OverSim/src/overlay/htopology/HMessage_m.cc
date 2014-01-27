@@ -1211,21 +1211,16 @@ Register_Class(HJoinResponse);
 
 HJoinResponse::HJoinResponse(const char *name, int kind) : BaseResponseMessage(name,kind)
 {
-    this->sucNum_var = 0;
-    sucNode_arraysize = 0;
-    this->sucNode_var = 0;
+    this->joined_var = 0;
 }
 
 HJoinResponse::HJoinResponse(const HJoinResponse& other) : BaseResponseMessage(other)
 {
-    sucNode_arraysize = 0;
-    this->sucNode_var = 0;
     copy(other);
 }
 
 HJoinResponse::~HJoinResponse()
 {
-    delete [] sucNode_var;
 }
 
 HJoinResponse& HJoinResponse::operator=(const HJoinResponse& other)
@@ -1238,85 +1233,55 @@ HJoinResponse& HJoinResponse::operator=(const HJoinResponse& other)
 
 void HJoinResponse::copy(const HJoinResponse& other)
 {
-    this->sucNum_var = other.sucNum_var;
-    delete [] this->sucNode_var;
-    this->sucNode_var = (other.sucNode_arraysize==0) ? NULL : new NodeHandle[other.sucNode_arraysize];
-    sucNode_arraysize = other.sucNode_arraysize;
-    for (unsigned int i=0; i<sucNode_arraysize; i++)
-        this->sucNode_var[i] = other.sucNode_var[i];
-    this->preNode_var = other.preNode_var;
+    this->successorNode_var = other.successorNode_var;
+    this->predecessorNode_var = other.predecessorNode_var;
+    this->joined_var = other.joined_var;
 }
 
 void HJoinResponse::parsimPack(cCommBuffer *b)
 {
     BaseResponseMessage::parsimPack(b);
-    doPacking(b,this->sucNum_var);
-    b->pack(sucNode_arraysize);
-    doPacking(b,this->sucNode_var,sucNode_arraysize);
-    doPacking(b,this->preNode_var);
+    doPacking(b,this->successorNode_var);
+    doPacking(b,this->predecessorNode_var);
+    doPacking(b,this->joined_var);
 }
 
 void HJoinResponse::parsimUnpack(cCommBuffer *b)
 {
     BaseResponseMessage::parsimUnpack(b);
-    doUnpacking(b,this->sucNum_var);
-    delete [] this->sucNode_var;
-    b->unpack(sucNode_arraysize);
-    if (sucNode_arraysize==0) {
-        this->sucNode_var = 0;
-    } else {
-        this->sucNode_var = new NodeHandle[sucNode_arraysize];
-        doUnpacking(b,this->sucNode_var,sucNode_arraysize);
-    }
-    doUnpacking(b,this->preNode_var);
+    doUnpacking(b,this->successorNode_var);
+    doUnpacking(b,this->predecessorNode_var);
+    doUnpacking(b,this->joined_var);
 }
 
-int HJoinResponse::getSucNum() const
+NodeHandle& HJoinResponse::getSuccessorNode()
 {
-    return sucNum_var;
+    return successorNode_var;
 }
 
-void HJoinResponse::setSucNum(int sucNum)
+void HJoinResponse::setSuccessorNode(const NodeHandle& successorNode)
 {
-    this->sucNum_var = sucNum;
+    this->successorNode_var = successorNode;
 }
 
-void HJoinResponse::setSucNodeArraySize(unsigned int size)
+NodeHandle& HJoinResponse::getPredecessorNode()
 {
-    NodeHandle *sucNode_var2 = (size==0) ? NULL : new NodeHandle[size];
-    unsigned int sz = sucNode_arraysize < size ? sucNode_arraysize : size;
-    for (unsigned int i=0; i<sz; i++)
-        sucNode_var2[i] = this->sucNode_var[i];
-    sucNode_arraysize = size;
-    delete [] this->sucNode_var;
-    this->sucNode_var = sucNode_var2;
+    return predecessorNode_var;
 }
 
-unsigned int HJoinResponse::getSucNodeArraySize() const
+void HJoinResponse::setPredecessorNode(const NodeHandle& predecessorNode)
 {
-    return sucNode_arraysize;
+    this->predecessorNode_var = predecessorNode;
 }
 
-NodeHandle& HJoinResponse::getSucNode(unsigned int k)
+int HJoinResponse::getJoined() const
 {
-    if (k>=sucNode_arraysize) throw cRuntimeError("Array of size %d indexed by %d", sucNode_arraysize, k);
-    return sucNode_var[k];
+    return joined_var;
 }
 
-void HJoinResponse::setSucNode(unsigned int k, const NodeHandle& sucNode)
+void HJoinResponse::setJoined(int joined)
 {
-    if (k>=sucNode_arraysize) throw cRuntimeError("Array of size %d indexed by %d", sucNode_arraysize, k);
-    this->sucNode_var[k] = sucNode;
-}
-
-NodeHandle& HJoinResponse::getPreNode()
-{
-    return preNode_var;
-}
-
-void HJoinResponse::setPreNode(const NodeHandle& preNode)
-{
-    this->preNode_var = preNode;
+    this->joined_var = joined;
 }
 
 class HJoinResponseDescriptor : public cClassDescriptor
@@ -1378,9 +1343,9 @@ unsigned int HJoinResponseDescriptor::getFieldTypeFlags(void *object, int field)
         field -= basedesc->getFieldCount(object);
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,
-        FD_ISARRAY | FD_ISCOMPOUND,
         FD_ISCOMPOUND,
+        FD_ISCOMPOUND,
+        FD_ISEDITABLE,
     };
     return (field>=0 && field<3) ? fieldTypeFlags[field] : 0;
 }
@@ -1394,9 +1359,9 @@ const char *HJoinResponseDescriptor::getFieldName(void *object, int field) const
         field -= basedesc->getFieldCount(object);
     }
     static const char *fieldNames[] = {
-        "sucNum",
-        "sucNode",
-        "preNode",
+        "successorNode",
+        "predecessorNode",
+        "joined",
     };
     return (field>=0 && field<3) ? fieldNames[field] : NULL;
 }
@@ -1405,9 +1370,9 @@ int HJoinResponseDescriptor::findField(void *object, const char *fieldName) cons
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount(object) : 0;
-    if (fieldName[0]=='s' && strcmp(fieldName, "sucNum")==0) return base+0;
-    if (fieldName[0]=='s' && strcmp(fieldName, "sucNode")==0) return base+1;
-    if (fieldName[0]=='p' && strcmp(fieldName, "preNode")==0) return base+2;
+    if (fieldName[0]=='s' && strcmp(fieldName, "successorNode")==0) return base+0;
+    if (fieldName[0]=='p' && strcmp(fieldName, "predecessorNode")==0) return base+1;
+    if (fieldName[0]=='j' && strcmp(fieldName, "joined")==0) return base+2;
     return basedesc ? basedesc->findField(object, fieldName) : -1;
 }
 
@@ -1420,9 +1385,9 @@ const char *HJoinResponseDescriptor::getFieldTypeString(void *object, int field)
         field -= basedesc->getFieldCount(object);
     }
     static const char *fieldTypeStrings[] = {
+        "NodeHandle",
+        "NodeHandle",
         "int",
-        "NodeHandle",
-        "NodeHandle",
     };
     return (field>=0 && field<3) ? fieldTypeStrings[field] : NULL;
 }
@@ -1450,7 +1415,6 @@ int HJoinResponseDescriptor::getArraySize(void *object, int field) const
     }
     HJoinResponse *pp = (HJoinResponse *)object; (void)pp;
     switch (field) {
-        case 1: return pp->getSucNodeArraySize();
         default: return 0;
     }
 }
@@ -1465,9 +1429,9 @@ std::string HJoinResponseDescriptor::getFieldAsString(void *object, int field, i
     }
     HJoinResponse *pp = (HJoinResponse *)object; (void)pp;
     switch (field) {
-        case 0: return long2string(pp->getSucNum());
-        case 1: {std::stringstream out; out << pp->getSucNode(i); return out.str();}
-        case 2: {std::stringstream out; out << pp->getPreNode(); return out.str();}
+        case 0: {std::stringstream out; out << pp->getSuccessorNode(); return out.str();}
+        case 1: {std::stringstream out; out << pp->getPredecessorNode(); return out.str();}
+        case 2: return long2string(pp->getJoined());
         default: return "";
     }
 }
@@ -1482,7 +1446,7 @@ bool HJoinResponseDescriptor::setFieldAsString(void *object, int field, int i, c
     }
     HJoinResponse *pp = (HJoinResponse *)object; (void)pp;
     switch (field) {
-        case 0: pp->setSucNum(string2long(value)); return true;
+        case 2: pp->setJoined(string2long(value)); return true;
         default: return false;
     }
 }
@@ -1496,9 +1460,9 @@ const char *HJoinResponseDescriptor::getFieldStructName(void *object, int field)
         field -= basedesc->getFieldCount(object);
     }
     static const char *fieldStructNames[] = {
+        "NodeHandle",
+        "NodeHandle",
         NULL,
-        "NodeHandle",
-        "NodeHandle",
     };
     return (field>=0 && field<3) ? fieldStructNames[field] : NULL;
 }
@@ -1513,8 +1477,8 @@ void *HJoinResponseDescriptor::getFieldStructPointer(void *object, int field, in
     }
     HJoinResponse *pp = (HJoinResponse *)object; (void)pp;
     switch (field) {
-        case 1: return (void *)(&pp->getSucNode(i)); break;
-        case 2: return (void *)(&pp->getPreNode()); break;
+        case 0: return (void *)(&pp->getSuccessorNode()); break;
+        case 1: return (void *)(&pp->getPredecessorNode()); break;
         default: return NULL;
     }
 }

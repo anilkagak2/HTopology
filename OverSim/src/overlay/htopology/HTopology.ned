@@ -30,6 +30,7 @@ simple HTopology extends BaseOverlay
         int maxChildren;			// Maximum number of children allowed at a node
         int joinRetry;
         double joinDelay @unit(s); // delay between join retries (sec)
+        double packetGenRate @unit(s); // time gap between generation of two packets
         
         // TODO add parameters required for configuration purpose
         // May be we can try to configure things like

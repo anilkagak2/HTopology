@@ -14,6 +14,7 @@
 // 
 
 #include "HTopology.h"
+#include "HMessage_m.h"
 #include <rpcmacros.h>
 
 Define_Module(HTopology);
@@ -24,6 +25,7 @@ Define_Module(HTopology);
 HTopology::~HTopology(){
     // destroy self timer messages
     cancelAndDelete(join_timer);
+    cancelAndDelete(packetGenTimer);
 }
 
 void HTopology::initialize() {
@@ -51,9 +53,10 @@ void HTopology::initializeOverlay(int stage) {
    // initialize the rest of variables
    bufferMapSize = par("bufferSizeInBytes");
    maxChildren = par("maxChildren");
+   noOfChildren = 0;
    joinRetry = par("joinRetry");
    joinDelay = par("joinDelay");
-   noOfChildren = 0;
+   packetGenRate = par("packetGenRate");
    isSource = false;
    buffer.resize(bufferMapSize);            // Resize the buffer map to fit the given requirement
 
@@ -65,6 +68,7 @@ void HTopology::initializeOverlay(int stage) {
 
    // self-messages
    join_timer = new cMessage("join_timer");
+   packetGenTimer = NULL;
 
    EV << thisNode << ": initialized." << std::endl;
    // Now overlay is ready
@@ -93,9 +97,13 @@ void HTopology::updateTooltip() {
         setTagArg("tt", 0, ttString.str().c_str());
         getDisplayString().setTagArg("tt", 0, ttString.str().c_str());
 
+        // parent
+        showOverlayNeighborArrow(parent.getHandle(), true,
+                                         "m=m,50,0,50,0;ls=blue,1");
         // draw an arrow to our current successor
         showOverlayNeighborArrow(successorNode.getHandle(), true,
                                  "m=m,50,0,50,0;ls=red,1");
+        // predecessor
         showOverlayNeighborArrow(predecessorNode.getHandle(), false,
                                  "m=m,50,100,50,100;ls=green,1");
     }
@@ -147,19 +155,34 @@ void HTopology::changeState (int state) {
         bootstrapNode = bootstrapList->getBootstrapNode(overlayId);
 
         // is this the first node?
-        if (bootstrapNode.isUnspecified()) {
+        if (bootstrapNode.isUnspecified() || bootstrapNode==thisNode) {
             // Initialize this Node as the source node
             EV << "Source node started the overlay." << endl;
             assert(predecessorNode.isUnspecified());
             isSource = true;
             bootstrapNode = thisNode;
-            changeState(READY);
-            updateTooltip();
+            if (bootstrapList->insertBootstrapCandidate(thisNode)) {
+                EV << "Node was already in the bootstrap list" << endl;
+            }else {
+                EV << "Added the source node in the bootstrap list" << endl;
+            }
+
+            // Start the packet generation module
+            packetGenTimer = new cMessage("Packet Generation Timer");
+            schedulePacketGeneration();
         } else {
+            // TODO remove the call to getBootstrapNode
             EV << thisNode << ": is going to join the overlay" << endl;
-            // TODO rest of the join algorithm
+            HJoinCall *msg = new HJoinCall();
+            msg->setBitLength(JOINCALL_L (msg));
+
+            // send it to the destination
+            // TODO Not sure if this is the correct way to do it
+            sendRouteRpcCall (OVERLAY_COMP, bootstrapNode, msg);
         }
 
+        changeState(READY);
+        updateTooltip();
         getParentModule()->getParentModule()->bubble("Enter JOIN state.");
         break;
 
@@ -184,11 +207,34 @@ void HTopology::handleTimerEvent(cMessage* msg) {
     if (msg == join_timer) {
         handleJoinTimerExpired(msg);
     }
+    // Packet Generation Timer
+    else if(msg == packetGenTimer) {
+        handlePacketGenerationTimer(msg);
+    }
     // unknown self message
     else {
         error("HTopology::handleTimerEvent(): received self message of "
               "unknown type!");
     }
+}
+
+void HTopology::schedulePacketGeneration () {
+    cancelEvent(packetGenTimer);
+    take (packetGenTimer);
+    scheduleAt(simTime()+packetGenRate, packetGenTimer);
+}
+
+void HTopology::handlePacketGenerationTimer(cMessage* msg) {
+    schedulePacketGeneration();     // Schedule the run again
+
+    if (state != READY) {
+        EV << "Packet generation message called w/o node being in READY state" << endl;
+        return;     // If not ready, then it cann't be processed
+    }
+
+    // TODO
+    // Generate the packet
+    // Schedule the transfer to all the children & rescue nodes
 }
 
 void HTopology::handleJoinTimerExpired(cMessage* msg) {
@@ -302,7 +348,7 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
         rrpc->setRespondingNode(thisNode);
 
         // TODO the capacity can be decided dynamically, but for now lets use the static version
-        rrpc->setCapacity(maxChildren - noOfChildren);      // set the capacity left at this node
+        rrpc->setCapacity(capacity());      // set the capacity left at this node
         rrpc->setBitLength(HCAPACITYRESPONSE_L(rrpc));
 
         // now send the response. sendRpcResponse can automatically tell where to send it to.
@@ -317,6 +363,32 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
         //HSelectParentCall *mrpc = (HSelectParentCall)msg;
 
         // TODO Do check if the request is not a fake/malicious one
+    }
+
+    RPC_ON_CALL(HJoin) {
+        HJoinCall *mrpc = (HJoinCall*) msg;
+        EV << "received JOin call from " <<  msg->getSrcNode() << endl;
+        if (capacity()>0) {
+            EV << thisNode << ": will be adding node: " << msg->getSrcNode() << ": as child" << endl;
+            HJoinResponse *rrpc = new HJoinResponse ();
+            rrpc->setSuccessorNode(NodeHandle::UNSPECIFIED_NODE);
+            rrpc->setPredecessorNode(NodeHandle::UNSPECIFIED_NODE);
+            rrpc->setJoined(true);
+            rrpc->setBitLength(HJOINRESPONSE_L(rrpc));
+
+            sendRpcResponse(mrpc, rrpc);
+            // What is required by a new node?
+            // Children & rescueChildren will be empty.
+            // successorNode, predecessorNode;
+            // nodesOneUp ??
+            // ancestors = thisNode->ancestors + thisNode
+        } else{
+            // TODO may be check if anyone of them can support the children
+            // Try to keep the height of the tree as low as possible
+            EV << "redirecting to one of my children: " << endl;
+        }
+        RPC_HANDLED = true;
+        break;
     }
 
     // end the switch
@@ -370,6 +442,18 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
 
         RPC_ON_RESPONSE(HSelectParent) {
             // TODO, will there really be any response message of this sort?
+        }
+
+        RPC_ON_RESPONSE(HJoin) {
+            HJoinResponse* mrpc = (HJoinResponse*)msg;          // get Response message
+            if (mrpc->getJoined() == true) {
+                parent.setHandle(mrpc->getSrcNode());
+                successorNode.setHandle(mrpc->getSuccessorNode());
+                predecessorNode.setHandle(mrpc->getPredecessorNode());
+                updateTooltip();
+            }
+            // TODO when to delete which message?
+            // there'll be lots of memory leaks :D
         }
 
     // end the switch

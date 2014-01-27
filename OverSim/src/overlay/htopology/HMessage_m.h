@@ -18,9 +18,10 @@
 #include <NodeHandle.h>
 #include <OverlayKey.h>
 #include <CommonMessages_m.h>
-#include "HTopology.h"
+#include "HNode.h"
 
 #define JOINCALL_L(msg) 			BASECALL_L(msg)
+#define HJOINRESPONSE_L(msg) 		BASERESPONSE_L(msg) + NODEHANDLE_L + NODEHANDLE_L + TYPE_L
 #define HCAPACITYCALL_L(msg) 		BASECALL_L(msg) + KEY_L
 #define HCAPACITYRESPONSE_L(msg) 	BASERESPONSE_L(msg) + NODEHANDLE_L + TYPE_L
 #define HSELECTPARENTCALL_L(msg) 	HCAPACITYCALL_L(msg)
@@ -209,8 +210,7 @@ inline void doUnpacking(cCommBuffer *b, HSelectParentResponse& obj) {obj.parsimU
 /**
  * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
  * <pre>
- * packet HJoinCall extends BaseCallMessage
- * {
+ * packet HJoinCall extends BaseCallMessage {
  * }
  * </pre>
  */
@@ -243,21 +243,24 @@ inline void doUnpacking(cCommBuffer *b, HJoinCall& obj) {obj.parsimUnpack(b);}
 /**
  * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
  * <pre>
- * packet HJoinResponse extends BaseResponseMessage
- * {
- *     int sucNum;    
- *     NodeHandle sucNode[];    
- *     NodeHandle preNode;    
+ * packet HJoinResponse extends BaseResponseMessage {
+ *     
+ *     
+ *     
+ *     
+ *     
+ *     NodeHandle successorNode;
+ *     NodeHandle predecessorNode;
+ *     int joined;
  * }
  * </pre>
  */
 class HJoinResponse : public ::BaseResponseMessage
 {
   protected:
-    int sucNum_var;
-    NodeHandle *sucNode_var; // array ptr
-    unsigned int sucNode_arraysize;
-    NodeHandle preNode_var;
+    NodeHandle successorNode_var;
+    NodeHandle predecessorNode_var;
+    int joined_var;
 
   private:
     void copy(const HJoinResponse& other);
@@ -276,16 +279,14 @@ class HJoinResponse : public ::BaseResponseMessage
     virtual void parsimUnpack(cCommBuffer *b);
 
     // field getter/setter methods
-    virtual int getSucNum() const;
-    virtual void setSucNum(int sucNum);
-    virtual void setSucNodeArraySize(unsigned int size);
-    virtual unsigned int getSucNodeArraySize() const;
-    virtual NodeHandle& getSucNode(unsigned int k);
-    virtual const NodeHandle& getSucNode(unsigned int k) const {return const_cast<HJoinResponse*>(this)->getSucNode(k);}
-    virtual void setSucNode(unsigned int k, const NodeHandle& sucNode);
-    virtual NodeHandle& getPreNode();
-    virtual const NodeHandle& getPreNode() const {return const_cast<HJoinResponse*>(this)->getPreNode();}
-    virtual void setPreNode(const NodeHandle& preNode);
+    virtual NodeHandle& getSuccessorNode();
+    virtual const NodeHandle& getSuccessorNode() const {return const_cast<HJoinResponse*>(this)->getSuccessorNode();}
+    virtual void setSuccessorNode(const NodeHandle& successorNode);
+    virtual NodeHandle& getPredecessorNode();
+    virtual const NodeHandle& getPredecessorNode() const {return const_cast<HJoinResponse*>(this)->getPredecessorNode();}
+    virtual void setPredecessorNode(const NodeHandle& predecessorNode);
+    virtual int getJoined() const;
+    virtual void setJoined(int joined);
 };
 
 inline void doPacking(cCommBuffer *b, HJoinResponse& obj) {obj.parsimPack(b);}
