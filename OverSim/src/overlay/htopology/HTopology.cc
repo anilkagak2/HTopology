@@ -32,9 +32,11 @@ void HTopology::initialize() {
     // TODO - Generated method body
 }
 
-void HTopology::handleMessage(cMessage *msg) {
+/*void HTopology::handleMessage(cMessage *msg) {
     // TODO - Generated method body
-}
+    EV << "got a message in handleMessage: HTopology" << endl;
+    delete msg;
+}*/
 
 // Called when the module is being initialized
 void HTopology::initializeOverlay(int stage) {
@@ -208,7 +210,9 @@ void HTopology::changeState (int state) {
 void HTopology::handleTimerEvent(cMessage* msg) {
     // catch JOIN timer
     if (msg == join_timer) {
-        handleJoinTimerExpired(msg);
+        //handleJoinTimerExpired(msg);
+        EV << "join timer was called but not handled" << endl;
+        EV << "need to do something about this timer" << endl;
     }
     // Packet Generation Timer
     else if(msg == packetGenTimer) {
@@ -370,7 +374,7 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
 
     RPC_ON_CALL(HJoin) {
         HJoinCall *mrpc = (HJoinCall*) msg;
-        EV << "received JOin call from " <<  msg->getSrcNode() << endl;
+        EV << thisNode << ": received Join call from " <<  msg->getSrcNode() << endl;
         if (capacity()>0) {
             EV << thisNode << ": will be adding node: " << msg->getSrcNode() << ": as child" << endl;
             HJoinResponse *rrpc = new HJoinResponse ();

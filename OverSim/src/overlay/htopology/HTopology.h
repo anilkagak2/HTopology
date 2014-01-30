@@ -37,7 +37,7 @@ typedef std::map<OverlayKey, HNode> KeyToNodeMap;
 class HTopology : public BaseOverlay {
   protected:
     virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+    //virtual void handleMessage(cMessage *msg);
 
 
   private:

@@ -136,17 +136,21 @@ void HStreaming::deliver(OverlayKey& key, cMessage* msg) {
         // only handle PING messages
         delete msg;
     }
-}
+} */
 
-// handleUDPMessage() is called when we receive a message from UDP.
+/*// handleUDPMessage() is called when we receive a message from UDP.
 // Unknown packets can be safely deleted here.
 void HStreaming::handleUDPMessage(cMessage* msg) {
-    // we are only expecting messages of type MyMessage
-    MyMessage *myMsg = dynamic_cast<MyMessage*>(msg);
+    EV << "SOmething's weird" << endl;
+    EV << " Received a message" << msg->getDisplayString() << endl;
 
-    if (myMsg && myMsg->getType() == MYMSG_PONG) {
-        EV << thisNode.getIp() << ": Got reply!" << endl;
-    }
+    // Message isn't needed any more -> delete it
+    delete msg;
+}
+
+void handleLowerMessage(cMessage* msg) {
+    EV << "HandleLowerMessage: SOmething's weird" << endl;
+    EV << " Received a message" << msg->getDisplayString() << endl;
 
     // Message isn't needed any more -> delete it
     delete msg;
