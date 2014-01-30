@@ -71,8 +71,6 @@ void HTopology::initializeOverlay(int stage) {
    packetGenTimer = NULL;
 
    EV << thisNode << ": initialized." << std::endl;
-   // Now overlay is ready
-   setOverlayReady(true);
 
    /*rpcTimer = new cMessage("RPC timer: initialized the node");
    scheduleAt(simTime() + 5, rpcTimer);*/
@@ -114,7 +112,7 @@ void HTopology::changeState (int state) {
     switch (state){
     case INIT:
         state = INIT;
-        //setOverlayReady(false);
+        setOverlayReady(false);
 
         // initialize predecessor pointer
         predecessorNode = HNode::unspecifiedNode;
@@ -152,27 +150,32 @@ void HTopology::changeState (int state) {
         }
 
         // find a new bootstrap node and enroll to the bootstrap list
-        bootstrapNode = bootstrapList->getBootstrapNode(overlayId);
+        bootstrapNode = bootstrapList->getBootstrapNode(0);
+        setOverlayReady(true);      // set myself ready
 
+        EV << "bootstrap is " << bootstrapNode << endl ;
         // is this the first node?
-        if (bootstrapNode.isUnspecified() || bootstrapNode==thisNode) {
+        if (bootstrapNode.isUnspecified()) {
             // Initialize this Node as the source node
             EV << "Source node started the overlay." << endl;
             assert(predecessorNode.isUnspecified());
             isSource = true;
-            bootstrapNode = thisNode;
-            if (bootstrapList->insertBootstrapCandidate(thisNode)) {
+            // registration is done by the setOverlayReady call
+            // bootstrapList->registerBootstrapNode(thisNode,0);
+            /*if (bootstrapList->insertBootstrapCandidate(thisNode)) {
                 EV << "Node was already in the bootstrap list" << endl;
             }else {
                 EV << "Added the source node in the bootstrap list" << endl;
-            }
+            } */
 
             // Start the packet generation module
             packetGenTimer = new cMessage("Packet Generation Timer");
             schedulePacketGeneration();
         } else {
             // TODO remove the call to getBootstrapNode
-            EV << thisNode << ": is going to join the overlay" << endl;
+            EV <<"will remove this node from bootstrapping list" << endl;
+            bootstrapList->removeBootstrapNode(thisNode, overlayId);
+            EV << thisNode << ": is going to join the overlay rooted at" << bootstrapNode << endl;
             HJoinCall *msg = new HJoinCall();
             msg->setBitLength(JOINCALL_L (msg));
 

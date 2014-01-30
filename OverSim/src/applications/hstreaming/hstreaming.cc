@@ -84,22 +84,30 @@ void HStreaming::handleTimerEvent(cMessage* msg) {
     }
 }
 
-void HStreaming::handleReadyMessage(CompReadyMessage* msg) {
-    EV << "Got a ready message from overlay layer" << endl;
-    EV << "Going to react now :)" << endl;
+std::string getComponentName (int id) {
+    if (id == OVERLAY_COMP) return "OVERLAY";
+    else if (id == TIER1_COMP) return "Tier1";
+    else if (id == TIER2_COMP) return "Tier2";
+    else if (id == TIER3_COMP) return "Tier3";
+    else if (id == BOOTSTRAPLIST_COMP) return "Bootstraplist";
+    else if (id == NEIGHBORCACHE_COMP) return "neighbourhood cache";
+    else return "invalid component";
+}
 
-    EV << "Layer:" << msg->getComp() << endl;
-    if (msg->getComp() == OVERLAY_COMP) {
-        EV << "Layer is OVERLAY" << endl;
-    }
+void HStreaming::handleReadyMessage(CompReadyMessage* msg) {
+    EV << "Got a ready message from ";
+    EV << "Layer:" <<  getComponentName(msg->getComp()) << endl;
 
     // If the flags ready==TRUE && overlay->state!=TRUE && readyComponent==OVERLAY
-    if (msg->getReady() && !overlay->getState() && msg->getComp()==OVERLAY_COMP) {
+    // NOTE: overlay ready is not the signal we are looking for, instead we should be looking for
+    // getting ready the component called just before OVERLAY so that we can set ready the overlay component via this call
+    // and which in turn will register the overlay component(in turn this node) in bootstrap list
+    // & that component is nothing but the bootstraplist.
+    // if (msg->getReady() && !overlay->getState() && msg->getComp()==OVERLAY_COMP) {
+    if (msg->getReady() && !overlay->getState() && msg->getComp()==BOOTSTRAPLIST_COMP) {
         // call join method
         EV << "Joining the overlay" << endl;
         overlay->join(thisNode.getKey());
-    } else{
-        EV << "Already joined the overlay" << endl;
     }
     delete msg;
 }
