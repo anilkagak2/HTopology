@@ -30,6 +30,7 @@ using std::endl;
 #define RESCUE_MODE 1
 
 typedef std::map<OverlayKey, HNode> KeyToNodeMap;
+typedef KeyToNodeMap::iterator MapIterator;
 
 /**
  * TODO - Generated class
@@ -57,6 +58,7 @@ class HTopology : public BaseOverlay {
 
     void updateTooltip ();              // shows the links in visual mode
     void changeState (int state);       // change the STATE of this node to state
+    NodeHandle getNodeHandle(MapIterator iter, MapIterator end);
 
     // timer messages
     cMessage* join_timer; /**< */

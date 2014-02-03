@@ -41,6 +41,9 @@ simple HTopology extends BaseOverlay
 
 module HTopologyModules like IOverlay
 {
+    parameters:
+        @display("i=block/network2");
+        
     gates:
         input udpIn;   // gate from the UDP layer
         output udpOut;    // gate to the UDP layer
@@ -49,8 +52,11 @@ module HTopologyModules like IOverlay
         input appIn;   // gate from the application
         output appOut;    // gate to the application
 
-    submodules:
-        htopology: HTopology;
+    submodules:        
+        htopology: HTopology {
+            parameters:
+                @display("p=60,60");
+        }
 
     connections allowunconnected:
         udpIn --> htopology.udpIn;

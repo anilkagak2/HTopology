@@ -62,6 +62,8 @@ void HTopology::initializeOverlay(int stage) {
    isSource = false;
    buffer.resize(bufferMapSize);            // Resize the buffer map to fit the given requirement
 
+   EV << "max children is " << maxChildren << endl;
+
    // add some watches
    WATCH(predecessorNode);
    WATCH(thisNode);
@@ -99,6 +101,7 @@ void HTopology::updateTooltip() {
         getDisplayString().setTagArg("tt", 0, ttString.str().c_str());
 
         // parent
+        EV << "parent handle in updateToolTip: " << parent.getHandle() << endl;
         showOverlayNeighborArrow(parent.getHandle(), true,
                                          "m=m,50,0,50,0;ls=blue,1");
         // draw an arrow to our current successor
@@ -346,6 +349,13 @@ int HTopology::getMaxNumSiblings() { return 1; }
 // Return the max amount of redundant that can be queried about
 int HTopology::getMaxNumRedundantNodes() { return 1; }
 
+NodeHandle HTopology::getNodeHandle(MapIterator iter, MapIterator end) {
+    if (iter == end) return NodeHandle::UNSPECIFIED_NODE;
+
+    HNode node = (*iter).second;
+    return node.getHandle();
+}
+
 // RPC
 bool HTopology::handleRpcCall(BaseCallMessage *msg) {
     // There are many macros to simplify the handling of RPCs. The full list is in <OverSim>/src/common/RpcMacros.h.
@@ -378,27 +388,51 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
 
     RPC_ON_CALL(HJoin) {
         HJoinCall *mrpc = (HJoinCall*) msg;
+        HJoinResponse *rrpc = new HJoinResponse ();
         EV << thisNode << ": received Join call from " <<  msg->getSrcNode() << endl;
         if (capacity()>0) {
-            // TODO Decrease the capacity
             EV << thisNode << ": will be adding node: " << msg->getSrcNode() << ": as child" << endl;
-            HJoinResponse *rrpc = new HJoinResponse ();
-            rrpc->setSuccessorNode(NodeHandle::UNSPECIFIED_NODE);
-            rrpc->setPredecessorNode(NodeHandle::UNSPECIFIED_NODE);
-            rrpc->setJoined(true);
-            rrpc->setBitLength(HJOINRESPONSE_L(rrpc));
+            noOfChildren++;
 
-            sendRpcResponse(mrpc, rrpc);
+            // we assume that node is a new comer => everything empty
+            HNode child;
+            child.setHandle(msg->getSrcNode());
+
+            // there shouldn't already be any node with this key
+            assert(children.find(child.getHandle().getKey()) == children.end());
+            children[child.getHandle().getKey()] = child;
+
+            KeyToNodeMap::iterator it = children.find(child.getHandle().getKey());
+
+            // TODO Do we need to tell our parent, regarding we adopting a new child?
+
+            rrpc->setSuccessorNode(getNodeHandle(it++, children.end()));
+            rrpc->setPredecessorNode(getNodeHandle(it--, children.end()));
+            rrpc->setJoined(true);
+            // TODO Need to send the ancestors array
+
             // What is required by a new node?
             // Children & rescueChildren will be empty.
             // successorNode, predecessorNode;
             // nodesOneUp ??
             // ancestors = thisNode->ancestors + thisNode
-        } else{
+        } else {
             // TODO may be check if anyone of them can support the children
             // Try to keep the height of the tree as low as possible
             EV << "redirecting to one of my children: " << endl;
+
+            size_t size = children.size();
+            int redirection = intuniform(0, size-1);
+            MapIterator iter = children.begin();
+            for (int i=0; i<redirection; ++i, iter++);
+
+            HNode redirectionChild = (*iter).second;
+            rrpc->setSuccessorNode(redirectionChild.getHandle());
+            rrpc->setJoined(false);
         }
+
+        rrpc->setBitLength(HJOINRESPONSE_L(rrpc));
+        sendRpcResponse(mrpc, rrpc);
         RPC_HANDLED = true;
         break;
     }
@@ -410,6 +444,8 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
     // don't delete unhandled messages!
     return RPC_HANDLED;
 }
+
+
 
 // Called when an RPC we sent has timed out.
 // Don't delete msg here!
@@ -463,7 +499,23 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
                 parent.setHandle(mrpc->getSrcNode());
                 successorNode.setHandle(mrpc->getSuccessorNode());
                 predecessorNode.setHandle(mrpc->getPredecessorNode());
+
+                EV << "joined overlay :" ;
                 updateTooltip();
+            } else {
+                EV << thisNode << ": is going to join the overlay rooted at" << mrpc->getSuccessorNode() << endl;
+                HJoinCall *mcall = new HJoinCall();
+                mcall->setBitLength(JOINCALL_L (mcall));
+
+                // go on & call the given node
+                if (mrpc->getSuccessorNode().isUnspecified()) {
+                    EV << "Incorrect response->" ;
+                    EV << "NEED HELP" << endl;
+                } else {
+                    // go ahead & add yourself to the child
+                    EV << "joining at " << mrpc->getSuccessorNode() <<  endl;
+                    sendRouteRpcCall (OVERLAY_COMP, mrpc->getSuccessorNode(), mcall);
+                }
             }
             // TODO when to delete which message?
             // there'll be lots of memory leaks :D
