@@ -67,6 +67,7 @@ void HTopology::initializeOverlay(int stage) {
    WATCH(thisNode);
    WATCH(joinRetry);
    WATCH(successorNode);
+   WATCH(bootstrapNode);
 
    // self-messages
    join_timer = new cMessage("join_timer");
@@ -110,8 +111,8 @@ void HTopology::updateTooltip() {
 }
 
 // change the STATE of this node to state
-void HTopology::changeState (int state) {
-    switch (state){
+void HTopology::changeState (int STATE) {
+    switch (STATE){
     case INIT:
         state = INIT;
         setOverlayReady(false);
@@ -153,30 +154,23 @@ void HTopology::changeState (int state) {
 
         // find a new bootstrap node and enroll to the bootstrap list
         bootstrapNode = bootstrapList->getBootstrapNode(0);
-        setOverlayReady(true);      // set myself ready
+        //setOverlayReady(true);      // set myself ready
 
         EV << "bootstrap is " << bootstrapNode << endl ;
         // is this the first node?
         if (bootstrapNode.isUnspecified()) {
             // Initialize this Node as the source node
             EV << "Source node started the overlay." << endl;
-            assert(predecessorNode.isUnspecified());
+            //assert(predecessorNode.isUnspecified());
             isSource = true;
-            // registration is done by the setOverlayReady call
-            // bootstrapList->registerBootstrapNode(thisNode,0);
-            /*if (bootstrapList->insertBootstrapCandidate(thisNode)) {
-                EV << "Node was already in the bootstrap list" << endl;
-            }else {
-                EV << "Added the source node in the bootstrap list" << endl;
-            } */
 
             // Start the packet generation module
             packetGenTimer = new cMessage("Packet Generation Timer");
             schedulePacketGeneration();
         } else {
             // TODO remove the call to getBootstrapNode
-            EV <<"will remove this node from bootstrapping list" << endl;
-            bootstrapList->removeBootstrapNode(thisNode, overlayId);
+            // EV <<"will remove this node from bootstrapping list" << endl;
+            //bootstrapList->removeBootstrapNode(thisNode, overlayId);
             EV << thisNode << ": is going to join the overlay rooted at" << bootstrapNode << endl;
             HJoinCall *msg = new HJoinCall();
             msg->setBitLength(JOINCALL_L (msg));
@@ -193,7 +187,12 @@ void HTopology::changeState (int state) {
 
     case READY:
         state = READY;
-        //setOverlayReady(true);
+        setOverlayReady(true);
+
+        if (!bootstrapNode.isUnspecified()) {
+            EV <<"will remove this node from bootstrapping list" << endl;
+            bootstrapList->removeBootstrapNode(thisNode, overlayId);
+        }
 
         // debug message
         if (debugOutput) {
@@ -279,9 +278,14 @@ void HTopology::handleJoinTimerExpired(cMessage* msg) {
 
 // Called when the module is ready to join the overlay
 void HTopology::joinOverlay() {
-    // tell the simulator that we're ready
+    if (state == READY) {
+        // If already joined the overlay, don't proceed
+        // TODO need to debug the spurious joinOverlay() call
+        return;
+    }
 
-    EV << "joinOverlay is called \n";
+    // tell the simulator that we're ready
+    EV << "joinOverlay is called: " << endl ;
     changeState(INIT);
     changeState(JOIN);
 }
@@ -376,6 +380,7 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
         HJoinCall *mrpc = (HJoinCall*) msg;
         EV << thisNode << ": received Join call from " <<  msg->getSrcNode() << endl;
         if (capacity()>0) {
+            // TODO Decrease the capacity
             EV << thisNode << ": will be adding node: " << msg->getSrcNode() << ": as child" << endl;
             HJoinResponse *rrpc = new HJoinResponse ();
             rrpc->setSuccessorNode(NodeHandle::UNSPECIFIED_NODE);
@@ -454,6 +459,7 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
         RPC_ON_RESPONSE(HJoin) {
             HJoinResponse* mrpc = (HJoinResponse*)msg;          // get Response message
             if (mrpc->getJoined() == true) {
+                EV << "We got a response from " << mrpc->getSrcNode() << endl;
                 parent.setHandle(mrpc->getSrcNode());
                 successorNode.setHandle(mrpc->getSuccessorNode());
                 predecessorNode.setHandle(mrpc->getPredecessorNode());

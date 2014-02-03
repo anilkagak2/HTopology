@@ -95,9 +95,6 @@ std::string getComponentName (int id) {
 }
 
 void HStreaming::handleReadyMessage(CompReadyMessage* msg) {
-    EV << "Got a ready message from ";
-    EV << "Layer:" <<  getComponentName(msg->getComp()) << endl;
-
     // If the flags ready==TRUE && overlay->state!=TRUE && readyComponent==OVERLAY
     // NOTE: overlay ready is not the signal we are looking for, instead we should be looking for
     // getting ready the component called just before OVERLAY so that we can set ready the overlay component via this call
@@ -106,6 +103,8 @@ void HStreaming::handleReadyMessage(CompReadyMessage* msg) {
     // if (msg->getReady() && !overlay->getState() && msg->getComp()==OVERLAY_COMP) {
     if (msg->getReady() && !overlay->getState() && msg->getComp()==BOOTSTRAPLIST_COMP) {
         // call join method
+        EV << "Got a ready message from ";
+        EV << "Layer:" <<  getComponentName(msg->getComp()) << endl;
         EV << "Joining the overlay" << endl;
         overlay->join(thisNode.getKey());
     }
