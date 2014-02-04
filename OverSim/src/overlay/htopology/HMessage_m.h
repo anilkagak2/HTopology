@@ -21,7 +21,8 @@
 #include "HNode.h"
 
 #define JOINCALL_L(msg) 			BASECALL_L(msg)
-#define HJOINRESPONSE_L(msg) 		BASERESPONSE_L(msg) + NODEHANDLE_L + NODEHANDLE_L + TYPE_L
+#define HJOINRESPONSE_L(msg) 		(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
+                             			(msg->getAncestorsArraySize() * NODEHANDLE_L) + TYPE_L)
 #define HCAPACITYCALL_L(msg) 		BASECALL_L(msg) + KEY_L
 #define HCAPACITYRESPONSE_L(msg) 	BASERESPONSE_L(msg) + NODEHANDLE_L + TYPE_L
 #define HSELECTPARENTCALL_L(msg) 	HCAPACITYCALL_L(msg)
@@ -249,6 +250,7 @@ inline void doUnpacking(cCommBuffer *b, HJoinCall& obj) {obj.parsimUnpack(b);}
  *     
  *     
  *     
+ *     NodeHandle ancestors[];  	
  *     NodeHandle successorNode;
  *     NodeHandle predecessorNode;
  *     int joined;
@@ -258,6 +260,8 @@ inline void doUnpacking(cCommBuffer *b, HJoinCall& obj) {obj.parsimUnpack(b);}
 class HJoinResponse : public ::BaseResponseMessage
 {
   protected:
+    NodeHandle *ancestors_var; // array ptr
+    unsigned int ancestors_arraysize;
     NodeHandle successorNode_var;
     NodeHandle predecessorNode_var;
     int joined_var;
@@ -279,6 +283,11 @@ class HJoinResponse : public ::BaseResponseMessage
     virtual void parsimUnpack(cCommBuffer *b);
 
     // field getter/setter methods
+    virtual void setAncestorsArraySize(unsigned int size);
+    virtual unsigned int getAncestorsArraySize() const;
+    virtual NodeHandle& getAncestors(unsigned int k);
+    virtual const NodeHandle& getAncestors(unsigned int k) const {return const_cast<HJoinResponse*>(this)->getAncestors(k);}
+    virtual void setAncestors(unsigned int k, const NodeHandle& ancestors);
     virtual NodeHandle& getSuccessorNode();
     virtual const NodeHandle& getSuccessorNode() const {return const_cast<HJoinResponse*>(this)->getSuccessorNode();}
     virtual void setSuccessorNode(const NodeHandle& successorNode);

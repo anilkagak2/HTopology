@@ -25,7 +25,8 @@ cplusplus {{
 #include "HNode.h"
 
 #define JOINCALL_L(msg) 			BASECALL_L(msg)
-#define HJOINRESPONSE_L(msg) 		BASERESPONSE_L(msg) + NODEHANDLE_L + NODEHANDLE_L + TYPE_L
+#define HJOINRESPONSE_L(msg) 		(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
+                             			(msg->getAncestorsArraySize() * NODEHANDLE_L) + TYPE_L)
 #define HCAPACITYCALL_L(msg) 		BASECALL_L(msg) + KEY_L
 #define HCAPACITYRESPONSE_L(msg) 	BASERESPONSE_L(msg) + NODEHANDLE_L + TYPE_L
 #define HSELECTPARENTCALL_L(msg) 	HCAPACITYCALL_L(msg)
@@ -76,11 +77,12 @@ packet HJoinCall extends BaseCallMessage {
 // Message used to answer to a JoinCall message
 //
 packet HJoinResponse extends BaseResponseMessage {
-    //int sucNum;    			// number of entries in the successor list
-    //NodeHandle sucNode[];  	// successor list of the message originator
-    //NodeHandle preNode;    	// in aggressiveJoinMode: predecessor hint
+    // int sucNum;    			// number of entries in the successor list
+    // NodeHandle sucNode[];  	// successor list of the message originator
+    // NodeHandle preNode;    	// in aggressiveJoinMode: predecessor hint
     
     //HNode successorNode, predecessorNode;
+    NodeHandle ancestors[];  	// list of ancestors
     NodeHandle successorNode;
     NodeHandle predecessorNode;
     int joined;

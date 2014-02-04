@@ -15,6 +15,9 @@
 class HNode {
   protected://fields
       NodeHandle handle;
+
+      // TODO Why do we want to keep track of children of some node?
+      // We can always go and ask them about their children, right?
       NodeVector children;
       // some more properties of a node should be kept here
 

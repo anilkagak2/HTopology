@@ -25,6 +25,7 @@
 #include "HMessage_m.h"
 #include "HNode.h"
 using std::endl;
+using std::string;
 
 #define GENERAL_MODE 0
 #define RESCUE_MODE 1
@@ -59,6 +60,7 @@ class HTopology : public BaseOverlay {
     void updateTooltip ();              // shows the links in visual mode
     void changeState (int state);       // change the STATE of this node to state
     NodeHandle getNodeHandle(MapIterator iter, MapIterator end);
+    void initializeNodesOneUp ();       // use the ancestors array to figure out these nodes
 
     // timer messages
     cMessage* join_timer; /**< */
@@ -75,10 +77,10 @@ class HTopology : public BaseOverlay {
     // Queue for storing the packets -> source need infinite queue, others need fixed size
 
     // Links to other nodes in the overlay
-    HNode parent;
+    HNode parent, grandParent;
+    HNode successorNode, predecessorNode;
     KeyToNodeMap children, rescueChildren;
     //KeyToNodeMap siblings;
-    HNode successorNode, predecessorNode;
     KeyToNodeMap nodesOneUp;
     KeyToNodeMap ancestors;
 
@@ -95,6 +97,7 @@ class HTopology : public BaseOverlay {
     int capacity () {return maxChildren - noOfChildren; }
     void handleJoinTimerExpired(cMessage* msg);
     void schedulePacketGeneration ();
+    void sendPacketToNode (const string videoSegment, const NodeHandle& node);
     void handlePacketGenerationTimer (cMessage *msg);
     void handleTimerEvent(cMessage*);
 

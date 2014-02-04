@@ -19,6 +19,27 @@
 
 Define_Module(HTopology);
 
+/*
+ * TODO
+ * 1) Generate Packets
+ * 2) Schedule them, transfer them to children & rescue nodes
+ * 3) Other nodes keep track of incoming packets & transfer them to their children
+ * 4) Failure situations
+ *      a) Keeping track of active nodes in the rescue set
+ *      b) ranking algorithm or heuristics
+ *      c) apply it
+ * 5) Where's the mesh functionality?
+ * 6) Collect required statistics
+ *      a) Know what parameters are really required or what are the primary factors
+ *      b) How to collect them?
+ *      c) What kind of reality can be provided in the simulation? (Underlay Configuration is not so good
+ *          it doesn't depict the reality. Go with some routers & stuff like that)
+ *
+ *  // Messages
+ *  GetChildrenCall, GetChildrenResponse -> used in getNodesOneUp
+ *  VideoSegmentCall -> stream video packet used in transferring the packet
+ * */
+
 // To convert between IP addresses (which have bit 24 active), and keys (which don't), we'll need to set or remove this bit.
 #define BIGBIT (1 << 24)
 
@@ -121,8 +142,8 @@ void HTopology::changeState (int STATE) {
         setOverlayReady(false);
 
         // initialize predecessor pointer
-        predecessorNode = HNode::unspecifiedNode;
-        successorNode = HNode::unspecifiedNode;
+        parent = grandParent = HNode::unspecifiedNode;
+        successorNode = predecessorNode = HNode::unspecifiedNode;
 
         updateTooltip();
 
@@ -233,6 +254,12 @@ void HTopology::schedulePacketGeneration () {
     scheduleAt(simTime()+packetGenRate, packetGenTimer);
 }
 
+// Wraps this videoSegment in a message & deliver it to the node
+// TODO
+void HTopology::sendPacketToNode (const string videoSegment, const NodeHandle& node) {
+
+}
+
 void HTopology::handlePacketGenerationTimer(cMessage* msg) {
     schedulePacketGeneration();     // Schedule the run again
 
@@ -241,9 +268,17 @@ void HTopology::handlePacketGenerationTimer(cMessage* msg) {
         return;     // If not ready, then it cann't be processed
     }
 
-    // TODO
-    // Generate the packet
+    // Generate a new message & deliver it to all the nodes
+    string pkt = "message-" + intuniform(0, INT_MAX);
+
     // Schedule the transfer to all the children & rescue nodes
+    // TODO may be we can use the ideology asked in the proposed algorithm
+    // Send to only half of the nodes & then ask them to deliver the packet to their neighbors
+    MapIterator it;
+    for (it = children.begin(); it != children.end(); ++it)
+        sendPacketToNode(pkt, (*it).second.getHandle());
+    for (it = rescueChildren.begin(); it != rescueChildren.end(); ++it)
+        sendPacketToNode(pkt, (*it).second.getHandle());
 }
 
 void HTopology::handleJoinTimerExpired(cMessage* msg) {
@@ -356,6 +391,15 @@ NodeHandle HTopology::getNodeHandle(MapIterator iter, MapIterator end) {
     return node.getHandle();
 }
 
+// TODO
+// use the ancestors array to figure out these nodes
+void HTopology::initializeNodesOneUp () {
+    if (grandParent.isUnspecified()) return;
+
+    // Need to call the last ancestor & get it's children
+    // exclude our parent & go ahead with with other nodes
+}
+
 // RPC
 bool HTopology::handleRpcCall(BaseCallMessage *msg) {
     // There are many macros to simplify the handling of RPCs. The full list is in <OverSim>/src/common/RpcMacros.h.
@@ -402,20 +446,31 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
             assert(children.find(child.getHandle().getKey()) == children.end());
             children[child.getHandle().getKey()] = child;
 
-            KeyToNodeMap::iterator it = children.find(child.getHandle().getKey());
+            MapIterator it = children.find(child.getHandle().getKey());
 
             // TODO Do we need to tell our parent, regarding we adopting a new child?
+
+            // What is required by a new node?
+            // Children & rescueChildren will be empty.
+            // TODO nodesOneUp?? (Let the child figure out this parameter)
+            // ancestors = thisNode->ancestors + thisNode
+            // set the ancestors array
+            if (!parent.isUnspecified())
+                rrpc->setAncestorsArraySize(ancestors.size() + 1);  // parent of this node will be added as well
+            else
+                rrpc->setAncestorsArraySize(ancestors.size());      // this node has no parent (it's the source node)
+
+            int k=0;
+            for (MapIterator it=ancestors.begin(); it!=ancestors.end(); ++it, ++k) {
+                HNode node = (*it).second;
+                rrpc->setAncestors(k, node.getHandle());
+            }
+
+            if (!parent.isUnspecified()) rrpc->setAncestors (k, parent.getHandle());
 
             rrpc->setSuccessorNode(getNodeHandle(it++, children.end()));
             rrpc->setPredecessorNode(getNodeHandle(it--, children.end()));
             rrpc->setJoined(true);
-            // TODO Need to send the ancestors array
-
-            // What is required by a new node?
-            // Children & rescueChildren will be empty.
-            // successorNode, predecessorNode;
-            // nodesOneUp ??
-            // ancestors = thisNode->ancestors + thisNode
         } else {
             // TODO may be check if anyone of them can support the children
             // Try to keep the height of the tree as low as possible
@@ -497,8 +552,19 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
             if (mrpc->getJoined() == true) {
                 EV << "We got a response from " << mrpc->getSrcNode() << endl;
                 parent.setHandle(mrpc->getSrcNode());
+
+                if (mrpc->getAncestorsArraySize() > 0)
+                    grandParent.setHandle(mrpc->getAncestors(mrpc->getAncestorsArraySize()-1));
+
                 successorNode.setHandle(mrpc->getSuccessorNode());
                 predecessorNode.setHandle(mrpc->getPredecessorNode());
+
+                for (int i=0; i<mrpc->getAncestorsArraySize(); ++i) {
+                    NodeHandle node = mrpc->getAncestors(i);
+                    HNode hnode;
+                    hnode.setHandle(node);
+                    ancestors[node.getKey()] = hnode;
+                }
 
                 EV << "joined overlay :" ;
                 updateTooltip();
