@@ -26,8 +26,8 @@ Define_Module(HTopology);
  * 3) DONE Other nodes keep track of incoming packets & transfer them to their children
  *      DONE QUEUE
  * 4) Failure situations
- *      a) Keeping track of active nodes in the rescue set
- *      b) ranking algorithm or heuristics
+ *      a) Keeping track of ACTIVE NODES in the rescue set
+ *      b) RANKING algorithm or heuristics
  *      c) apply it
  *
  *   Node failure -> keep alive messages (any other alternative?)
@@ -39,9 +39,8 @@ Define_Module(HTopology);
  *      b) How to collect them?
  *      c) What kind of reality can be provided in the simulation? (Underlay Configuration is not so good
  *          it doesn't depict the reality. Go with some routers & stuff like that)
- * 7) Emergency video segment scheduling.
+ * 7) Emergency video segment SCHEDULING.
  *      DONE Need to allocate identifiers to the segments
- *              but they are not kept in cache
  *
  *  // Messages
  *  DONE GetChildrenCall, GetChildrenResponse -> used in getNodesOneUp
