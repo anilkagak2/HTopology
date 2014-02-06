@@ -32,7 +32,8 @@
 #define HSELECTPARENTRESPONSE_L(msg) BASERESPONSE_L(msg) + NODEHANDLE_L
 
 
-#define HVIDEOSEGMENTCALL_L(msg)	(BASECALL_L(msg) + ( (strlen(msg->getSegment()) + 1) * TYPE_L))
+
+#define HVIDEOSEGMENTCALL_L(msg)	(BASECALL_L(msg) + TYPE_L + ( (strlen(msg->getSegment()) + 1) * TYPE_L))
 // }}
 
 
@@ -312,6 +313,7 @@ inline void doUnpacking(cCommBuffer *b, HJoinResponse& obj) {obj.parsimUnpack(b)
  * <pre>
  * packet HVideoSegmentCall extends BaseCallMessage {
  *     string segment;
+ *     int segmentID;
  * }
  * </pre>
  */
@@ -319,6 +321,7 @@ class HVideoSegmentCall : public ::BaseCallMessage
 {
   protected:
     opp_string segment_var;
+    int segmentID_var;
 
   private:
     void copy(const HVideoSegmentCall& other);
@@ -339,6 +342,8 @@ class HVideoSegmentCall : public ::BaseCallMessage
     // field getter/setter methods
     virtual const char * getSegment() const;
     virtual void setSegment(const char * segment);
+    virtual int getSegmentID() const;
+    virtual void setSegmentID(int segmentID);
 };
 
 inline void doPacking(cCommBuffer *b, HVideoSegmentCall& obj) {obj.parsimPack(b);}

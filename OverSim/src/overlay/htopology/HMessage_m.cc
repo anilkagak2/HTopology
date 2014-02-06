@@ -1544,6 +1544,7 @@ Register_Class(HVideoSegmentCall);
 HVideoSegmentCall::HVideoSegmentCall(const char *name, int kind) : BaseCallMessage(name,kind)
 {
     this->segment_var = 0;
+    this->segmentID_var = 0;
 }
 
 HVideoSegmentCall::HVideoSegmentCall(const HVideoSegmentCall& other) : BaseCallMessage(other)
@@ -1566,18 +1567,21 @@ HVideoSegmentCall& HVideoSegmentCall::operator=(const HVideoSegmentCall& other)
 void HVideoSegmentCall::copy(const HVideoSegmentCall& other)
 {
     this->segment_var = other.segment_var;
+    this->segmentID_var = other.segmentID_var;
 }
 
 void HVideoSegmentCall::parsimPack(cCommBuffer *b)
 {
     BaseCallMessage::parsimPack(b);
     doPacking(b,this->segment_var);
+    doPacking(b,this->segmentID_var);
 }
 
 void HVideoSegmentCall::parsimUnpack(cCommBuffer *b)
 {
     BaseCallMessage::parsimUnpack(b);
     doUnpacking(b,this->segment_var);
+    doUnpacking(b,this->segmentID_var);
 }
 
 const char * HVideoSegmentCall::getSegment() const
@@ -1588,6 +1592,16 @@ const char * HVideoSegmentCall::getSegment() const
 void HVideoSegmentCall::setSegment(const char * segment)
 {
     this->segment_var = segment;
+}
+
+int HVideoSegmentCall::getSegmentID() const
+{
+    return segmentID_var;
+}
+
+void HVideoSegmentCall::setSegmentID(int segmentID)
+{
+    this->segmentID_var = segmentID;
 }
 
 class HVideoSegmentCallDescriptor : public cClassDescriptor
@@ -1637,7 +1651,7 @@ const char *HVideoSegmentCallDescriptor::getProperty(const char *propertyname) c
 int HVideoSegmentCallDescriptor::getFieldCount(void *object) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+    return basedesc ? 2+basedesc->getFieldCount(object) : 2;
 }
 
 unsigned int HVideoSegmentCallDescriptor::getFieldTypeFlags(void *object, int field) const
@@ -1650,8 +1664,9 @@ unsigned int HVideoSegmentCallDescriptor::getFieldTypeFlags(void *object, int fi
     }
     static unsigned int fieldTypeFlags[] = {
         FD_ISEDITABLE,
+        FD_ISEDITABLE,
     };
-    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<2) ? fieldTypeFlags[field] : 0;
 }
 
 const char *HVideoSegmentCallDescriptor::getFieldName(void *object, int field) const
@@ -1664,8 +1679,9 @@ const char *HVideoSegmentCallDescriptor::getFieldName(void *object, int field) c
     }
     static const char *fieldNames[] = {
         "segment",
+        "segmentID",
     };
-    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+    return (field>=0 && field<2) ? fieldNames[field] : NULL;
 }
 
 int HVideoSegmentCallDescriptor::findField(void *object, const char *fieldName) const
@@ -1673,6 +1689,7 @@ int HVideoSegmentCallDescriptor::findField(void *object, const char *fieldName) 
     cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount(object) : 0;
     if (fieldName[0]=='s' && strcmp(fieldName, "segment")==0) return base+0;
+    if (fieldName[0]=='s' && strcmp(fieldName, "segmentID")==0) return base+1;
     return basedesc ? basedesc->findField(object, fieldName) : -1;
 }
 
@@ -1686,8 +1703,9 @@ const char *HVideoSegmentCallDescriptor::getFieldTypeString(void *object, int fi
     }
     static const char *fieldTypeStrings[] = {
         "string",
+        "int",
     };
-    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+    return (field>=0 && field<2) ? fieldTypeStrings[field] : NULL;
 }
 
 const char *HVideoSegmentCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
@@ -1728,6 +1746,7 @@ std::string HVideoSegmentCallDescriptor::getFieldAsString(void *object, int fiel
     HVideoSegmentCall *pp = (HVideoSegmentCall *)object; (void)pp;
     switch (field) {
         case 0: return oppstring2string(pp->getSegment());
+        case 1: return long2string(pp->getSegmentID());
         default: return "";
     }
 }
@@ -1743,6 +1762,7 @@ bool HVideoSegmentCallDescriptor::setFieldAsString(void *object, int field, int 
     HVideoSegmentCall *pp = (HVideoSegmentCall *)object; (void)pp;
     switch (field) {
         case 0: pp->setSegment((value)); return true;
+        case 1: pp->setSegmentID(string2long(value)); return true;
         default: return false;
     }
 }
@@ -1757,8 +1777,9 @@ const char *HVideoSegmentCallDescriptor::getFieldStructName(void *object, int fi
     }
     static const char *fieldStructNames[] = {
         NULL,
+        NULL,
     };
-    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+    return (field>=0 && field<2) ? fieldStructNames[field] : NULL;
 }
 
 void *HVideoSegmentCallDescriptor::getFieldStructPointer(void *object, int field, int i) const

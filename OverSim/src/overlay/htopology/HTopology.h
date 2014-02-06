@@ -39,6 +39,11 @@ typedef KeyToNodeMap::iterator MapIterator;
 /**
  * TODO - Generated class
  */
+struct HVideoSegment {
+    string videoSegment;
+    int segmentID;
+};
+
 class HTopology : public BaseOverlay {
   protected:
     virtual void initialize();
@@ -53,8 +58,9 @@ class HTopology : public BaseOverlay {
     OverlayKey keyParent;    // key of the parent node, which is to be replaced
 
     int noOfChildren;       // current count of the children;
-    vector<string> cache;   // video cache
+    vector<HVideoSegment> cache;   // video cache
     int cachePointer;       // pointer to the cache
+    int segmentID;          // segmentID to start with
     int bufferMapSize;      // size of the local buffer
     int maxChildren;        // Maximum no. of children to be supported
     int joinRetry;          // Maximum no. of tries in joining the overlay
@@ -67,7 +73,8 @@ class HTopology : public BaseOverlay {
 
     // store the segment in your cache & distribute
     void handleVideoSegment (BaseCallMessage *msg);
-    void sendSegmentToChildren(string videoSegment);
+    void sendSegmentToChildren(HVideoSegmentCall *videoCall);
+    void handlePacketGenerationTimer (cMessage *msg);
 
     /* NodesOneUP */
     void sendChildren (BaseCallMessage *msg);       // respond to the getChildren call
@@ -109,8 +116,7 @@ class HTopology : public BaseOverlay {
     int capacity () {return maxChildren - noOfChildren; }
     void handleJoinTimerExpired(cMessage* msg);
     void schedulePacketGeneration ();
-    void sendPacketToNode (const string videoSegment, const NodeHandle& node);
-    void handlePacketGenerationTimer (cMessage *msg);
+
     void handleTimerEvent(cMessage*);
 
     // obligatory: called when we need the next hop to route a packet to the given key

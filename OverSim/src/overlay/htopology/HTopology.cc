@@ -24,11 +24,15 @@ Define_Module(HTopology);
  * 1) DONE Generate Packets
  * 2) DONE Schedule them, transfer them to children & rescue nodes
  * 3) DONE Other nodes keep track of incoming packets & transfer them to their children
- *      Except QUEUE
+ *      DONE QUEUE
  * 4) Failure situations
  *      a) Keeping track of active nodes in the rescue set
  *      b) ranking algorithm or heuristics
  *      c) apply it
+ *
+ *   Node failure -> keep alive messages (any other alternative?)
+ *   RPC Timeout implementation
+ *
  * 5) Where's the mesh functionality?
  * 6) Collect required statistics
  *      a) Know what parameters are really required or what are the primary factors
@@ -36,6 +40,8 @@ Define_Module(HTopology);
  *      c) What kind of reality can be provided in the simulation? (Underlay Configuration is not so good
  *          it doesn't depict the reality. Go with some routers & stuff like that)
  * 7) Emergency video segment scheduling.
+ *      DONE Need to allocate identifiers to the segments
+ *              but they are not kept in cache
  *
  *  // Messages
  *  DONE GetChildrenCall, GetChildrenResponse -> used in getNodesOneUp
@@ -117,6 +123,7 @@ void HTopology::initializeOverlay(int stage) {
 
    cache.resize(bufferMapSize);            // Resize the buffer map to fit the given requirement
    cachePointer = 0;
+   segmentID = 0;
 
    EV << "max children is " << maxChildren << endl;
 
@@ -292,26 +299,15 @@ void HTopology::schedulePacketGeneration () {
     scheduleAt(simTime()+packetGenRate, packetGenTimer);
 }
 
-// Wraps this videoSegment in a message & deliver it to the node
-void HTopology::sendPacketToNode (const string videoSegment, const NodeHandle& node) {
-    HVideoSegmentCall *msg = new HVideoSegmentCall();
-    msg->setSegment(videoSegment.c_str());
-
-    // TODO BUG CAN BE IN THIS setBitLength thing, please verify it properly
-    msg->setBitLength(HVIDEOSEGMENTCALL_L(msg));
-
-    sendRouteRpcCall (OVERLAY_COMP, node, msg);
-}
-
-void HTopology::sendSegmentToChildren(string pkt) {
+void HTopology::sendSegmentToChildren(HVideoSegmentCall *videoCall) {
     // Schedule the transfer to all the children & rescue nodes
     // TODO may be we can use the ideology asked in the proposed algorithm
     // Send to only half of the nodes & then ask them to deliver the packet to their neighbors
     MapIterator it;
     for (it = children.begin(); it != children.end(); ++it)
-        sendPacketToNode(pkt, (*it).second.getHandle());
+        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), videoCall);
     for (it = rescueChildren.begin(); it != rescueChildren.end(); ++it)
-        sendPacketToNode(pkt, (*it).second.getHandle());
+        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), videoCall);
 }
 
 // store the segment in your cache & distribute
@@ -327,9 +323,11 @@ void HTopology::handleVideoSegment (BaseCallMessage *msg) {
         EV << thisNode
                 << ": cacheFull and setting the cachePointer back to 0" << endl;
     }
-    cache[cachePointer++] = mrpc->getSegment();
+    cache[cachePointer].videoSegment = mrpc->getSegment();
+    cache[cachePointer].segmentID = mrpc->getSegmentID();
+    cachePointer++;
 
-    sendSegmentToChildren(mrpc->getSegment());
+    sendSegmentToChildren(mrpc);
     delete msg;
 }
 
@@ -347,8 +345,13 @@ void HTopology::handlePacketGenerationTimer(cMessage* msg) {
     // Generate a new message & deliver it to all the nodes
     string pkt = "message-" + tToString(intuniform(0, INT_MAX));
 
+    HVideoSegmentCall *videoCall = new HVideoSegmentCall();
+    videoCall->setSegment(pkt.c_str());
+    videoCall->setSegmentID(segmentID++);
+    videoCall->setBitLength(HVIDEOSEGMENTCALL_L(videoCall)); // TODO BUG CAN BE IN THIS setBitLength thing, please verify it properly
+
     EV << thisNode << ":Generated message is: " << pkt ;
-    sendSegmentToChildren(pkt);
+    sendSegmentToChildren(videoCall);
 }
 
 

@@ -36,7 +36,8 @@ cplusplus {{
 #define HSELECTPARENTRESPONSE_L(msg) BASERESPONSE_L(msg) + NODEHANDLE_L
 
 // should it be length() or capacity()
-#define HVIDEOSEGMENTCALL_L(msg)	(BASECALL_L(msg) + ( (strlen(msg->getSegment()) + 1) * TYPE_L))
+// isn't TYPE_L for string a bit more than required?
+#define HVIDEOSEGMENTCALL_L(msg)	(BASECALL_L(msg) + TYPE_L + ( (strlen(msg->getSegment()) + 1) * TYPE_L))
 
 }}
 class noncobject TransportAddress;
@@ -97,6 +98,7 @@ packet HJoinResponse extends BaseResponseMessage {
 // call to get children from node
 packet HVideoSegmentCall extends BaseCallMessage {
     string segment;
+    int segmentID;
 }
 
 // call to get children from node
