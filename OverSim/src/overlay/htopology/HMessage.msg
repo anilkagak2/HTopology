@@ -27,10 +27,16 @@ cplusplus {{
 #define JOINCALL_L(msg) 			BASECALL_L(msg)
 #define HJOINRESPONSE_L(msg) 		(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
                              			(msg->getAncestorsArraySize() * NODEHANDLE_L) + TYPE_L)
+        
+#define HGETCHILDRENCALL_L(msg)		BASECALL_L(msg)
+#define HGETCHILDRENRESPONSE_L(msg) (BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L))
 #define HCAPACITYCALL_L(msg) 		BASECALL_L(msg) + KEY_L
 #define HCAPACITYRESPONSE_L(msg) 	BASERESPONSE_L(msg) + NODEHANDLE_L + TYPE_L
 #define HSELECTPARENTCALL_L(msg) 	HCAPACITYCALL_L(msg)
 #define HSELECTPARENTRESPONSE_L(msg) BASERESPONSE_L(msg) + NODEHANDLE_L
+
+// should it be length() or capacity()
+#define HVIDEOSEGMENTCALL_L(msg)	(BASECALL_L(msg) + ( (strlen(msg->getSegment()) + 1) * TYPE_L))
 
 }}
 class noncobject TransportAddress;
@@ -86,6 +92,20 @@ packet HJoinResponse extends BaseResponseMessage {
     NodeHandle successorNode;
     NodeHandle predecessorNode;
     int joined;
+}
+
+// call to get children from node
+packet HVideoSegmentCall extends BaseCallMessage {
+    string segment;
+}
+
+// call to get children from node
+packet HGetChildrenCall extends BaseCallMessage {
+}
+
+// response for children
+packet HGetChildrenResponse extends BaseResponseMessage {
+    NodeHandle children[];
 }
 
 packet HMessage {

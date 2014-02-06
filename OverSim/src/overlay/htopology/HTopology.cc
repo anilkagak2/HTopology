@@ -36,12 +36,43 @@ Define_Module(HTopology);
  *          it doesn't depict the reality. Go with some routers & stuff like that)
  *
  *  // Messages
- *  GetChildrenCall, GetChildrenResponse -> used in getNodesOneUp
- *  VideoSegmentCall -> stream video packet used in transferring the packet
+ *  DONE GetChildrenCall, GetChildrenResponse -> used in getNodesOneUp
+ *  DONE VideoSegmentCall -> stream video packet used in transferring the packet
+ *
+ *  TODO QUEUE or a bounded size buffer to store the packets received
+ *
+ *  TODO enhancements
+ *  1) Bootstrapping need to change a bit
+ *  2) Remove a node from bootstrap list once it's full & add it's children in the list
+ *      => reduces the number of messages exchanged in joining of a new node
+ *
+ *  TODO statistics & simulation environment
+ *  1) What kind of network topology will work?
+ *      One like our institute & other like a general Internet (with nodes behind proxy)
+ *  2) What all statistics should be captured?
+ *      -> startup time & response time
+ *      -> fault tolerance (what happens in the rescue situations)
+ *      -> any other characteristics
+ *  3) Simulation should be for how many nodes? # of nodes
+ *  4) What kind of stream we should be working on? (I'm currently using "strings",
+ *          Should I replace it with videoStreams? ->
+ *          because segment size may also have some effect on the simulation)
  * */
 
 // To convert between IP addresses (which have bit 24 active), and keys (which don't), we'll need to set or remove this bit.
 #define BIGBIT (1 << 24)
+
+/* TODO Utilities
+ * Will shift to some other place if required
+ * */
+template<typename T>
+string tToString (T a) {
+    std::stringstream ss;
+    ss << a;
+
+    return ss.str ();
+}
+
 
 HTopology::~HTopology(){
     // destroy self timer messages
@@ -255,10 +286,28 @@ void HTopology::schedulePacketGeneration () {
 }
 
 // Wraps this videoSegment in a message & deliver it to the node
-// TODO
 void HTopology::sendPacketToNode (const string videoSegment, const NodeHandle& node) {
+    HVideoSegmentCall *msg = new HVideoSegmentCall();
+    msg->setSegment(videoSegment.c_str());
 
+    // TODO BUG CAN BE IN THIS setBitLength thing, please verify it properly
+    msg->setBitLength(HVIDEOSEGMENTCALL_L(msg));
+
+    sendRouteRpcCall (OVERLAY_COMP, node, msg);
 }
+
+void HTopology::sendSegmentToChildren(string pkt) {
+    // Schedule the transfer to all the children & rescue nodes
+    // TODO may be we can use the ideology asked in the proposed algorithm
+    // Send to only half of the nodes & then ask them to deliver the packet to their neighbors
+    MapIterator it;
+    for (it = children.begin(); it != children.end(); ++it)
+        sendPacketToNode(pkt, (*it).second.getHandle());
+    for (it = rescueChildren.begin(); it != rescueChildren.end(); ++it)
+        sendPacketToNode(pkt, (*it).second.getHandle());
+}
+
+// At source node:- packet is generated & sent to the children
 
 void HTopology::handlePacketGenerationTimer(cMessage* msg) {
     schedulePacketGeneration();     // Schedule the run again
@@ -269,17 +318,12 @@ void HTopology::handlePacketGenerationTimer(cMessage* msg) {
     }
 
     // Generate a new message & deliver it to all the nodes
-    string pkt = "message-" + intuniform(0, INT_MAX);
+    string pkt = "message-" + tToString(intuniform(0, INT_MAX));
 
-    // Schedule the transfer to all the children & rescue nodes
-    // TODO may be we can use the ideology asked in the proposed algorithm
-    // Send to only half of the nodes & then ask them to deliver the packet to their neighbors
-    MapIterator it;
-    for (it = children.begin(); it != children.end(); ++it)
-        sendPacketToNode(pkt, (*it).second.getHandle());
-    for (it = rescueChildren.begin(); it != rescueChildren.end(); ++it)
-        sendPacketToNode(pkt, (*it).second.getHandle());
+    EV << thisNode << ":Generated message is: " << pkt ;
+    sendSegmentToChildren(pkt);
 }
+
 
 void HTopology::handleJoinTimerExpired(cMessage* msg) {
     // only process timer, if node is not joined yet
@@ -391,13 +435,69 @@ NodeHandle HTopology::getNodeHandle(MapIterator iter, MapIterator end) {
     return node.getHandle();
 }
 
-// TODO
+
+// NodesOneUp
+// respond to the getChildren call
+void HTopology::sendChildren (BaseCallMessage *msg) {
+    HGetChildrenCall *mrpc = (HGetChildrenCall *) msg;
+    HGetChildrenResponse *rrpc =  new HGetChildrenResponse();
+
+    rrpc->setChildrenArraySize(children.size());
+    rrpc->setBitLength(HGETCHILDRENRESPONSE_L(rrpc));
+    int k=0;
+    for (MapIterator it=children.begin(); it!=children.end(); ++it, k++) {
+        rrpc->setChildren(k, (*it).second.getHandle());
+    }
+
+    sendRpcResponse(mrpc, rrpc);
+}
+
 // use the ancestors array to figure out these nodes
 void HTopology::initializeNodesOneUp () {
     if (grandParent.isUnspecified()) return;
 
     // Need to call the last ancestor & get it's children
     // exclude our parent & go ahead with with other nodes
+    HGetChildrenCall *msg = new HGetChildrenCall();
+    msg->setBitLength(HGETCHILDRENCALL_L (msg));
+
+    // send it to the destination
+    sendRouteRpcCall (OVERLAY_COMP, grandParent.getHandle(), msg);
+}
+
+// fills up the nodes one up field in the overlay
+void HTopology::setNodesOneUp (BaseResponseMessage* msg) {
+    HGetChildrenResponse* mrpc = (HGetChildrenResponse*)msg;          // get Response message
+
+    // just remove our parent from this list & add them to the nodesOneUp
+    int noOfChildren = mrpc->getChildrenArraySize();
+    for (int i=0; i<noOfChildren; ++i) {
+        NodeHandle node = mrpc->getChildren(i);
+
+        // ignore our parent
+        if (node == parent.getHandle()) {
+            EV << "Got our parent in the list: atleast proves this list to be legitimate :P";
+            continue;
+        }
+
+        HNode hnode;
+        hnode.setHandle(node);
+        nodesOneUp[node.getKey()] = hnode;
+    }
+}
+
+
+// store the segment in your cache & distribute
+void HTopology::handleVideoSegment (BaseCallMessage *msg) {
+    HVideoSegmentCall *mrpc = (HVideoSegmentCall *)msg;
+
+    EV << thisNode << ": received " << mrpc->getSegment()
+            << ": from -> " << mrpc->getSrcNode() << endl;
+
+    // TODO need a bounded buffer, this'll kill the memory requirements :)
+    cache.push_back(mrpc->getSegment());
+    sendSegmentToChildren(mrpc->getSegment());
+    // TODO delete message
 }
 
 // RPC
@@ -428,6 +528,20 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
         //HSelectParentCall *mrpc = (HSelectParentCall)msg;
 
         // TODO Do check if the request is not a fake/malicious one
+        RPC_HANDLED = true;
+        break;
+    }
+
+    RPC_ON_CALL(HVideoSegment) {
+        handleVideoSegment(msg);
+        RPC_HANDLED = true;
+        break;
+    }
+
+    RPC_ON_CALL(HGetChildren) {
+        sendChildren (msg);
+        RPC_HANDLED = true;
+        break;
     }
 
     RPC_ON_CALL(HJoin) {
@@ -500,8 +614,6 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
     return RPC_HANDLED;
 }
 
-
-
 // Called when an RPC we sent has timed out.
 // Don't delete msg here!
 // TODO
@@ -545,6 +657,10 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
 
         RPC_ON_RESPONSE(HSelectParent) {
             // TODO, will there really be any response message of this sort?
+        }
+
+        RPC_ON_RESPONSE(HGetChildren) {
+            setNodesOneUp(msg);
         }
 
         RPC_ON_RESPONSE(HJoin) {

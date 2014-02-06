@@ -1539,6 +1539,719 @@ void *HJoinResponseDescriptor::getFieldStructPointer(void *object, int field, in
     }
 }
 
+Register_Class(HVideoSegmentCall);
+
+HVideoSegmentCall::HVideoSegmentCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+    this->segment_var = 0;
+}
+
+HVideoSegmentCall::HVideoSegmentCall(const HVideoSegmentCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+HVideoSegmentCall::~HVideoSegmentCall()
+{
+}
+
+HVideoSegmentCall& HVideoSegmentCall::operator=(const HVideoSegmentCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HVideoSegmentCall::copy(const HVideoSegmentCall& other)
+{
+    this->segment_var = other.segment_var;
+}
+
+void HVideoSegmentCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+    doPacking(b,this->segment_var);
+}
+
+void HVideoSegmentCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+    doUnpacking(b,this->segment_var);
+}
+
+const char * HVideoSegmentCall::getSegment() const
+{
+    return segment_var.c_str();
+}
+
+void HVideoSegmentCall::setSegment(const char * segment)
+{
+    this->segment_var = segment;
+}
+
+class HVideoSegmentCallDescriptor : public cClassDescriptor
+{
+  public:
+    HVideoSegmentCallDescriptor();
+    virtual ~HVideoSegmentCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HVideoSegmentCallDescriptor);
+
+HVideoSegmentCallDescriptor::HVideoSegmentCallDescriptor() : cClassDescriptor("HVideoSegmentCall", "BaseCallMessage")
+{
+}
+
+HVideoSegmentCallDescriptor::~HVideoSegmentCallDescriptor()
+{
+}
+
+bool HVideoSegmentCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HVideoSegmentCall *>(obj)!=NULL;
+}
+
+const char *HVideoSegmentCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HVideoSegmentCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+}
+
+unsigned int HVideoSegmentCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISEDITABLE,
+    };
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+}
+
+const char *HVideoSegmentCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "segment",
+    };
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+}
+
+int HVideoSegmentCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='s' && strcmp(fieldName, "segment")==0) return base+0;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HVideoSegmentCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "string",
+    };
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *HVideoSegmentCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HVideoSegmentCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HVideoSegmentCall *pp = (HVideoSegmentCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HVideoSegmentCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HVideoSegmentCall *pp = (HVideoSegmentCall *)object; (void)pp;
+    switch (field) {
+        case 0: return oppstring2string(pp->getSegment());
+        default: return "";
+    }
+}
+
+bool HVideoSegmentCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HVideoSegmentCall *pp = (HVideoSegmentCall *)object; (void)pp;
+    switch (field) {
+        case 0: pp->setSegment((value)); return true;
+        default: return false;
+    }
+}
+
+const char *HVideoSegmentCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        NULL,
+    };
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+}
+
+void *HVideoSegmentCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HVideoSegmentCall *pp = (HVideoSegmentCall *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+Register_Class(HGetChildrenCall);
+
+HGetChildrenCall::HGetChildrenCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+}
+
+HGetChildrenCall::HGetChildrenCall(const HGetChildrenCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+HGetChildrenCall::~HGetChildrenCall()
+{
+}
+
+HGetChildrenCall& HGetChildrenCall::operator=(const HGetChildrenCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HGetChildrenCall::copy(const HGetChildrenCall& other)
+{
+}
+
+void HGetChildrenCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+}
+
+void HGetChildrenCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+}
+
+class HGetChildrenCallDescriptor : public cClassDescriptor
+{
+  public:
+    HGetChildrenCallDescriptor();
+    virtual ~HGetChildrenCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HGetChildrenCallDescriptor);
+
+HGetChildrenCallDescriptor::HGetChildrenCallDescriptor() : cClassDescriptor("HGetChildrenCall", "BaseCallMessage")
+{
+}
+
+HGetChildrenCallDescriptor::~HGetChildrenCallDescriptor()
+{
+}
+
+bool HGetChildrenCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HGetChildrenCall *>(obj)!=NULL;
+}
+
+const char *HGetChildrenCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HGetChildrenCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
+}
+
+unsigned int HGetChildrenCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return 0;
+}
+
+const char *HGetChildrenCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+int HGetChildrenCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HGetChildrenCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+const char *HGetChildrenCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HGetChildrenCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetChildrenCall *pp = (HGetChildrenCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HGetChildrenCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetChildrenCall *pp = (HGetChildrenCall *)object; (void)pp;
+    switch (field) {
+        default: return "";
+    }
+}
+
+bool HGetChildrenCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetChildrenCall *pp = (HGetChildrenCall *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *HGetChildrenCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+void *HGetChildrenCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetChildrenCall *pp = (HGetChildrenCall *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+Register_Class(HGetChildrenResponse);
+
+HGetChildrenResponse::HGetChildrenResponse(const char *name, int kind) : BaseResponseMessage(name,kind)
+{
+    children_arraysize = 0;
+    this->children_var = 0;
+}
+
+HGetChildrenResponse::HGetChildrenResponse(const HGetChildrenResponse& other) : BaseResponseMessage(other)
+{
+    children_arraysize = 0;
+    this->children_var = 0;
+    copy(other);
+}
+
+HGetChildrenResponse::~HGetChildrenResponse()
+{
+    delete [] children_var;
+}
+
+HGetChildrenResponse& HGetChildrenResponse::operator=(const HGetChildrenResponse& other)
+{
+    if (this==&other) return *this;
+    BaseResponseMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HGetChildrenResponse::copy(const HGetChildrenResponse& other)
+{
+    delete [] this->children_var;
+    this->children_var = (other.children_arraysize==0) ? NULL : new NodeHandle[other.children_arraysize];
+    children_arraysize = other.children_arraysize;
+    for (unsigned int i=0; i<children_arraysize; i++)
+        this->children_var[i] = other.children_var[i];
+}
+
+void HGetChildrenResponse::parsimPack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimPack(b);
+    b->pack(children_arraysize);
+    doPacking(b,this->children_var,children_arraysize);
+}
+
+void HGetChildrenResponse::parsimUnpack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimUnpack(b);
+    delete [] this->children_var;
+    b->unpack(children_arraysize);
+    if (children_arraysize==0) {
+        this->children_var = 0;
+    } else {
+        this->children_var = new NodeHandle[children_arraysize];
+        doUnpacking(b,this->children_var,children_arraysize);
+    }
+}
+
+void HGetChildrenResponse::setChildrenArraySize(unsigned int size)
+{
+    NodeHandle *children_var2 = (size==0) ? NULL : new NodeHandle[size];
+    unsigned int sz = children_arraysize < size ? children_arraysize : size;
+    for (unsigned int i=0; i<sz; i++)
+        children_var2[i] = this->children_var[i];
+    children_arraysize = size;
+    delete [] this->children_var;
+    this->children_var = children_var2;
+}
+
+unsigned int HGetChildrenResponse::getChildrenArraySize() const
+{
+    return children_arraysize;
+}
+
+NodeHandle& HGetChildrenResponse::getChildren(unsigned int k)
+{
+    if (k>=children_arraysize) throw cRuntimeError("Array of size %d indexed by %d", children_arraysize, k);
+    return children_var[k];
+}
+
+void HGetChildrenResponse::setChildren(unsigned int k, const NodeHandle& children)
+{
+    if (k>=children_arraysize) throw cRuntimeError("Array of size %d indexed by %d", children_arraysize, k);
+    this->children_var[k] = children;
+}
+
+class HGetChildrenResponseDescriptor : public cClassDescriptor
+{
+  public:
+    HGetChildrenResponseDescriptor();
+    virtual ~HGetChildrenResponseDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HGetChildrenResponseDescriptor);
+
+HGetChildrenResponseDescriptor::HGetChildrenResponseDescriptor() : cClassDescriptor("HGetChildrenResponse", "BaseResponseMessage")
+{
+}
+
+HGetChildrenResponseDescriptor::~HGetChildrenResponseDescriptor()
+{
+}
+
+bool HGetChildrenResponseDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HGetChildrenResponse *>(obj)!=NULL;
+}
+
+const char *HGetChildrenResponseDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HGetChildrenResponseDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+}
+
+unsigned int HGetChildrenResponseDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISARRAY | FD_ISCOMPOUND,
+    };
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+}
+
+const char *HGetChildrenResponseDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "children",
+    };
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+}
+
+int HGetChildrenResponseDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='c' && strcmp(fieldName, "children")==0) return base+0;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HGetChildrenResponseDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "NodeHandle",
+    };
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *HGetChildrenResponseDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HGetChildrenResponseDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetChildrenResponse *pp = (HGetChildrenResponse *)object; (void)pp;
+    switch (field) {
+        case 0: return pp->getChildrenArraySize();
+        default: return 0;
+    }
+}
+
+std::string HGetChildrenResponseDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetChildrenResponse *pp = (HGetChildrenResponse *)object; (void)pp;
+    switch (field) {
+        case 0: {std::stringstream out; out << pp->getChildren(i); return out.str();}
+        default: return "";
+    }
+}
+
+bool HGetChildrenResponseDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetChildrenResponse *pp = (HGetChildrenResponse *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *HGetChildrenResponseDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        "NodeHandle",
+    };
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+}
+
+void *HGetChildrenResponseDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetChildrenResponse *pp = (HGetChildrenResponse *)object; (void)pp;
+    switch (field) {
+        case 0: return (void *)(&pp->getChildren(i)); break;
+        default: return NULL;
+    }
+}
+
 Register_Class(HMessage);
 
 HMessage::HMessage(const char *name, int kind) : cPacket(name,kind)

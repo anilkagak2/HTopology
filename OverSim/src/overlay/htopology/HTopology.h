@@ -18,13 +18,16 @@
 
 #include <omnetpp.h>
 #include <queue>
+#include <sstream>
 #include <NodeHandle.h>
 #include <string>
+#include <vector>
 #include <BootstrapList.h>
 #include "BaseOverlay.h"
 #include "HMessage_m.h"
 #include "HNode.h"
 using std::endl;
+using std::vector;
 using std::string;
 
 #define GENERAL_MODE 0
@@ -50,7 +53,8 @@ class HTopology : public BaseOverlay {
     OverlayKey keyParent;    // key of the parent node, which is to be replaced
 
     int noOfChildren;       // current count of the children;
-    std::string buffer;     // buffer used
+    vector<string> cache;   // video cache
+    string buffer;          // buffer used
     int bufferMapSize;      // size of the local buffer
     int maxChildren;        // Maximum no. of children to be supported
     int joinRetry;          // Maximum no. of tries in joining the overlay
@@ -60,7 +64,15 @@ class HTopology : public BaseOverlay {
     void updateTooltip ();              // shows the links in visual mode
     void changeState (int state);       // change the STATE of this node to state
     NodeHandle getNodeHandle(MapIterator iter, MapIterator end);
-    void initializeNodesOneUp ();       // use the ancestors array to figure out these nodes
+
+    // store the segment in your cache & distribute
+    void handleVideoSegment (BaseCallMessage *msg);
+    void sendSegmentToChildren(string videoSegment);
+
+    /* NodesOneUP */
+    void sendChildren (BaseCallMessage *msg);       // respond to the getChildren call
+    void initializeNodesOneUp ();                   // use the ancestors array to figure out these nodes
+    void setNodesOneUp (BaseResponseMessage* msg);  // Set these nodes from the response
 
     // timer messages
     cMessage* join_timer; /**< */

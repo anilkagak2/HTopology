@@ -23,10 +23,16 @@
 #define JOINCALL_L(msg) 			BASECALL_L(msg)
 #define HJOINRESPONSE_L(msg) 		(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
                              			(msg->getAncestorsArraySize() * NODEHANDLE_L) + TYPE_L)
+        
+#define HGETCHILDRENCALL_L(msg)		BASECALL_L(msg)
+#define HGETCHILDRENRESPONSE_L(msg) (BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L))
 #define HCAPACITYCALL_L(msg) 		BASECALL_L(msg) + KEY_L
 #define HCAPACITYRESPONSE_L(msg) 	BASERESPONSE_L(msg) + NODEHANDLE_L + TYPE_L
 #define HSELECTPARENTCALL_L(msg) 	HCAPACITYCALL_L(msg)
 #define HSELECTPARENTRESPONSE_L(msg) BASERESPONSE_L(msg) + NODEHANDLE_L
+
+
+#define HVIDEOSEGMENTCALL_L(msg)	(BASECALL_L(msg) + ( (strlen(msg->getSegment()) + 1) * TYPE_L))
 // }}
 
 
@@ -300,6 +306,117 @@ class HJoinResponse : public ::BaseResponseMessage
 
 inline void doPacking(cCommBuffer *b, HJoinResponse& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, HJoinResponse& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HVideoSegmentCall extends BaseCallMessage {
+ *     string segment;
+ * }
+ * </pre>
+ */
+class HVideoSegmentCall : public ::BaseCallMessage
+{
+  protected:
+    opp_string segment_var;
+
+  private:
+    void copy(const HVideoSegmentCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HVideoSegmentCall&);
+
+  public:
+    HVideoSegmentCall(const char *name=NULL, int kind=0);
+    HVideoSegmentCall(const HVideoSegmentCall& other);
+    virtual ~HVideoSegmentCall();
+    HVideoSegmentCall& operator=(const HVideoSegmentCall& other);
+    virtual HVideoSegmentCall *dup() const {return new HVideoSegmentCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual const char * getSegment() const;
+    virtual void setSegment(const char * segment);
+};
+
+inline void doPacking(cCommBuffer *b, HVideoSegmentCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HVideoSegmentCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HGetChildrenCall extends BaseCallMessage {
+ * }
+ * </pre>
+ */
+class HGetChildrenCall : public ::BaseCallMessage
+{
+  protected:
+
+  private:
+    void copy(const HGetChildrenCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HGetChildrenCall&);
+
+  public:
+    HGetChildrenCall(const char *name=NULL, int kind=0);
+    HGetChildrenCall(const HGetChildrenCall& other);
+    virtual ~HGetChildrenCall();
+    HGetChildrenCall& operator=(const HGetChildrenCall& other);
+    virtual HGetChildrenCall *dup() const {return new HGetChildrenCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+};
+
+inline void doPacking(cCommBuffer *b, HGetChildrenCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HGetChildrenCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HGetChildrenResponse extends BaseResponseMessage {
+ *     NodeHandle children[];
+ * }
+ * </pre>
+ */
+class HGetChildrenResponse : public ::BaseResponseMessage
+{
+  protected:
+    NodeHandle *children_var; // array ptr
+    unsigned int children_arraysize;
+
+  private:
+    void copy(const HGetChildrenResponse& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HGetChildrenResponse&);
+
+  public:
+    HGetChildrenResponse(const char *name=NULL, int kind=0);
+    HGetChildrenResponse(const HGetChildrenResponse& other);
+    virtual ~HGetChildrenResponse();
+    HGetChildrenResponse& operator=(const HGetChildrenResponse& other);
+    virtual HGetChildrenResponse *dup() const {return new HGetChildrenResponse(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual void setChildrenArraySize(unsigned int size);
+    virtual unsigned int getChildrenArraySize() const;
+    virtual NodeHandle& getChildren(unsigned int k);
+    virtual const NodeHandle& getChildren(unsigned int k) const {return const_cast<HGetChildrenResponse*>(this)->getChildren(k);}
+    virtual void setChildren(unsigned int k, const NodeHandle& children);
+};
+
+inline void doPacking(cCommBuffer *b, HGetChildrenResponse& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HGetChildrenResponse& obj) {obj.parsimUnpack(b);}
 
 /**
  * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
