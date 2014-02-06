@@ -21,9 +21,10 @@ Define_Module(HTopology);
 
 /*
  * TODO
- * 1) Generate Packets
- * 2) Schedule them, transfer them to children & rescue nodes
- * 3) Other nodes keep track of incoming packets & transfer them to their children
+ * 1) DONE Generate Packets
+ * 2) DONE Schedule them, transfer them to children & rescue nodes
+ * 3) DONE Other nodes keep track of incoming packets & transfer them to their children
+ *      Except QUEUE
  * 4) Failure situations
  *      a) Keeping track of active nodes in the rescue set
  *      b) ranking algorithm or heuristics
@@ -34,12 +35,13 @@ Define_Module(HTopology);
  *      b) How to collect them?
  *      c) What kind of reality can be provided in the simulation? (Underlay Configuration is not so good
  *          it doesn't depict the reality. Go with some routers & stuff like that)
+ * 7) Emergency video segment scheduling.
  *
  *  // Messages
  *  DONE GetChildrenCall, GetChildrenResponse -> used in getNodesOneUp
  *  DONE VideoSegmentCall -> stream video packet used in transferring the packet
  *
- *  TODO QUEUE or a bounded size buffer to store the packets received
+ *  DONE QUEUE or a bounded size buffer to store the packets received
  *
  *  TODO enhancements
  *  1) Bootstrapping need to change a bit
@@ -105,14 +107,16 @@ void HTopology::initializeOverlay(int stage) {
    thisNode.setKey(OverlayKey(nodeID));     // set its key
 
    // initialize the rest of variables
-   bufferMapSize = par("bufferSizeInBytes");
+   bufferMapSize = par("bufferSize");
    maxChildren = par("maxChildren");
    noOfChildren = 0;
    joinRetry = par("joinRetry");
    joinDelay = par("joinDelay");
    packetGenRate = par("packetGenRate");
    isSource = false;
-   buffer.resize(bufferMapSize);            // Resize the buffer map to fit the given requirement
+
+   cache.resize(bufferMapSize);            // Resize the buffer map to fit the given requirement
+   cachePointer = 0;
 
    EV << "max children is " << maxChildren << endl;
 
@@ -122,6 +126,9 @@ void HTopology::initializeOverlay(int stage) {
    WATCH(joinRetry);
    WATCH(successorNode);
    WATCH(bootstrapNode);
+   // TODO debug the watch of a vector
+   //WATCH(cache);
+   WATCH(cachePointer);
 
    // self-messages
    join_timer = new cMessage("join_timer");
@@ -307,6 +314,26 @@ void HTopology::sendSegmentToChildren(string pkt) {
         sendPacketToNode(pkt, (*it).second.getHandle());
 }
 
+// store the segment in your cache & distribute
+void HTopology::handleVideoSegment (BaseCallMessage *msg) {
+    HVideoSegmentCall *mrpc = (HVideoSegmentCall *)msg;
+
+    EV << thisNode << ": received " << mrpc->getSegment()
+            << ": from -> " << mrpc->getSrcNode() << endl;
+
+    // TODO check the buffer functionalities
+    if (cachePointer == bufferMapSize-1) {
+        cachePointer=0;    // set pointer to zeroth location
+        EV << thisNode
+                << ": cacheFull and setting the cachePointer back to 0" << endl;
+    }
+    cache[cachePointer++] = mrpc->getSegment();
+
+    sendSegmentToChildren(mrpc->getSegment());
+    delete msg;
+}
+
+
 // At source node:- packet is generated & sent to the children
 
 void HTopology::handlePacketGenerationTimer(cMessage* msg) {
@@ -484,20 +511,6 @@ void HTopology::setNodesOneUp (BaseResponseMessage* msg) {
         hnode.setHandle(node);
         nodesOneUp[node.getKey()] = hnode;
     }
-}
-
-
-// store the segment in your cache & distribute
-void HTopology::handleVideoSegment (BaseCallMessage *msg) {
-    HVideoSegmentCall *mrpc = (HVideoSegmentCall *)msg;
-
-    EV << thisNode << ": received " << mrpc->getSegment()
-            << ": from -> " << mrpc->getSrcNode() << endl;
-
-    // TODO need a bounded buffer, this'll kill the memory requirements :)
-    cache.push_back(mrpc->getSegment());
-    sendSegmentToChildren(mrpc->getSegment());
-    // TODO delete message
 }
 
 // RPC

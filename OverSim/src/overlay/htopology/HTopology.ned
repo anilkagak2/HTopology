@@ -26,7 +26,7 @@ simple HTopology extends BaseOverlay
 {
     parameters:
         @class(HTopology);
-        int bufferSizeInBytes;		// Buffer Map size used in the HTopology
+        int bufferSize;				// Buffer Map size used in the HTopology
         int maxChildren;			// Maximum number of children allowed at a node
         int joinRetry;
         double joinDelay @unit(s); // delay between join retries (sec)

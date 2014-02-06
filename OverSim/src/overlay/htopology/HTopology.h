@@ -54,7 +54,7 @@ class HTopology : public BaseOverlay {
 
     int noOfChildren;       // current count of the children;
     vector<string> cache;   // video cache
-    string buffer;          // buffer used
+    int cachePointer;       // pointer to the cache
     int bufferMapSize;      // size of the local buffer
     int maxChildren;        // Maximum no. of children to be supported
     int joinRetry;          // Maximum no. of tries in joining the overlay
