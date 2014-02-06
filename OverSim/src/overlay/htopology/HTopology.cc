@@ -21,6 +21,11 @@ Define_Module(HTopology);
 
 /*
  * TODO
+ * MAJOR CONCERN NOW
+ *  -> SCHEDULING (in rescue mode over a set of nodes)
+ *  -> ACTIVENESS of Nodes (liveness of nodes & keep alive messages)
+ *  -> RANKING of rescue nodes
+ *
  * 1) DONE Generate Packets
  * 2) DONE Schedule them, transfer them to children & rescue nodes
  * 3) DONE Other nodes keep track of incoming packets & transfer them to their children
