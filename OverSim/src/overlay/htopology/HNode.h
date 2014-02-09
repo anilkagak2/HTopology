@@ -143,6 +143,7 @@ class HNode {
       const NodeVector getNodeVector () const;
 
       void setHandle (NodeHandle handle);
+      void setNodeVector (NodeVector nvector);
 
       /**
        * indicates if this NodeHandle is specified

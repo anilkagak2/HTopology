@@ -20,20 +20,26 @@
 #include <CommonMessages_m.h>
 #include "HNode.h"
 
-#define JOINCALL_L(msg) 			BASECALL_L(msg)
-#define HJOINRESPONSE_L(msg) 		(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
-                             			(msg->getAncestorsArraySize() * NODEHANDLE_L) + TYPE_L)
+#define JOINCALL_L(msg) 					BASECALL_L(msg)
+#define HJOINRESPONSE_L(msg) 				(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
+                             					(msg->getAncestorsArraySize() * NODEHANDLE_L) + TYPE_L)
         
-#define HGETCHILDRENCALL_L(msg)		BASECALL_L(msg)
-#define HGETCHILDRENRESPONSE_L(msg) (BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L))
-#define HCAPACITYCALL_L(msg) 		BASECALL_L(msg) + KEY_L
-#define HCAPACITYRESPONSE_L(msg) 	BASERESPONSE_L(msg) + NODEHANDLE_L + TYPE_L
-#define HSELECTPARENTCALL_L(msg) 	HCAPACITYCALL_L(msg)
-#define HSELECTPARENTRESPONSE_L(msg) BASERESPONSE_L(msg) + NODEHANDLE_L
+#define HGETCHILDRENCALL_L(msg)				BASECALL_L(msg)
+#define HGETCHILDRENRESPONSE_L(msg) 		(BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L))
+#define HCAPACITYCALL_L(msg) 				BASECALL_L(msg) + KEY_L
+#define HCAPACITYRESPONSE_L(msg) 			(BASERESPONSE_L(msg) + (2*NODEHANDLE_L) + TYPE_L)
+#define HSELECTPARENTCALL_L(msg) 			HCAPACITYCALL_L(msg)
+#define HSELECTPARENTRESPONSE_L(msg) 		BASERESPONSE_L(msg) + NODEHANDLE_L
 
 
 
-#define HVIDEOSEGMENTCALL_L(msg)	(BASECALL_L(msg) + TYPE_L + ( (strlen(msg->getSegment()) + 1) * TYPE_L))
+#define HVIDEOSEGMENTCALL_L(msg)			(BASECALL_L(msg) + TYPE_L + ( (strlen(msg->getSegment()) + 1) * TYPE_L))
+
+#define HLEAVEOVERLAYCALL_L(msg)			BASECALL_L(msg)
+#define HLEAVEOVERLAYRESPONSE_L(msg) 		BASERESPONSE_L(msg) + TYPE_L
+
+#define HNEWPARENTSELECTEDCALL_L(msg)		(BASECALL_L(msg) + NODEHANDLE_L)
+#define HRESPONSIBILITYASPARENTCALL_L(msg)  (BASECALL_L(msg) + (msg->getChildrenArraySize()+1) * NODEHANDLE_L)
 // }}
 
 
@@ -100,6 +106,7 @@ inline void doUnpacking(cCommBuffer *b, HCapacityCall& obj) {obj.parsimUnpack(b)
  * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HCapacityResponse extends BaseResponseMessage {
+ *     NodeHandle parentNode;
  *     NodeHandle respondingNode;
  *     int capacity;						
  * };
@@ -108,6 +115,7 @@ inline void doUnpacking(cCommBuffer *b, HCapacityCall& obj) {obj.parsimUnpack(b)
 class HCapacityResponse : public ::BaseResponseMessage
 {
   protected:
+    NodeHandle parentNode_var;
     NodeHandle respondingNode_var;
     int capacity_var;
 
@@ -128,6 +136,9 @@ class HCapacityResponse : public ::BaseResponseMessage
     virtual void parsimUnpack(cCommBuffer *b);
 
     // field getter/setter methods
+    virtual NodeHandle& getParentNode();
+    virtual const NodeHandle& getParentNode() const {return const_cast<HCapacityResponse*>(this)->getParentNode();}
+    virtual void setParentNode(const NodeHandle& parentNode);
     virtual NodeHandle& getRespondingNode();
     virtual const NodeHandle& getRespondingNode() const {return const_cast<HCapacityResponse*>(this)->getRespondingNode();}
     virtual void setRespondingNode(const NodeHandle& respondingNode);
@@ -348,6 +359,160 @@ class HVideoSegmentCall : public ::BaseCallMessage
 
 inline void doPacking(cCommBuffer *b, HVideoSegmentCall& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, HVideoSegmentCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HLeaveOverlayCall extends BaseCallMessage {
+ * }
+ * </pre>
+ */
+class HLeaveOverlayCall : public ::BaseCallMessage
+{
+  protected:
+
+  private:
+    void copy(const HLeaveOverlayCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HLeaveOverlayCall&);
+
+  public:
+    HLeaveOverlayCall(const char *name=NULL, int kind=0);
+    HLeaveOverlayCall(const HLeaveOverlayCall& other);
+    virtual ~HLeaveOverlayCall();
+    HLeaveOverlayCall& operator=(const HLeaveOverlayCall& other);
+    virtual HLeaveOverlayCall *dup() const {return new HLeaveOverlayCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+};
+
+inline void doPacking(cCommBuffer *b, HLeaveOverlayCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HLeaveOverlayCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HLeaveOverlayResponse extends BaseResponseMessage {
+ *     int permissionGranted;
+ * }
+ * </pre>
+ */
+class HLeaveOverlayResponse : public ::BaseResponseMessage
+{
+  protected:
+    int permissionGranted_var;
+
+  private:
+    void copy(const HLeaveOverlayResponse& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HLeaveOverlayResponse&);
+
+  public:
+    HLeaveOverlayResponse(const char *name=NULL, int kind=0);
+    HLeaveOverlayResponse(const HLeaveOverlayResponse& other);
+    virtual ~HLeaveOverlayResponse();
+    HLeaveOverlayResponse& operator=(const HLeaveOverlayResponse& other);
+    virtual HLeaveOverlayResponse *dup() const {return new HLeaveOverlayResponse(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual int getPermissionGranted() const;
+    virtual void setPermissionGranted(int permissionGranted);
+};
+
+inline void doPacking(cCommBuffer *b, HLeaveOverlayResponse& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HLeaveOverlayResponse& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HNewParentSelectedCall extends BaseCallMessage {
+ *     NodeHandle parent;
+ * }
+ * </pre>
+ */
+class HNewParentSelectedCall : public ::BaseCallMessage
+{
+  protected:
+    NodeHandle parent_var;
+
+  private:
+    void copy(const HNewParentSelectedCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HNewParentSelectedCall&);
+
+  public:
+    HNewParentSelectedCall(const char *name=NULL, int kind=0);
+    HNewParentSelectedCall(const HNewParentSelectedCall& other);
+    virtual ~HNewParentSelectedCall();
+    HNewParentSelectedCall& operator=(const HNewParentSelectedCall& other);
+    virtual HNewParentSelectedCall *dup() const {return new HNewParentSelectedCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual NodeHandle& getParent();
+    virtual const NodeHandle& getParent() const {return const_cast<HNewParentSelectedCall*>(this)->getParent();}
+    virtual void setParent(const NodeHandle& parent);
+};
+
+inline void doPacking(cCommBuffer *b, HNewParentSelectedCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HNewParentSelectedCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HResponsibilityAsParentCall extends BaseCallMessage {
+ *     NodeHandle parent;
+ *     NodeHandle children[];
+ * }
+ * </pre>
+ */
+class HResponsibilityAsParentCall : public ::BaseCallMessage
+{
+  protected:
+    NodeHandle parent_var;
+    NodeHandle *children_var; // array ptr
+    unsigned int children_arraysize;
+
+  private:
+    void copy(const HResponsibilityAsParentCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HResponsibilityAsParentCall&);
+
+  public:
+    HResponsibilityAsParentCall(const char *name=NULL, int kind=0);
+    HResponsibilityAsParentCall(const HResponsibilityAsParentCall& other);
+    virtual ~HResponsibilityAsParentCall();
+    HResponsibilityAsParentCall& operator=(const HResponsibilityAsParentCall& other);
+    virtual HResponsibilityAsParentCall *dup() const {return new HResponsibilityAsParentCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual NodeHandle& getParent();
+    virtual const NodeHandle& getParent() const {return const_cast<HResponsibilityAsParentCall*>(this)->getParent();}
+    virtual void setParent(const NodeHandle& parent);
+    virtual void setChildrenArraySize(unsigned int size);
+    virtual unsigned int getChildrenArraySize() const;
+    virtual NodeHandle& getChildren(unsigned int k);
+    virtual const NodeHandle& getChildren(unsigned int k) const {return const_cast<HResponsibilityAsParentCall*>(this)->getChildren(k);}
+    virtual void setChildren(unsigned int k, const NodeHandle& children);
+};
+
+inline void doPacking(cCommBuffer *b, HResponsibilityAsParentCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HResponsibilityAsParentCall& obj) {obj.parsimUnpack(b);}
 
 /**
  * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.

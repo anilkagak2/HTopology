@@ -24,21 +24,26 @@ cplusplus {{
 #include <CommonMessages_m.h>
 #include "HNode.h"
 
-#define JOINCALL_L(msg) 			BASECALL_L(msg)
-#define HJOINRESPONSE_L(msg) 		(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
-                             			(msg->getAncestorsArraySize() * NODEHANDLE_L) + TYPE_L)
+#define JOINCALL_L(msg) 					BASECALL_L(msg)
+#define HJOINRESPONSE_L(msg) 				(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
+                             					(msg->getAncestorsArraySize() * NODEHANDLE_L) + TYPE_L)
         
-#define HGETCHILDRENCALL_L(msg)		BASECALL_L(msg)
-#define HGETCHILDRENRESPONSE_L(msg) (BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L))
-#define HCAPACITYCALL_L(msg) 		BASECALL_L(msg) + KEY_L
-#define HCAPACITYRESPONSE_L(msg) 	BASERESPONSE_L(msg) + NODEHANDLE_L + TYPE_L
-#define HSELECTPARENTCALL_L(msg) 	HCAPACITYCALL_L(msg)
-#define HSELECTPARENTRESPONSE_L(msg) BASERESPONSE_L(msg) + NODEHANDLE_L
+#define HGETCHILDRENCALL_L(msg)				BASECALL_L(msg)
+#define HGETCHILDRENRESPONSE_L(msg) 		(BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L))
+#define HCAPACITYCALL_L(msg) 				BASECALL_L(msg) + KEY_L
+#define HCAPACITYRESPONSE_L(msg) 			(BASERESPONSE_L(msg) + (2*NODEHANDLE_L) + TYPE_L)
+#define HSELECTPARENTCALL_L(msg) 			HCAPACITYCALL_L(msg)
+#define HSELECTPARENTRESPONSE_L(msg) 		BASERESPONSE_L(msg) + NODEHANDLE_L
 
 // should it be length() or capacity()
 // isn't TYPE_L for string a bit more than required?
-#define HVIDEOSEGMENTCALL_L(msg)	(BASECALL_L(msg) + TYPE_L + ( (strlen(msg->getSegment()) + 1) * TYPE_L))
+#define HVIDEOSEGMENTCALL_L(msg)			(BASECALL_L(msg) + TYPE_L + ( (strlen(msg->getSegment()) + 1) * TYPE_L))
 
+#define HLEAVEOVERLAYCALL_L(msg)			BASECALL_L(msg)
+#define HLEAVEOVERLAYRESPONSE_L(msg) 		BASERESPONSE_L(msg) + TYPE_L
+
+#define HNEWPARENTSELECTEDCALL_L(msg)		(BASECALL_L(msg) + NODEHANDLE_L)
+#define HRESPONSIBILITYASPARENTCALL_L(msg)  (BASECALL_L(msg) + (msg->getChildrenArraySize()+1) * NODEHANDLE_L)
 }}
 class noncobject TransportAddress;
 class noncobject NodeHandle;
@@ -61,6 +66,7 @@ packet HCapacityCall extends BaseCallMessage {
 };
 
 packet HCapacityResponse extends BaseResponseMessage {
+    NodeHandle parentNode;
     NodeHandle respondingNode;
     int capacity;						// can handle 'capacity' no. of children.
 };
@@ -100,6 +106,26 @@ packet HVideoSegmentCall extends BaseCallMessage {
     string segment;
     int segmentID;
 }
+
+// Signal that the source node is going to leave the overlay
+packet HLeaveOverlayCall extends BaseCallMessage {
+}
+
+// Signal that the source node is going to leave the overlay
+packet HLeaveOverlayResponse extends BaseResponseMessage {
+    int permissionGranted;
+}
+
+// gives the description of the newly selected parent
+packet HNewParentSelectedCall extends BaseCallMessage {
+    NodeHandle parent;
+} 
+
+// called node is selected as a parent for given set of children
+packet HResponsibilityAsParentCall extends BaseCallMessage {
+    NodeHandle parent;
+    NodeHandle children[];
+} 
 
 // call to get children from node
 packet HGetChildrenCall extends BaseCallMessage {

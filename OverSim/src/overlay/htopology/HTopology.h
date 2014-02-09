@@ -44,6 +44,16 @@ struct HVideoSegment {
     int segmentID;
 };
 
+// Used to store the parameters required in selecting the node's replacement
+struct HNodeReplacement {
+    // used in selection algorithm, for sharing variable between RPC Call & Response
+    // do think about asking Node instead of capacity
+    std::map<OverlayKey, int> queryNodesSelectionAlgo;
+    int responseRequired;   // How many of answers required?
+    NodeHandle node;        // To be replaced node
+    HLeaveOverlayCall *mrpc;
+};
+
 class HTopology : public BaseOverlay {
   protected:
     virtual void initialize();
@@ -51,11 +61,8 @@ class HTopology : public BaseOverlay {
 
 
   private:
-    // used in selection algorithm, for sharing variable between RPC Call & Response
-    // do think about asking Node instead of capacity
-    std::map<OverlayKey, int> queryNodesSelectionAlgo;
-    int responseRequired;       // How many of answers required?
-    OverlayKey keyParent;    // key of the parent node, which is to be replaced
+    // Store pending leaveRequests
+    std::map<OverlayKey, HNodeReplacement> leaveRequests;
 
     int noOfChildren;       // current count of the children;
     vector<HVideoSegment> cache;   // video cache
@@ -75,6 +82,14 @@ class HTopology : public BaseOverlay {
     void handleVideoSegment (BaseCallMessage *msg);
     void sendSegmentToChildren(HVideoSegmentCall *videoCall);
     void handlePacketGenerationTimer (cMessage *msg);
+
+    void handleJoinCall (BaseCallMessage *msg);
+    void handleLeaveCall (BaseCallMessage *msg);
+
+    void handleNewParentSelectedCall (BaseCallMessage *msg);
+    void handleResponsibilityAsParentCall (BaseCallMessage *msg);
+
+    void handleCapacityResponse (BaseResponseMessage *msg);
 
     /* NodesOneUP */
     void sendChildren (BaseCallMessage *msg);       // respond to the getChildren call
@@ -152,8 +167,8 @@ class HTopology : public BaseOverlay {
     // Helpers for AddOns
     // selection of a new parent algorithm
     // Helpers
-    void getParametersForSelectionAlgo (OverlayKey& key);
-    void goAheadWithRestSelectionProcess (OverlayKey& key);
+    void getParametersForSelectionAlgo (const OverlayKey& key);
+    void goAheadWithRestSelectionProcess (const OverlayKey& key);
 
     // AddOns
     bool selectRescueParent ();                         // choose a rescue parent for yourself

@@ -116,6 +116,10 @@ void HNode::setHandle(NodeHandle handle) {
     this->handle = handle;
 }
 
+void HNode::setNodeVector (NodeVector nvector) {
+    this->children = nvector;
+}
+
 //private
 inline void HNode::assertUnspecified( const HNode& node) const {
     if ( this->isUnspecified() || node.isUnspecified() )
