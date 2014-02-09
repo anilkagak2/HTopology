@@ -4681,6 +4681,7 @@ $O/overlay/htopology/HMessage_m.o: overlay/htopology/HMessage_m.cc \
 	common/oversim_mapset.h \
 	overlay/htopology/HMessage_m.h \
 	overlay/htopology/HNode.h \
+	overlay/htopology/HStructs.h \
 	$(INET_PROJ)/src/base/INETDefs.h \
 	$(INET_PROJ)/src/networklayer/contract/IPAddress.h \
 	$(INET_PROJ)/src/networklayer/contract/IPv6Address.h \
@@ -4728,6 +4729,7 @@ $O/overlay/htopology/HTopology.o: overlay/htopology/HTopology.cc \
 	common/oversim_mapset.h \
 	overlay/htopology/HMessage_m.h \
 	overlay/htopology/HNode.h \
+	overlay/htopology/HStructs.h \
 	overlay/htopology/HTopology.h \
 	$(INET_PROJ)/src/base/INETDefs.h \
 	$(INET_PROJ)/src/base/INotifiable.h \

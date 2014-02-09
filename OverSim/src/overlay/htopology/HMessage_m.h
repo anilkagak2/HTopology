@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by opp_msgc 4.3 from ./HMessage.msg.
+// Generated file, do not edit! Created by opp_msgc 4.3 from overlay/htopology/HMessage.msg.
 //
 
 #ifndef _HMESSAGE_M_H_
@@ -19,6 +19,7 @@
 #include <OverlayKey.h>
 #include <CommonMessages_m.h>
 #include "HNode.h"
+#include "HStructs.h"
 
 #define JOINCALL_L(msg) 					BASECALL_L(msg)
 #define HJOINRESPONSE_L(msg) 				(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
@@ -33,19 +34,25 @@
 
 
 
-#define HVIDEOSEGMENTCALL_L(msg)			(BASECALL_L(msg) + TYPE_L + ( (strlen(msg->getSegment()) + 1) * TYPE_L))
+#define HVIDEOSEGMENTCALL_L(msg)			(BASECALL_L(msg) + TYPE_L + SEGMENT_SIZE * TYPE_L)
 
 #define HLEAVEOVERLAYCALL_L(msg)			BASECALL_L(msg)
 #define HLEAVEOVERLAYRESPONSE_L(msg) 		BASERESPONSE_L(msg) + TYPE_L
 
 #define HNEWPARENTSELECTEDCALL_L(msg)		(BASECALL_L(msg) + NODEHANDLE_L)
 #define HRESPONSIBILITYASPARENTCALL_L(msg)  (BASECALL_L(msg) + (msg->getChildrenArraySize()+1) * NODEHANDLE_L)
+		
+
+
+#define HVIDEOSEGMENT_L						((SEGMENT_SIZE+1) * TYPE_L)
+#define HSCHEDULESEGMENTSCALL_L(msg)		(BASECALL_L(msg) + 2*TYPE_L)
+#define HSCHEDULESEGMENTSRESPONSE_L(msg)	(BASERESPONSE_L(msg) + (msg->getSegmentsArraySize()) * HVIDEOSEGMENT_L)
 // }}
 
 
 
 /**
- * Enum generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Enum generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * enum MessageType {
  *     M_JOIN=1;				
@@ -65,7 +72,7 @@ enum MessageType {
 };
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HCapacityCall extends BaseCallMessage {
  *     OverlayKey destinationKey;
@@ -103,7 +110,7 @@ inline void doPacking(cCommBuffer *b, HCapacityCall& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, HCapacityCall& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HCapacityResponse extends BaseResponseMessage {
  *     NodeHandle parentNode;
@@ -150,7 +157,7 @@ inline void doPacking(cCommBuffer *b, HCapacityResponse& obj) {obj.parsimPack(b)
 inline void doUnpacking(cCommBuffer *b, HCapacityResponse& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HSelectParentCall extends BaseCallMessage {
  *     OverlayKey key;
@@ -188,7 +195,7 @@ inline void doPacking(cCommBuffer *b, HSelectParentCall& obj) {obj.parsimPack(b)
 inline void doUnpacking(cCommBuffer *b, HSelectParentCall& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HSelectParentResponse extends BaseResponseMessage {
  *     NodeHandle respondingNode;
@@ -227,7 +234,7 @@ inline void doPacking(cCommBuffer *b, HSelectParentResponse& obj) {obj.parsimPac
 inline void doUnpacking(cCommBuffer *b, HSelectParentResponse& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HJoinCall extends BaseCallMessage {
  * }
@@ -260,7 +267,7 @@ inline void doPacking(cCommBuffer *b, HJoinCall& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, HJoinCall& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HJoinResponse extends BaseResponseMessage {
  *     
@@ -320,19 +327,17 @@ inline void doPacking(cCommBuffer *b, HJoinResponse& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, HJoinResponse& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HVideoSegmentCall extends BaseCallMessage {
- *     string segment;
- *     int segmentID;
+ *     HVideoSegment segment;
  * }
  * </pre>
  */
 class HVideoSegmentCall : public ::BaseCallMessage
 {
   protected:
-    opp_string segment_var;
-    int segmentID_var;
+    HVideoSegment segment_var;
 
   private:
     void copy(const HVideoSegmentCall& other);
@@ -351,17 +356,16 @@ class HVideoSegmentCall : public ::BaseCallMessage
     virtual void parsimUnpack(cCommBuffer *b);
 
     // field getter/setter methods
-    virtual const char * getSegment() const;
-    virtual void setSegment(const char * segment);
-    virtual int getSegmentID() const;
-    virtual void setSegmentID(int segmentID);
+    virtual HVideoSegment& getSegment();
+    virtual const HVideoSegment& getSegment() const {return const_cast<HVideoSegmentCall*>(this)->getSegment();}
+    virtual void setSegment(const HVideoSegment& segment);
 };
 
 inline void doPacking(cCommBuffer *b, HVideoSegmentCall& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, HVideoSegmentCall& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HLeaveOverlayCall extends BaseCallMessage {
  * }
@@ -394,7 +398,7 @@ inline void doPacking(cCommBuffer *b, HLeaveOverlayCall& obj) {obj.parsimPack(b)
 inline void doUnpacking(cCommBuffer *b, HLeaveOverlayCall& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HLeaveOverlayResponse extends BaseResponseMessage {
  *     int permissionGranted;
@@ -431,7 +435,7 @@ inline void doPacking(cCommBuffer *b, HLeaveOverlayResponse& obj) {obj.parsimPac
 inline void doUnpacking(cCommBuffer *b, HLeaveOverlayResponse& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HNewParentSelectedCall extends BaseCallMessage {
  *     NodeHandle parent;
@@ -469,7 +473,7 @@ inline void doPacking(cCommBuffer *b, HNewParentSelectedCall& obj) {obj.parsimPa
 inline void doUnpacking(cCommBuffer *b, HNewParentSelectedCall& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HResponsibilityAsParentCall extends BaseCallMessage {
  *     NodeHandle parent;
@@ -515,7 +519,89 @@ inline void doPacking(cCommBuffer *b, HResponsibilityAsParentCall& obj) {obj.par
 inline void doUnpacking(cCommBuffer *b, HResponsibilityAsParentCall& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HScheduleSegmentsCall extends BaseCallMessage {
+ *    int startSegmentID;
+ *    int count; 
+ * }
+ * </pre>
+ */
+class HScheduleSegmentsCall : public ::BaseCallMessage
+{
+  protected:
+    int startSegmentID_var;
+    int count_var;
+
+  private:
+    void copy(const HScheduleSegmentsCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HScheduleSegmentsCall&);
+
+  public:
+    HScheduleSegmentsCall(const char *name=NULL, int kind=0);
+    HScheduleSegmentsCall(const HScheduleSegmentsCall& other);
+    virtual ~HScheduleSegmentsCall();
+    HScheduleSegmentsCall& operator=(const HScheduleSegmentsCall& other);
+    virtual HScheduleSegmentsCall *dup() const {return new HScheduleSegmentsCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual int getStartSegmentID() const;
+    virtual void setStartSegmentID(int startSegmentID);
+    virtual int getCount() const;
+    virtual void setCount(int count);
+};
+
+inline void doPacking(cCommBuffer *b, HScheduleSegmentsCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HScheduleSegmentsCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HScheduleSegmentsResponse extends BaseResponseMessage {
+ *     HVideoSegment segments[];
+ * }
+ * </pre>
+ */
+class HScheduleSegmentsResponse : public ::BaseResponseMessage
+{
+  protected:
+    HVideoSegment *segments_var; // array ptr
+    unsigned int segments_arraysize;
+
+  private:
+    void copy(const HScheduleSegmentsResponse& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HScheduleSegmentsResponse&);
+
+  public:
+    HScheduleSegmentsResponse(const char *name=NULL, int kind=0);
+    HScheduleSegmentsResponse(const HScheduleSegmentsResponse& other);
+    virtual ~HScheduleSegmentsResponse();
+    HScheduleSegmentsResponse& operator=(const HScheduleSegmentsResponse& other);
+    virtual HScheduleSegmentsResponse *dup() const {return new HScheduleSegmentsResponse(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual void setSegmentsArraySize(unsigned int size);
+    virtual unsigned int getSegmentsArraySize() const;
+    virtual HVideoSegment& getSegments(unsigned int k);
+    virtual const HVideoSegment& getSegments(unsigned int k) const {return const_cast<HScheduleSegmentsResponse*>(this)->getSegments(k);}
+    virtual void setSegments(unsigned int k, const HVideoSegment& segments);
+};
+
+inline void doPacking(cCommBuffer *b, HScheduleSegmentsResponse& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HScheduleSegmentsResponse& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HGetChildrenCall extends BaseCallMessage {
  * }
@@ -548,7 +634,7 @@ inline void doPacking(cCommBuffer *b, HGetChildrenCall& obj) {obj.parsimPack(b);
 inline void doUnpacking(cCommBuffer *b, HGetChildrenCall& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HGetChildrenResponse extends BaseResponseMessage {
  *     NodeHandle children[];
@@ -589,7 +675,7 @@ inline void doPacking(cCommBuffer *b, HGetChildrenResponse& obj) {obj.parsimPack
 inline void doUnpacking(cCommBuffer *b, HGetChildrenResponse& obj) {obj.parsimUnpack(b);}
 
 /**
- * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HMessage {
  *     int type enum(MessageType);			

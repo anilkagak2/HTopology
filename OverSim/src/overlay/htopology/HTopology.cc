@@ -72,7 +72,9 @@ Define_Module(HTopology);
  *      Directly give the call & wait (to check there's no timeout on the call & retry a few times & simply exit)
  *  DONE NewParentSelectedCall -> gives the description of the newly selected parent
  *  DONE ResponsibilityAsParentCall -> called node is selected as a parent for given set of children
+ *  ScheduleSegmentsCall, ScheduleSegmentsResponse -> asking to send some of the segments within [SegmentID, SegmmentID + count]
  *
+ *  FIXED SIZE SEGMENTS
  *  DONE QUEUE or a bounded size buffer to store the packets received
  *
  *  TODO enhancements
@@ -340,7 +342,7 @@ void HTopology::sendSegmentToChildren(HVideoSegmentCall *videoCall) {
 void HTopology::handleVideoSegment (BaseCallMessage *msg) {
     HVideoSegmentCall *mrpc = (HVideoSegmentCall *)msg;
 
-    EV << thisNode << ": received " << mrpc->getSegment()
+    EV << thisNode << ": received " << mrpc->getSegment().videoSegment
             << ": from -> " << mrpc->getSrcNode() << endl;
 
     // TODO check the buffer functionalities
@@ -349,9 +351,8 @@ void HTopology::handleVideoSegment (BaseCallMessage *msg) {
         EV << thisNode
                 << ": cacheFull and setting the cachePointer back to 0" << endl;
     }
-    cache[cachePointer].videoSegment = mrpc->getSegment();
-    cache[cachePointer].segmentID = mrpc->getSegmentID();
-    cachePointer++;
+
+    cache[cachePointer++] = mrpc->getSegment();
 
     sendSegmentToChildren(mrpc);
     delete msg;
@@ -372,9 +373,14 @@ void HTopology::handlePacketGenerationTimer(cMessage* msg) {
     string pkt = "message-" + tToString(intuniform(0, INT_MAX));
 
     HVideoSegmentCall *videoCall = new HVideoSegmentCall();
-    videoCall->setSegment(pkt.c_str());
-    videoCall->setSegmentID(segmentID++);
-    videoCall->setBitLength(HVIDEOSEGMENTCALL_L(videoCall)); // TODO BUG CAN BE IN THIS setBitLength thing, please verify it properly
+    HVideoSegment segment;
+    segment.segmentID = segmentID++;
+    strncpy (segment.videoSegment, pkt.c_str(), SEGMENT_SIZE);
+    videoCall->setSegment(segment);
+    videoCall->setBitLength(HVIDEOSEGMENTCALL_L(videoCall));
+    //videoCall->setSegment(pkt.c_str());
+    //videoCall->setSegmentID(segmentID++);
+    // TODO BUG CAN BE IN THIS setBitLength thing, please verify it properly
 
     EV << thisNode << ":Generated message is: " << pkt ;
     sendSegmentToChildren(videoCall);
@@ -669,6 +675,7 @@ void HTopology::handleNewParentSelectedCall (BaseCallMessage *msg) {
     parent.setHandle(mrpc->getParent());
     // TODO get the children of our parent
     modeOfOperation = GENERAL_MODE;
+    // TODO adjust our successor & predecessor ??
 }
 
 void HTopology::handleResponsibilityAsParentCall (BaseCallMessage *msg) {
@@ -846,7 +853,7 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
                 successorNode.setHandle(mrpc->getSuccessorNode());
                 predecessorNode.setHandle(mrpc->getPredecessorNode());
 
-                for (int i=0; i<mrpc->getAncestorsArraySize(); ++i) {
+                for (size_t i=0; i<mrpc->getAncestorsArraySize(); ++i) {
                     NodeHandle node = mrpc->getAncestors(i);
                     HNode hnode;
                     hnode.setHandle(node);
@@ -933,6 +940,7 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
         // Modify the pointers for the siblings in the current overlay
         // And add nodeChildren as parent to the replacement node
         int capacity = (*it).second;
+        // TODO actually one less -> leave itself
         if (capacity >= noOfChildrenToAdd) {
             replacementDone = true;
             break;
@@ -950,10 +958,12 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
 
         // 2) Replace the child with this newly selected parent (children list)
         NodeVector newChildren = children[key].getNodeVector();
+        NodeVector::iterator pos=newChildren.begin();
+        for (; pos!=newChildren.end(); ++pos) {
+            if ((*pos).getKey() == (*it).first) break;
+        }
 
-        NodeVector::iterator pos = newChildren.find((*it).first);
         NodeHandle newHandle = *pos;
-
         if (pos != newChildren.end()) newChildren.erase(pos);
         else {
             EV << "Is this even possible that the replacement node is not in the children set?" << endl;

@@ -22,10 +22,13 @@
 #include <NodeHandle.h>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <BootstrapList.h>
 #include "BaseOverlay.h"
 #include "HMessage_m.h"
 #include "HNode.h"
+#include "HStructs.h"
+
 using std::endl;
 using std::vector;
 using std::string;
@@ -39,20 +42,7 @@ typedef KeyToNodeMap::iterator MapIterator;
 /**
  * TODO - Generated class
  */
-struct HVideoSegment {
-    string videoSegment;
-    int segmentID;
-};
 
-// Used to store the parameters required in selecting the node's replacement
-struct HNodeReplacement {
-    // used in selection algorithm, for sharing variable between RPC Call & Response
-    // do think about asking Node instead of capacity
-    std::map<OverlayKey, int> queryNodesSelectionAlgo;
-    int responseRequired;   // How many of answers required?
-    NodeHandle node;        // To be replaced node
-    HLeaveOverlayCall *mrpc;
-};
 
 class HTopology : public BaseOverlay {
   protected:

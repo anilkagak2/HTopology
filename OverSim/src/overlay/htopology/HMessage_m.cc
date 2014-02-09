@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by opp_msgc 4.3 from ./HMessage.msg.
+// Generated file, do not edit! Created by opp_msgc 4.3 from overlay/htopology/HMessage.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -1563,8 +1563,6 @@ Register_Class(HVideoSegmentCall);
 
 HVideoSegmentCall::HVideoSegmentCall(const char *name, int kind) : BaseCallMessage(name,kind)
 {
-    this->segment_var = 0;
-    this->segmentID_var = 0;
 }
 
 HVideoSegmentCall::HVideoSegmentCall(const HVideoSegmentCall& other) : BaseCallMessage(other)
@@ -1587,41 +1585,28 @@ HVideoSegmentCall& HVideoSegmentCall::operator=(const HVideoSegmentCall& other)
 void HVideoSegmentCall::copy(const HVideoSegmentCall& other)
 {
     this->segment_var = other.segment_var;
-    this->segmentID_var = other.segmentID_var;
 }
 
 void HVideoSegmentCall::parsimPack(cCommBuffer *b)
 {
     BaseCallMessage::parsimPack(b);
     doPacking(b,this->segment_var);
-    doPacking(b,this->segmentID_var);
 }
 
 void HVideoSegmentCall::parsimUnpack(cCommBuffer *b)
 {
     BaseCallMessage::parsimUnpack(b);
     doUnpacking(b,this->segment_var);
-    doUnpacking(b,this->segmentID_var);
 }
 
-const char * HVideoSegmentCall::getSegment() const
+HVideoSegment& HVideoSegmentCall::getSegment()
 {
-    return segment_var.c_str();
+    return segment_var;
 }
 
-void HVideoSegmentCall::setSegment(const char * segment)
+void HVideoSegmentCall::setSegment(const HVideoSegment& segment)
 {
     this->segment_var = segment;
-}
-
-int HVideoSegmentCall::getSegmentID() const
-{
-    return segmentID_var;
-}
-
-void HVideoSegmentCall::setSegmentID(int segmentID)
-{
-    this->segmentID_var = segmentID;
 }
 
 class HVideoSegmentCallDescriptor : public cClassDescriptor
@@ -1671,7 +1656,7 @@ const char *HVideoSegmentCallDescriptor::getProperty(const char *propertyname) c
 int HVideoSegmentCallDescriptor::getFieldCount(void *object) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 2+basedesc->getFieldCount(object) : 2;
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
 }
 
 unsigned int HVideoSegmentCallDescriptor::getFieldTypeFlags(void *object, int field) const
@@ -1683,10 +1668,9 @@ unsigned int HVideoSegmentCallDescriptor::getFieldTypeFlags(void *object, int fi
         field -= basedesc->getFieldCount(object);
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,
-        FD_ISEDITABLE,
+        FD_ISCOMPOUND,
     };
-    return (field>=0 && field<2) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
 }
 
 const char *HVideoSegmentCallDescriptor::getFieldName(void *object, int field) const
@@ -1699,9 +1683,8 @@ const char *HVideoSegmentCallDescriptor::getFieldName(void *object, int field) c
     }
     static const char *fieldNames[] = {
         "segment",
-        "segmentID",
     };
-    return (field>=0 && field<2) ? fieldNames[field] : NULL;
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
 }
 
 int HVideoSegmentCallDescriptor::findField(void *object, const char *fieldName) const
@@ -1709,7 +1692,6 @@ int HVideoSegmentCallDescriptor::findField(void *object, const char *fieldName) 
     cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount(object) : 0;
     if (fieldName[0]=='s' && strcmp(fieldName, "segment")==0) return base+0;
-    if (fieldName[0]=='s' && strcmp(fieldName, "segmentID")==0) return base+1;
     return basedesc ? basedesc->findField(object, fieldName) : -1;
 }
 
@@ -1722,10 +1704,9 @@ const char *HVideoSegmentCallDescriptor::getFieldTypeString(void *object, int fi
         field -= basedesc->getFieldCount(object);
     }
     static const char *fieldTypeStrings[] = {
-        "string",
-        "int",
+        "HVideoSegment",
     };
-    return (field>=0 && field<2) ? fieldTypeStrings[field] : NULL;
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
 }
 
 const char *HVideoSegmentCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
@@ -1765,8 +1746,7 @@ std::string HVideoSegmentCallDescriptor::getFieldAsString(void *object, int fiel
     }
     HVideoSegmentCall *pp = (HVideoSegmentCall *)object; (void)pp;
     switch (field) {
-        case 0: return oppstring2string(pp->getSegment());
-        case 1: return long2string(pp->getSegmentID());
+        case 0: {std::stringstream out; out << pp->getSegment(); return out.str();}
         default: return "";
     }
 }
@@ -1781,8 +1761,6 @@ bool HVideoSegmentCallDescriptor::setFieldAsString(void *object, int field, int 
     }
     HVideoSegmentCall *pp = (HVideoSegmentCall *)object; (void)pp;
     switch (field) {
-        case 0: pp->setSegment((value)); return true;
-        case 1: pp->setSegmentID(string2long(value)); return true;
         default: return false;
     }
 }
@@ -1796,10 +1774,9 @@ const char *HVideoSegmentCallDescriptor::getFieldStructName(void *object, int fi
         field -= basedesc->getFieldCount(object);
     }
     static const char *fieldStructNames[] = {
-        NULL,
-        NULL,
+        "HVideoSegment",
     };
-    return (field>=0 && field<2) ? fieldStructNames[field] : NULL;
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
 }
 
 void *HVideoSegmentCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
@@ -1812,6 +1789,7 @@ void *HVideoSegmentCallDescriptor::getFieldStructPointer(void *object, int field
     }
     HVideoSegmentCall *pp = (HVideoSegmentCall *)object; (void)pp;
     switch (field) {
+        case 0: return (void *)(&pp->getSegment()); break;
         default: return NULL;
     }
 }
@@ -2780,6 +2758,534 @@ void *HResponsibilityAsParentCallDescriptor::getFieldStructPointer(void *object,
     switch (field) {
         case 0: return (void *)(&pp->getParent()); break;
         case 1: return (void *)(&pp->getChildren(i)); break;
+        default: return NULL;
+    }
+}
+
+Register_Class(HScheduleSegmentsCall);
+
+HScheduleSegmentsCall::HScheduleSegmentsCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+    this->startSegmentID_var = 0;
+    this->count_var = 0;
+}
+
+HScheduleSegmentsCall::HScheduleSegmentsCall(const HScheduleSegmentsCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+HScheduleSegmentsCall::~HScheduleSegmentsCall()
+{
+}
+
+HScheduleSegmentsCall& HScheduleSegmentsCall::operator=(const HScheduleSegmentsCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HScheduleSegmentsCall::copy(const HScheduleSegmentsCall& other)
+{
+    this->startSegmentID_var = other.startSegmentID_var;
+    this->count_var = other.count_var;
+}
+
+void HScheduleSegmentsCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+    doPacking(b,this->startSegmentID_var);
+    doPacking(b,this->count_var);
+}
+
+void HScheduleSegmentsCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+    doUnpacking(b,this->startSegmentID_var);
+    doUnpacking(b,this->count_var);
+}
+
+int HScheduleSegmentsCall::getStartSegmentID() const
+{
+    return startSegmentID_var;
+}
+
+void HScheduleSegmentsCall::setStartSegmentID(int startSegmentID)
+{
+    this->startSegmentID_var = startSegmentID;
+}
+
+int HScheduleSegmentsCall::getCount() const
+{
+    return count_var;
+}
+
+void HScheduleSegmentsCall::setCount(int count)
+{
+    this->count_var = count;
+}
+
+class HScheduleSegmentsCallDescriptor : public cClassDescriptor
+{
+  public:
+    HScheduleSegmentsCallDescriptor();
+    virtual ~HScheduleSegmentsCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HScheduleSegmentsCallDescriptor);
+
+HScheduleSegmentsCallDescriptor::HScheduleSegmentsCallDescriptor() : cClassDescriptor("HScheduleSegmentsCall", "BaseCallMessage")
+{
+}
+
+HScheduleSegmentsCallDescriptor::~HScheduleSegmentsCallDescriptor()
+{
+}
+
+bool HScheduleSegmentsCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HScheduleSegmentsCall *>(obj)!=NULL;
+}
+
+const char *HScheduleSegmentsCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HScheduleSegmentsCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 2+basedesc->getFieldCount(object) : 2;
+}
+
+unsigned int HScheduleSegmentsCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISEDITABLE,
+        FD_ISEDITABLE,
+    };
+    return (field>=0 && field<2) ? fieldTypeFlags[field] : 0;
+}
+
+const char *HScheduleSegmentsCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "startSegmentID",
+        "count",
+    };
+    return (field>=0 && field<2) ? fieldNames[field] : NULL;
+}
+
+int HScheduleSegmentsCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='s' && strcmp(fieldName, "startSegmentID")==0) return base+0;
+    if (fieldName[0]=='c' && strcmp(fieldName, "count")==0) return base+1;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HScheduleSegmentsCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "int",
+        "int",
+    };
+    return (field>=0 && field<2) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *HScheduleSegmentsCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HScheduleSegmentsCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HScheduleSegmentsCall *pp = (HScheduleSegmentsCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HScheduleSegmentsCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HScheduleSegmentsCall *pp = (HScheduleSegmentsCall *)object; (void)pp;
+    switch (field) {
+        case 0: return long2string(pp->getStartSegmentID());
+        case 1: return long2string(pp->getCount());
+        default: return "";
+    }
+}
+
+bool HScheduleSegmentsCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HScheduleSegmentsCall *pp = (HScheduleSegmentsCall *)object; (void)pp;
+    switch (field) {
+        case 0: pp->setStartSegmentID(string2long(value)); return true;
+        case 1: pp->setCount(string2long(value)); return true;
+        default: return false;
+    }
+}
+
+const char *HScheduleSegmentsCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        NULL,
+        NULL,
+    };
+    return (field>=0 && field<2) ? fieldStructNames[field] : NULL;
+}
+
+void *HScheduleSegmentsCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HScheduleSegmentsCall *pp = (HScheduleSegmentsCall *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+Register_Class(HScheduleSegmentsResponse);
+
+HScheduleSegmentsResponse::HScheduleSegmentsResponse(const char *name, int kind) : BaseResponseMessage(name,kind)
+{
+    segments_arraysize = 0;
+    this->segments_var = 0;
+}
+
+HScheduleSegmentsResponse::HScheduleSegmentsResponse(const HScheduleSegmentsResponse& other) : BaseResponseMessage(other)
+{
+    segments_arraysize = 0;
+    this->segments_var = 0;
+    copy(other);
+}
+
+HScheduleSegmentsResponse::~HScheduleSegmentsResponse()
+{
+    delete [] segments_var;
+}
+
+HScheduleSegmentsResponse& HScheduleSegmentsResponse::operator=(const HScheduleSegmentsResponse& other)
+{
+    if (this==&other) return *this;
+    BaseResponseMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HScheduleSegmentsResponse::copy(const HScheduleSegmentsResponse& other)
+{
+    delete [] this->segments_var;
+    this->segments_var = (other.segments_arraysize==0) ? NULL : new HVideoSegment[other.segments_arraysize];
+    segments_arraysize = other.segments_arraysize;
+    for (unsigned int i=0; i<segments_arraysize; i++)
+        this->segments_var[i] = other.segments_var[i];
+}
+
+void HScheduleSegmentsResponse::parsimPack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimPack(b);
+    b->pack(segments_arraysize);
+    doPacking(b,this->segments_var,segments_arraysize);
+}
+
+void HScheduleSegmentsResponse::parsimUnpack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimUnpack(b);
+    delete [] this->segments_var;
+    b->unpack(segments_arraysize);
+    if (segments_arraysize==0) {
+        this->segments_var = 0;
+    } else {
+        this->segments_var = new HVideoSegment[segments_arraysize];
+        doUnpacking(b,this->segments_var,segments_arraysize);
+    }
+}
+
+void HScheduleSegmentsResponse::setSegmentsArraySize(unsigned int size)
+{
+    HVideoSegment *segments_var2 = (size==0) ? NULL : new HVideoSegment[size];
+    unsigned int sz = segments_arraysize < size ? segments_arraysize : size;
+    for (unsigned int i=0; i<sz; i++)
+        segments_var2[i] = this->segments_var[i];
+    segments_arraysize = size;
+    delete [] this->segments_var;
+    this->segments_var = segments_var2;
+}
+
+unsigned int HScheduleSegmentsResponse::getSegmentsArraySize() const
+{
+    return segments_arraysize;
+}
+
+HVideoSegment& HScheduleSegmentsResponse::getSegments(unsigned int k)
+{
+    if (k>=segments_arraysize) throw cRuntimeError("Array of size %d indexed by %d", segments_arraysize, k);
+    return segments_var[k];
+}
+
+void HScheduleSegmentsResponse::setSegments(unsigned int k, const HVideoSegment& segments)
+{
+    if (k>=segments_arraysize) throw cRuntimeError("Array of size %d indexed by %d", segments_arraysize, k);
+    this->segments_var[k] = segments;
+}
+
+class HScheduleSegmentsResponseDescriptor : public cClassDescriptor
+{
+  public:
+    HScheduleSegmentsResponseDescriptor();
+    virtual ~HScheduleSegmentsResponseDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HScheduleSegmentsResponseDescriptor);
+
+HScheduleSegmentsResponseDescriptor::HScheduleSegmentsResponseDescriptor() : cClassDescriptor("HScheduleSegmentsResponse", "BaseResponseMessage")
+{
+}
+
+HScheduleSegmentsResponseDescriptor::~HScheduleSegmentsResponseDescriptor()
+{
+}
+
+bool HScheduleSegmentsResponseDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HScheduleSegmentsResponse *>(obj)!=NULL;
+}
+
+const char *HScheduleSegmentsResponseDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HScheduleSegmentsResponseDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+}
+
+unsigned int HScheduleSegmentsResponseDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISARRAY | FD_ISCOMPOUND,
+    };
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+}
+
+const char *HScheduleSegmentsResponseDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "segments",
+    };
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+}
+
+int HScheduleSegmentsResponseDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='s' && strcmp(fieldName, "segments")==0) return base+0;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HScheduleSegmentsResponseDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "HVideoSegment",
+    };
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *HScheduleSegmentsResponseDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HScheduleSegmentsResponseDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HScheduleSegmentsResponse *pp = (HScheduleSegmentsResponse *)object; (void)pp;
+    switch (field) {
+        case 0: return pp->getSegmentsArraySize();
+        default: return 0;
+    }
+}
+
+std::string HScheduleSegmentsResponseDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HScheduleSegmentsResponse *pp = (HScheduleSegmentsResponse *)object; (void)pp;
+    switch (field) {
+        case 0: {std::stringstream out; out << pp->getSegments(i); return out.str();}
+        default: return "";
+    }
+}
+
+bool HScheduleSegmentsResponseDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HScheduleSegmentsResponse *pp = (HScheduleSegmentsResponse *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *HScheduleSegmentsResponseDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        "HVideoSegment",
+    };
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+}
+
+void *HScheduleSegmentsResponseDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HScheduleSegmentsResponse *pp = (HScheduleSegmentsResponse *)object; (void)pp;
+    switch (field) {
+        case 0: return (void *)(&pp->getSegments(i)); break;
         default: return NULL;
     }
 }

@@ -23,6 +23,7 @@ cplusplus {{
 #include <OverlayKey.h>
 #include <CommonMessages_m.h>
 #include "HNode.h"
+#include "HStructs.h"
 
 #define JOINCALL_L(msg) 					BASECALL_L(msg)
 #define HJOINRESPONSE_L(msg) 				(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
@@ -37,18 +38,25 @@ cplusplus {{
 
 // should it be length() or capacity()
 // isn't TYPE_L for string a bit more than required?
-#define HVIDEOSEGMENTCALL_L(msg)			(BASECALL_L(msg) + TYPE_L + ( (strlen(msg->getSegment()) + 1) * TYPE_L))
+#define HVIDEOSEGMENTCALL_L(msg)			(BASECALL_L(msg) + TYPE_L + SEGMENT_SIZE * TYPE_L)
 
 #define HLEAVEOVERLAYCALL_L(msg)			BASECALL_L(msg)
 #define HLEAVEOVERLAYRESPONSE_L(msg) 		BASERESPONSE_L(msg) + TYPE_L
 
 #define HNEWPARENTSELECTEDCALL_L(msg)		(BASECALL_L(msg) + NODEHANDLE_L)
 #define HRESPONSIBILITYASPARENTCALL_L(msg)  (BASECALL_L(msg) + (msg->getChildrenArraySize()+1) * NODEHANDLE_L)
+		
+// SEGMENTS SHOULD BE OF FIXED SIZE
+// No.of chars + 1
+#define HVIDEOSEGMENT_L						((SEGMENT_SIZE+1) * TYPE_L)
+#define HSCHEDULESEGMENTSCALL_L(msg)		(BASECALL_L(msg) + 2*TYPE_L)
+#define HSCHEDULESEGMENTSRESPONSE_L(msg)	(BASERESPONSE_L(msg) + (msg->getSegmentsArraySize()) * HVIDEOSEGMENT_L)		
 }}
 class noncobject TransportAddress;
 class noncobject NodeHandle;
 class noncobject HNode;
 class noncobject OverlayKey;
+struct HVideoSegment;
 class BaseCallMessage;
 class BaseResponseMessage;
 
@@ -103,8 +111,7 @@ packet HJoinResponse extends BaseResponseMessage {
 
 // call to get children from node
 packet HVideoSegmentCall extends BaseCallMessage {
-    string segment;
-    int segmentID;
+    HVideoSegment segment;
 }
 
 // Signal that the source node is going to leave the overlay
@@ -126,6 +133,17 @@ packet HResponsibilityAsParentCall extends BaseCallMessage {
     NodeHandle parent;
     NodeHandle children[];
 } 
+
+// asking to send some of the segments within [SegmentID, SegmmentID + count]
+packet HScheduleSegmentsCall extends BaseCallMessage {
+   int startSegmentID;
+   int count; 
+}
+
+// send the available segments
+packet HScheduleSegmentsResponse extends BaseResponseMessage {
+    HVideoSegment segments[];
+}
 
 // call to get children from node
 packet HGetChildrenCall extends BaseCallMessage {
