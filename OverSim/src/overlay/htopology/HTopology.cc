@@ -24,11 +24,11 @@ Define_Module(HTopology);
  * MAJOR CONCERN NOW
  *  -> SCHEDULING (in rescue mode over a set of nodes)
  *      Can  be taken care of, if only RANKING works fine
- *      => just schedule the segments in one-by-one in the increasing order of timeRemainingInDeadline
+ * DONE => just schedule the segments in one-by-one in the increasing order of timeRemainingInDeadline
  *          in the ranked rescue set
  *  -> ACTIVENESS of Nodes (liveness of nodes & keep alive messages)
- *      Activeness (check in case of abrupt node failures)
- *      - can be associated with a timeout to the videoSegmentCall (i.e. it doesn't reach the node)
+ * DONE Activeness (check in case of abrupt node failures)
+ *      - DONE can be associated with a timeout to the videoSegmentCall (i.e. it doesn't reach the node)
  *      - ALTERNATE can be to continuously ping the nodes (but it's actually not useful as we already have a segment transfer call)
  *  -> RANKING of rescue nodes
  *
@@ -47,13 +47,16 @@ Define_Module(HTopology);
  *      - Gracefully leaving the overlay [
  *   DONE   sends leave message to both children & parents]
  *   DONE   1) parent look for selecting an alternate for the leaving node
- *          2) children go in rescue mode till the decision is pending
+ *   DONE   2) children go in rescue mode till the decision is pending
  *          3) children in rescue mode, uses the mesh scheduling in the period [parentLeaveTime till aRescuerFound]
  *              How to keep track of the deadline approaching segments? so that they can be scheduled
+ *
+ *   OUR GRANDPARENT CAN ALWAYS BE OUR RESCUE NODE [WILL REMOVE THE OVERHEAD OF SELECTING THE RESCUE PARENT]
  *      - Abrupt failure of the node (
- *          someone need to contact & confirm the failure
- *          rest should be same as graceful leaving)
+ *          DONE someone need to contact & confirm the failure
+ *          DONE rest should be same as graceful leaving)
  *   RPC Timeout implementation
+ *      DONE for node failure in case of videoSegment Trasnfer
  *
  * 5) Where's the mesh functionality?
  * 6) Collect required statistics
@@ -61,7 +64,14 @@ Define_Module(HTopology);
  *      b) How to collect them?
  *      c) What kind of reality can be provided in the simulation? (Underlay Configuration is not so good
  *          it doesn't depict the reality. Go with some routers & stuff like that)
- * 7) Emergency video segment SCHEDULING.
+ *
+ *      [ANSWER TO SIMULATION EVENT RELATED QUESTIONS]
+ *          No. of nodes -> as many as possible
+ *          Underlay configuration -> we are only worried about the overlay configuration
+ *          Parameters -> checkout simulation events in papers
+ *          Stream -> try to use the video stream (but only after this whole thing works with strings)
+ *
+ * 7) DONE Emergency video segment SCHEDULING.
  *      DONE Need to allocate identifiers to the segments
  *
  *  // Messages
@@ -72,9 +82,11 @@ Define_Module(HTopology);
  *      Directly give the call & wait (to check there's no timeout on the call & retry a few times & simply exit)
  *  DONE NewParentSelectedCall -> gives the description of the newly selected parent
  *  DONE ResponsibilityAsParentCall -> called node is selected as a parent for given set of children
- *  ScheduleSegmentsCall, ScheduleSegmentsResponse -> asking to send some of the segments within [SegmentID, SegmmentID + count]
+ *  DONE ScheduleSegmentsCall, ScheduleSegmentsResponse -> asking to send some of the segments within [SegmentID, SegmmentID + count]
+ *  DONE SwitchToRescueModeCall  -> ask these nodes to switch to rescue modes as their parent node failed
  *
- *  FIXED SIZE SEGMENTS
+ *  cache can be managed by buffer depicted in Anysee or STL-<map>
+ *  DONE FIXED SIZE SEGMENTS
  *  DONE QUEUE or a bounded size buffer to store the packets received
  *
  *  TODO enhancements
@@ -345,15 +357,7 @@ void HTopology::handleVideoSegment (BaseCallMessage *msg) {
     EV << thisNode << ": received " << mrpc->getSegment().videoSegment
             << ": from -> " << mrpc->getSrcNode() << endl;
 
-    // TODO check the buffer functionalities
-    if (cachePointer == bufferMapSize-1) {
-        cachePointer=0;    // set pointer to zeroth location
-        EV << thisNode
-                << ": cacheFull and setting the cachePointer back to 0" << endl;
-    }
-
-    cache[cachePointer++] = mrpc->getSegment();
-
+    addSegmentToCache(mrpc->getSegment());
     sendSegmentToChildren(mrpc);
     delete msg;
 }
@@ -624,6 +628,27 @@ void HTopology::handleJoinCall (BaseCallMessage *msg) {
     sendRpcResponse(mrpc, rrpc);
 }
 
+void HTopology::selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mrpc) {
+    /*
+     * 1) Find replacement for the src of the message
+     * 2) Notify the replacement to all the children after the decision is taken
+     *
+     * TODO who should take this decision? parent of the node or the children?
+     * children can also do it via LEADER SELECTION, right?
+     * */
+    // Let the parent handle this situation, for now
+
+    HNodeReplacement nreplacement;
+    nreplacement.node = mrpc->getSrcNode();
+    nreplacement.mrpc = mrpc;
+    leaveRequests[mrpc->getSrcNode().getKey()] = nreplacement;
+
+    getParametersForSelectionAlgo(mrpc->getSrcNode().getKey());
+
+    // TODO do we need to setup any other parameter?
+}
+
+
 void HTopology::handleLeaveCall (BaseCallMessage *msg) {
     /*
      * If you are the parent of the caller -> find a replacement of the node
@@ -645,23 +670,7 @@ void HTopology::handleLeaveCall (BaseCallMessage *msg) {
     }
     else {
         assert(children.find(mrpc->getSrcNode().getKey()) != children.end());
-        /*
-         * 1) Find replacement for the src of the message
-         * 2) Notify the replacement to all the children after the decision is taken
-         *
-         * TODO who should take this decision? parent of the node or the children?
-         * children can also do it via LEADER SELECTION, right?
-         * */
-        // Let the parent handle this situation, for now
-
-        HNodeReplacement nreplacement;
-        nreplacement.node = mrpc->getSrcNode();
-        nreplacement.mrpc = mrpc;
-        leaveRequests[mrpc->getSrcNode().getKey()] = nreplacement;
-
-        getParametersForSelectionAlgo(mrpc->getSrcNode().getKey());
-
-        // TODO do we need to setup any other parameter?
+        selectReplacement(mrpc->getSrcNode(), mrpc);
     }
 }
 
@@ -699,7 +708,60 @@ void HTopology::handleResponsibilityAsParentCall (BaseCallMessage *msg) {
     }
     // TODO do we update our parent about our new children? I Think NO. He already know about them
 }
+void HTopology::handleScheduleSegmentsCall (BaseCallMessage *msg) {
+    HScheduleSegmentsCall *scheduleCall = (HScheduleSegmentsCall *)msg;
+    int startSegmentID = scheduleCall->getStartSegmentID();
+    int count = scheduleCall->getCount();
 
+    vector<HVideoSegment> foundSegments;
+    // TODO you can maintain the cache in the form of a heap [stl<map> will be a good thing as it stores in increasing order of keys]
+    // TODO optimize this thing
+    for (int cnt=0; cnt<count; ++cnt) {
+        for (int i=0; i<cache.size(); ++i) {
+            if (cache[i].segmentID == startSegmentID+cnt) {
+                foundSegments.push_back(cache[i]);
+            }
+        }
+    }
+
+    // prepare the response
+    HScheduleSegmentsResponse *scheduleResponse = new HScheduleSegmentsResponse();
+    scheduleResponse->setSegmentsArraySize(foundSegments.size());
+    scheduleResponse->setBitLength(HSCHEDULESEGMENTSRESPONSE_L(scheduleResponse));
+    for (int k=0; k<foundSegments.size(); ++k)
+        scheduleResponse->setSegments(k, foundSegments[k]);
+    sendRpcResponse(scheduleCall, scheduleResponse);
+}
+
+void HTopology::addSegmentToCache (HVideoSegment& videoSegment) {
+    // TODO check the buffer functionalities
+    if (cachePointer == bufferMapSize-1) {
+        cachePointer=0;    // set pointer to zeroth location
+        EV << thisNode
+                << ": cacheFull and setting the cachePointer back to 0" << endl;
+    }
+
+    cache[cachePointer++] = videoSegment;
+}
+
+void HTopology::handleScheduleSegmentsResponse (BaseResponseMessage *msg) {
+    HScheduleSegmentsResponse *scheduleResponse = (HScheduleSegmentsResponse *)msg;
+    int N=scheduleResponse->getSegmentsArraySize();
+    for (int i=0; i<N; ++i) {
+        addSegmentToCache(scheduleResponse->getSegments(i));
+    }
+}
+
+void HTopology::handleSwitchToRescueModeCall (BaseCallMessage *msg) {
+    HSwitchToRescueModeCall *switchCall = (HSwitchToRescueModeCall *)msg;
+    if (switchCall->getSrcNode() != grandParent.getHandle()) {
+        EV << "There's some problem with switchToRescueModeCall" << endl;
+        return;
+    }
+
+    // TODO we can send our capacity this way, in response to this message
+    modeOfOperation = RESCUE_MODE;
+}
 
 // RPC
 bool HTopology::handleRpcCall(BaseCallMessage *msg) {
@@ -757,6 +819,18 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
        break;
     }
 
+    RPC_ON_CALL(HScheduleSegments) {
+        handleScheduleSegmentsCall (msg);
+        RPC_HANDLED = true;
+        break;
+    }
+
+    RPC_ON_CALL(HSwitchToRescueMode) {
+        handleSwitchToRescueModeCall(msg);
+        RPC_HANDLED=true;
+        break;
+    }
+
     RPC_ON_CALL(HGetChildren) {
         sendChildren (msg);
         RPC_HANDLED = true;
@@ -783,18 +857,34 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
 void HTopology::handleRpcTimeout(BaseCallMessage* msg,
                                  const TransportAddress& dest,
                                  cPolymorphic* context, int rpcId,
-                                 const OverlayKey&) {
+                                 const OverlayKey& destKey) {
     // Same macros as in handleRpc
-/*
+
     // start a switch
     RPC_SWITCH_START(msg);
-        // enters the following block if the message is of type MyNeighborCall (note the shortened parameter!)
-        RPC_ON_CALL(MyNeighbor) {
-            MyNeighborCall *mrpc = (MyNeighborCall*)msg;          // get Call message
-            callbackTimeout(mrpc->getDestinationKey());           // call our interface function
+
+        RPC_ON_CALL(HVideoSegment) {
+            HVideoSegmentCall *mrpc = (HVideoSegmentCall *)msg;
+            if (children.find(destKey) == children.end()) {
+                EV << "not my child, why Am i sending it a videosegment?" << endl;
+            }
+            else {
+                // TODO
+                //  Notify the failure to the children
+                NodeVector nodeChildren = children[destKey].getNodeVector();
+                HSwitchToRescueModeCall *switchCall = new HSwitchToRescueModeCall();
+                switchCall->setBitLength(HSWITCHTORESCUEMODECALL_L(switchCall));
+
+                for (int i=0; i<nodeChildren.size(); ++i) {
+                    sendRouteRpcCall (OVERLAY_COMP, nodeChildren[i], switchCall);
+                }
+
+                //  Select a replacement
+                selectReplacement(children[destKey].getHandle(), NULL);
+            }
         }
     // end the switch
-    RPC_SWITCH_END(); */
+    RPC_SWITCH_END();
 }
 
 void HTopology::handleCapacityResponse (BaseResponseMessage *msg) {
@@ -831,6 +921,10 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
         // enters the following block if the message is of type MyNeighborResponse (note the shortened parameter!)
         RPC_ON_RESPONSE(HCapacity) {
             handleCapacityResponse(msg);
+        }
+
+        RPC_ON_RESPONSE(HScheduleSegments) {
+            handleScheduleSegmentsResponse(msg);
         }
 
         RPC_ON_RESPONSE(HSelectParent) {
@@ -1047,9 +1141,35 @@ bool HTopology::removeRescueChild (const NodeHandle& node) {
     // just signal the node to remove myself from being a rescue to it
 }
 
+// returns the ranked nodes in their decreasing ranking order
+vector<NodeHandle> HTopology::getRankedRescueNodes () {
+    vector<NodeHandle> rankedNodes;
+    // TODO fill in the required details
+    return rankedNodes;
+}
+
 // look for alternatives on deadline approaching segments
-void HTopology::scheduleDeadlineSegments () {
+void HTopology::scheduleDeadlineSegments (int startSegmentID, int count, int perNode) {
     // TODO
+    vector<NodeHandle> rankedNodes = getRankedRescueNodes();
+    int nodeNo=0;
+
+    while (count !=0) {
+        // Prepare the function call
+        HScheduleSegmentsCall *scheduleCall = new HScheduleSegmentsCall();
+        scheduleCall->setStartSegmentID(startSegmentID);
+        scheduleCall->setCount(perNode);
+        scheduleCall->setBitLength(HSCHEDULESEGMENTSCALL_L(scheduleCall));
+
+        // send to the node in the order of priority
+        // TODO
+        // 1) should the bandwidth be of concern too?
+        // 2) what about the timeRemaining to deadline?
+        sendRouteRpcCall(OVERLAY_COMP, rankedNodes[nodeNo++], scheduleCall);
+
+        startSegmentID += perNode;
+        count -= perNode;
+    }
 }
 
 // Advance Features

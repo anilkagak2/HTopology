@@ -50,7 +50,9 @@ cplusplus {{
 // No.of chars + 1
 #define HVIDEOSEGMENT_L						((SEGMENT_SIZE+1) * TYPE_L)
 #define HSCHEDULESEGMENTSCALL_L(msg)		(BASECALL_L(msg) + 2*TYPE_L)
-#define HSCHEDULESEGMENTSRESPONSE_L(msg)	(BASERESPONSE_L(msg) + (msg->getSegmentsArraySize()) * HVIDEOSEGMENT_L)		
+#define HSCHEDULESEGMENTSRESPONSE_L(msg)	(BASERESPONSE_L(msg) + (msg->getSegmentsArraySize()) * HVIDEOSEGMENT_L)
+
+#define HSWITCHTORESCUEMODECALL_L(msg)		BASECALL_L(msg)
 }}
 class noncobject TransportAddress;
 class noncobject NodeHandle;
@@ -143,6 +145,10 @@ packet HScheduleSegmentsCall extends BaseCallMessage {
 // send the available segments
 packet HScheduleSegmentsResponse extends BaseResponseMessage {
     HVideoSegment segments[];
+}
+
+// signal the failure of the node, to the node's children
+packet HSwitchToRescueModeCall extends BaseCallMessage {
 }
 
 // call to get children from node

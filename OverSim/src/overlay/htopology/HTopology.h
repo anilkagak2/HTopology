@@ -79,7 +79,13 @@ class HTopology : public BaseOverlay {
     void handleNewParentSelectedCall (BaseCallMessage *msg);
     void handleResponsibilityAsParentCall (BaseCallMessage *msg);
 
+    void addSegmentToCache (HVideoSegment& videoSegment);
+    void handleScheduleSegmentsCall (BaseCallMessage *msg);
+    void handleScheduleSegmentsResponse (BaseResponseMessage *msg);
     void handleCapacityResponse (BaseResponseMessage *msg);
+
+    void selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mrpc);
+    void handleSwitchToRescueModeCall (BaseCallMessage *msg);
 
     /* NodesOneUP */
     void sendChildren (BaseCallMessage *msg);       // respond to the getChildren call
@@ -165,7 +171,10 @@ class HTopology : public BaseOverlay {
     bool addAsRescueChild (const NodeHandle& node);     // add "node" as a rescue child
     bool removeRescueChild (const NodeHandle& node);    // remove this node from rescue children list
     void rankRescueNodes ();                            // generate transfer characteristics & rank them
-    void scheduleDeadlineSegments ();                   // look for alternatives on deadline approaching segments
+    void scheduleDeadlineSegments (int startSegmentID,
+            int count, int perNode);                    // look for alternatives on deadline approaching segments
+
+    vector<NodeHandle> getRankedRescueNodes ();         // returns the ranked nodes in their decreasing ranking order
 
     // Advance Features
     void optimizeTree ();
