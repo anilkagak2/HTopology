@@ -49,6 +49,9 @@
 #define HSCHEDULESEGMENTSRESPONSE_L(msg)	(BASERESPONSE_L(msg) + (msg->getSegmentsArraySize()) * HVIDEOSEGMENT_L)
 
 #define HSWITCHTORESCUEMODECALL_L(msg)		BASECALL_L(msg)
+
+#define HGETPARAMETERSCALL_L(msg)			BASECALL_L(msg)
+#define HGETPARAMETERSRESPONSE_L(msg)		(BASERESPONSE_L(msg) + NONCE_L)
 // }}
 
 
@@ -157,6 +160,84 @@ class HCapacityResponse : public ::BaseResponseMessage
 
 inline void doPacking(cCommBuffer *b, HCapacityResponse& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, HCapacityResponse& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HGetParametersCall extends BaseCallMessage {
+ * };
+ * </pre>
+ */
+class HGetParametersCall : public ::BaseCallMessage
+{
+  protected:
+
+  private:
+    void copy(const HGetParametersCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HGetParametersCall&);
+
+  public:
+    HGetParametersCall(const char *name=NULL, int kind=0);
+    HGetParametersCall(const HGetParametersCall& other);
+    virtual ~HGetParametersCall();
+    HGetParametersCall& operator=(const HGetParametersCall& other);
+    virtual HGetParametersCall *dup() const {return new HGetParametersCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+};
+
+inline void doPacking(cCommBuffer *b, HGetParametersCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HGetParametersCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HGetParametersResponse extends BaseResponseMessage {
+ *     int capacity;
+ *     int rescueCapacity;
+ *     double bandwidth;
+ * };
+ * </pre>
+ */
+class HGetParametersResponse : public ::BaseResponseMessage
+{
+  protected:
+    int capacity_var;
+    int rescueCapacity_var;
+    double bandwidth_var;
+
+  private:
+    void copy(const HGetParametersResponse& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HGetParametersResponse&);
+
+  public:
+    HGetParametersResponse(const char *name=NULL, int kind=0);
+    HGetParametersResponse(const HGetParametersResponse& other);
+    virtual ~HGetParametersResponse();
+    HGetParametersResponse& operator=(const HGetParametersResponse& other);
+    virtual HGetParametersResponse *dup() const {return new HGetParametersResponse(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual int getCapacity() const;
+    virtual void setCapacity(int capacity);
+    virtual int getRescueCapacity() const;
+    virtual void setRescueCapacity(int rescueCapacity);
+    virtual double getBandwidth() const;
+    virtual void setBandwidth(double bandwidth);
+};
+
+inline void doPacking(cCommBuffer *b, HGetParametersResponse& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HGetParametersResponse& obj) {obj.parsimUnpack(b);}
 
 /**
  * Class generated from <tt>./HMessage.msg</tt> by opp_msgc.

@@ -53,6 +53,9 @@ cplusplus {{
 #define HSCHEDULESEGMENTSRESPONSE_L(msg)	(BASERESPONSE_L(msg) + (msg->getSegmentsArraySize()) * HVIDEOSEGMENT_L)
 
 #define HSWITCHTORESCUEMODECALL_L(msg)		BASECALL_L(msg)
+
+#define HGETPARAMETERSCALL_L(msg)			BASECALL_L(msg)
+#define HGETPARAMETERSRESPONSE_L(msg)		(BASERESPONSE_L(msg) + NONCE_L)
 }}
 class noncobject TransportAddress;
 class noncobject NodeHandle;
@@ -79,6 +82,15 @@ packet HCapacityResponse extends BaseResponseMessage {
     NodeHandle parentNode;
     NodeHandle respondingNode;
     int capacity;						// can handle 'capacity' no. of children.
+};
+
+packet HGetParametersCall extends BaseCallMessage {
+};
+
+packet HGetParametersResponse extends BaseResponseMessage {
+    int capacity;
+    int rescueCapacity;
+    double bandwidth;
 };
 
 packet HSelectParentCall extends BaseCallMessage {

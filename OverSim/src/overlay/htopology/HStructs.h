@@ -27,4 +27,39 @@ struct HNodeReplacement {
     HLeaveOverlayCall *mrpc;
 };
 
+// Parameters used to determine the rank of a rescue node [wrt. thisNode]
+struct RankingParameters {
+    simtime_t rtt;          // RoundTrip Time between thisNode & the given node
+    int capacity;           // No. of children nodes the given node can support
+    int rescueCapacity;     // No. of rescueChildren the given node can support
+    double bandwidth;       // in terms of Kbps
+};
+
+// These are the factors, multiplied to the rankingParameters in order to calculate the metric defining the ranking
+const RankingParameters RankingFactors = {50, 1, 1, 50};
+
+class RescueNode {
+private:
+    RankingParameters parameters;
+    double rank;
+    NodeHandle node;
+
+    void calculateRank () {
+        rank =    RankingFactors.bandwidth * parameters.bandwidth
+                + RankingFactors.rtt.raw() * parameters.rtt.raw()
+                + RankingFactors.rescueCapacity * parameters.rescueCapacity
+                + RankingFactors.capacity * parameters.capacity;
+    }
+public:
+    void setHandle(NodeHandle& node) { this->node = node; }
+    NodeHandle& getHandle () { return this->node; }
+
+    void setRankingParameters (RankingParameters params) {this->parameters = params; calculateRank();}
+    RankingParameters& getRankingParameters () { return parameters; }
+
+    double getRank () const { return rank; }
+
+    //inline bool operator<(const RescueNode& rhs) {return rank > rhs.rank;}
+};
+
 #endif

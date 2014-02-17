@@ -28,6 +28,8 @@ simple HTopology extends BaseOverlay
         @class(HTopology);
         int bufferSize;				// Buffer Map size used in the HTopology
         int maxChildren;			// Maximum number of children allowed at a node
+        int maxRescueChildren;		// Maximum number of rescue children allowed at a node
+        double bandwidth;			// TODO need to set the Kbps
         int joinRetry;
         double joinDelay @unit(s); // delay between join retries (sec)
         double packetGenRate @unit(s); // time gap between generation of two packets

@@ -31,6 +31,18 @@ Define_Module(HTopology);
  *      - DONE can be associated with a timeout to the videoSegmentCall (i.e. it doesn't reach the node)
  *      - ALTERNATE can be to continuously ping the nodes (but it's actually not useful as we already have a segment transfer call)
  *  -> RANKING of rescue nodes
+ *      Let's enumerate all the parameters affecting the ranking (mainly answering the questions
+ *          "Am I responsible for node's ability to serve as rescue node?")
+ *
+ *          -> RTT
+ *          -> RescueCapacityLeft
+ *          -> EffectiveBandwidth
+ *          ->
+ *
+ *          Periodically gather information about these parameters from the potentially rescue nodes
+ *
+ *          Ranking (for the time being, assume to be a linear function of these parameters with some weights
+ *              which need to derived (experimentally or heuristically))
  *
  *  TODO Tree height is also not optimal right now (concerned with bootstrapping & treeHeightOptimization)
  *
@@ -56,7 +68,7 @@ Define_Module(HTopology);
  *          DONE someone need to contact & confirm the failure
  *          DONE rest should be same as graceful leaving)
  *   RPC Timeout implementation
- *      DONE for node failure in case of videoSegment Trasnfer
+ *      DONE for node failure in case of videoSegment Transfer
  *
  * 5) Where's the mesh functionality?
  * 6) Collect required statistics
@@ -84,6 +96,8 @@ Define_Module(HTopology);
  *  DONE ResponsibilityAsParentCall -> called node is selected as a parent for given set of children
  *  DONE ScheduleSegmentsCall, ScheduleSegmentsResponse -> asking to send some of the segments within [SegmentID, SegmmentID + count]
  *  DONE SwitchToRescueModeCall  -> ask these nodes to switch to rescue modes as their parent node failed
+ *  HGetParametersCall, HGetParametersResponse -> ask the ranking parameters to the node
+ *      TODO Start a timer, so that we can keep fresh data in here
  *
  *  cache can be managed by buffer depicted in Anysee or STL-<map>
  *  DONE FIXED SIZE SEGMENTS
@@ -121,6 +135,8 @@ string tToString (T a) {
     return ss.str ();
 }
 
+bool compareRescueNodes (const RescueNode& L, const RescueNode& R) { return L.getRank() > R.getRank(); }
+
 
 HTopology::~HTopology(){
     // destroy self timer messages
@@ -155,11 +171,15 @@ void HTopology::initializeOverlay(int stage) {
    // initialize the rest of variables
    bufferMapSize = par("bufferSize");
    maxChildren = par("maxChildren");
+   maxRescueChildren = par("maxRescueChildren");
+   bandwidth = par("bandwidth");
    noOfChildren = 0;
    joinRetry = par("joinRetry");
    joinDelay = par("joinDelay");
    packetGenRate = par("packetGenRate");
    isSource = false;
+
+   initializedRescueRanks = false;
 
    cache.resize(bufferMapSize);            // Resize the buffer map to fit the given requirement
    cachePointer = 0;
@@ -562,7 +582,7 @@ void HTopology::setNodesOneUp (BaseResponseMessage* msg) {
             continue;
         }
 
-        HNode hnode;
+        RescueNode hnode;
         hnode.setHandle(node);
         nodesOneUp[node.getKey()] = hnode;
     }
@@ -599,8 +619,8 @@ void HTopology::handleJoinCall (BaseCallMessage *msg) {
             rrpc->setAncestorsArraySize(ancestors.size());      // this node has no parent (it's the source node)
 
         int k=0;
-        for (MapIterator it=ancestors.begin(); it!=ancestors.end(); ++it, ++k) {
-            HNode node = (*it).second;
+        for (RescueMapIterator it=ancestors.begin(); it!=ancestors.end(); ++it, ++k) {
+            RescueNode node = (*it).second;
             rrpc->setAncestors(k, node.getHandle());
         }
 
@@ -717,7 +737,7 @@ void HTopology::handleScheduleSegmentsCall (BaseCallMessage *msg) {
     // TODO you can maintain the cache in the form of a heap [stl<map> will be a good thing as it stores in increasing order of keys]
     // TODO optimize this thing
     for (int cnt=0; cnt<count; ++cnt) {
-        for (int i=0; i<cache.size(); ++i) {
+        for (size_t i=0; i<cache.size(); ++i) {
             if (cache[i].segmentID == startSegmentID+cnt) {
                 foundSegments.push_back(cache[i]);
             }
@@ -728,7 +748,7 @@ void HTopology::handleScheduleSegmentsCall (BaseCallMessage *msg) {
     HScheduleSegmentsResponse *scheduleResponse = new HScheduleSegmentsResponse();
     scheduleResponse->setSegmentsArraySize(foundSegments.size());
     scheduleResponse->setBitLength(HSCHEDULESEGMENTSRESPONSE_L(scheduleResponse));
-    for (int k=0; k<foundSegments.size(); ++k)
+    for (size_t k=0; k<foundSegments.size(); ++k)
         scheduleResponse->setSegments(k, foundSegments[k]);
     sendRpcResponse(scheduleCall, scheduleResponse);
 }
@@ -763,6 +783,38 @@ void HTopology::handleSwitchToRescueModeCall (BaseCallMessage *msg) {
     modeOfOperation = RESCUE_MODE;
 }
 
+void HTopology::handleGetParametersCall (BaseCallMessage *msg) {
+    HGetParametersCall *mrpc = (HGetParametersCall *)msg;
+    HGetParametersResponse *rrpc = new HGetParametersResponse ();
+    rrpc->setCapacity(capacity());
+    rrpc->setBandwidth(bandwidth);
+    rrpc->setRescueCapacity(rescueCapacity());
+    rrpc->setBitLength(HGETPARAMETERSRESPONSE_L(rrpc));
+
+    sendRpcResponse(mrpc, rrpc);
+}
+
+void HTopology::handleGetParametersResponse (BaseResponseMessage *msg, simtime_t rtt) {
+    HGetParametersResponse *mrpc = (HGetParametersResponse*) msg;
+    OverlayKey key = mrpc->getSrcNode().getKey();
+
+    if (ancestors.find(key) != ancestors.end()) {
+        RankingParameters parameters = {rtt, mrpc->getCapacity(), mrpc->getRescueCapacity(), mrpc->getBandwidth()};
+        ancestors[key].setRankingParameters(parameters);
+        parametersResponseReceived++;
+    }
+    else if (nodesOneUp.find(key) != nodesOneUp.end()) {
+        RankingParameters parameters = {rtt, mrpc->getCapacity(), mrpc->getRescueCapacity(), mrpc->getBandwidth()};
+        nodesOneUp[key].setRankingParameters(parameters);
+        parametersResponseReceived++;
+    }
+
+    if (parametersResponseReceived >= parametersResponseRequired-PARAMETERS_RESPONSE_BUFFER) {
+        initializedRescueRanks = true;
+        // call the ranking function
+    }
+}
+
 // RPC
 bool HTopology::handleRpcCall(BaseCallMessage *msg) {
     // There are many macros to simplify the handling of RPCs. The full list is in <OverSim>/src/common/RpcMacros.h.
@@ -784,6 +836,12 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
         sendRpcResponse(mrpc, rrpc);
 
         RPC_HANDLED = true;  // set to true, since we did handle this RPC (default is false)
+        break;
+    }
+
+    RPC_ON_CALL(HGetParameters) {
+        handleGetParametersCall(msg);
+        RPC_HANDLED = true;
         break;
     }
 
@@ -866,7 +924,7 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
         RPC_ON_CALL(HVideoSegment) {
             HVideoSegmentCall *mrpc = (HVideoSegmentCall *)msg;
             if (children.find(destKey) == children.end()) {
-                EV << "not my child, why Am i sending it a videosegment?" << endl;
+                EV << "not my child, why Am i sending it a video segment?" << endl;
             }
             else {
                 // TODO
@@ -875,7 +933,7 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
                 HSwitchToRescueModeCall *switchCall = new HSwitchToRescueModeCall();
                 switchCall->setBitLength(HSWITCHTORESCUEMODECALL_L(switchCall));
 
-                for (int i=0; i<nodeChildren.size(); ++i) {
+                for (size_t i=0; i<nodeChildren.size(); ++i) {
                     sendRouteRpcCall (OVERLAY_COMP, nodeChildren[i], switchCall);
                 }
 
@@ -923,6 +981,10 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
             handleCapacityResponse(msg);
         }
 
+        RPC_ON_RESPONSE(HGetParameters) {
+            handleGetParametersResponse(msg, rtt);
+        }
+
         RPC_ON_RESPONSE(HScheduleSegments) {
             handleScheduleSegmentsResponse(msg);
         }
@@ -949,7 +1011,7 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
 
                 for (size_t i=0; i<mrpc->getAncestorsArraySize(); ++i) {
                     NodeHandle node = mrpc->getAncestors(i);
-                    HNode hnode;
+                    RescueNode hnode;
                     hnode.setHandle(node);
                     ancestors[node.getKey()] = hnode;
                 }
@@ -1086,7 +1148,7 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
         msg->setParent(newNode.getHandle());
         msg->setBitLength(HNEWPARENTSELECTEDCALL_L (msg));
 
-        for (int i=0; i<newChildren.size(); ++i)
+        for (size_t i=0; i<newChildren.size(); ++i)
             sendRouteRpcCall(OVERLAY_COMP, newChildren[i], msg);
         // END BOOK-KEEPING
     } else {
@@ -1143,8 +1205,22 @@ bool HTopology::removeRescueChild (const NodeHandle& node) {
 
 // returns the ranked nodes in their decreasing ranking order
 vector<NodeHandle> HTopology::getRankedRescueNodes () {
+    // TODO how do we make sure that the parameters are initialized?
+
+    vector<RescueNode> rescueNodes;
+    for(RescueMapIterator it=ancestors.begin(); it!=ancestors.end(); ++it) {
+        rescueNodes.push_back((*it).second);
+    }
+
+    for(RescueMapIterator it=nodesOneUp.begin(); it!=nodesOneUp.end(); ++it) {
+        rescueNodes.push_back((*it).second);
+    }
+
+    // sort them as per their ranking
+    sort(rescueNodes.begin(), rescueNodes.end(), compareRescueNodes);
     vector<NodeHandle> rankedNodes;
-    // TODO fill in the required details
+    for (size_t i=0; i<rescueNodes.size(); ++i) rankedNodes.push_back(rescueNodes[i].getHandle());
+
     return rankedNodes;
 }
 

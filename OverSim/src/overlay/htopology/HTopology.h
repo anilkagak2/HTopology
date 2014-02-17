@@ -36,8 +36,13 @@ using std::string;
 #define GENERAL_MODE 0
 #define RESCUE_MODE 1
 
+#define PARAMETERS_RESPONSE_BUFFER 4
+
 typedef std::map<OverlayKey, HNode> KeyToNodeMap;
 typedef KeyToNodeMap::iterator MapIterator;
+
+typedef std::map<OverlayKey, RescueNode> KeyToRescueNodeMap;
+typedef KeyToRescueNodeMap::iterator RescueMapIterator;
 
 /**
  * TODO - Generated class
@@ -54,12 +59,20 @@ class HTopology : public BaseOverlay {
     // Store pending leaveRequests
     std::map<OverlayKey, HNodeReplacement> leaveRequests;
 
-    int noOfChildren;       // current count of the children;
+    // used for ranking the rescue nodes
+    int parametersResponseReceived;
+    int parametersResponseRequired;
+    bool initializedRescueRanks;
+
+    int noOfChildren;       // current count of the children; TODO same as children.size()
+    int maxChildren;            // Maximum no. of children to be supported
+    int maxRescueChildren;      // Maximum no. of rescue children to be supported
+    double bandwidth;           // Bandwidth present at this node
+
     vector<HVideoSegment> cache;   // video cache
     int cachePointer;       // pointer to the cache
     int segmentID;          // segmentID to start with
     int bufferMapSize;      // size of the local buffer
-    int maxChildren;        // Maximum no. of children to be supported
     int joinRetry;          // Maximum no. of tries in joining the overlay
 
     bool isSource;          // true if its the source
@@ -87,6 +100,9 @@ class HTopology : public BaseOverlay {
     void selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mrpc);
     void handleSwitchToRescueModeCall (BaseCallMessage *msg);
 
+    void handleGetParametersCall (BaseCallMessage *msg);
+    void handleGetParametersResponse (BaseResponseMessage *msg, simtime_t rtt);
+
     /* NodesOneUP */
     void sendChildren (BaseCallMessage *msg);       // respond to the getChildren call
     void initializeNodesOneUp ();                   // use the ancestors array to figure out these nodes
@@ -111,8 +127,8 @@ class HTopology : public BaseOverlay {
     HNode successorNode, predecessorNode;
     KeyToNodeMap children, rescueChildren;
     //KeyToNodeMap siblings;
-    KeyToNodeMap nodesOneUp;
-    KeyToNodeMap ancestors;
+    KeyToRescueNodeMap nodesOneUp;
+    KeyToRescueNodeMap ancestors;
 
     ~HTopology();
 
@@ -124,7 +140,9 @@ class HTopology : public BaseOverlay {
     void joinOverlay();                 // called when the node is ready to join the overlay
     void finishOverlay();               // called when the module is about to be destroyed
 
-    int capacity () {return maxChildren - noOfChildren; }
+    int capacity () {return maxChildren - noOfChildren; } //children.size(); }
+    int rescueCapacity () { return maxRescueChildren - rescueChildren.size(); }
+
     void handleJoinTimerExpired(cMessage* msg);
     void schedulePacketGeneration ();
 

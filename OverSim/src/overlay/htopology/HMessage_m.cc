@@ -551,6 +551,490 @@ void *HCapacityResponseDescriptor::getFieldStructPointer(void *object, int field
     }
 }
 
+Register_Class(HGetParametersCall);
+
+HGetParametersCall::HGetParametersCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+}
+
+HGetParametersCall::HGetParametersCall(const HGetParametersCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+HGetParametersCall::~HGetParametersCall()
+{
+}
+
+HGetParametersCall& HGetParametersCall::operator=(const HGetParametersCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HGetParametersCall::copy(const HGetParametersCall& other)
+{
+}
+
+void HGetParametersCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+}
+
+void HGetParametersCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+}
+
+class HGetParametersCallDescriptor : public cClassDescriptor
+{
+  public:
+    HGetParametersCallDescriptor();
+    virtual ~HGetParametersCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HGetParametersCallDescriptor);
+
+HGetParametersCallDescriptor::HGetParametersCallDescriptor() : cClassDescriptor("HGetParametersCall", "BaseCallMessage")
+{
+}
+
+HGetParametersCallDescriptor::~HGetParametersCallDescriptor()
+{
+}
+
+bool HGetParametersCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HGetParametersCall *>(obj)!=NULL;
+}
+
+const char *HGetParametersCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HGetParametersCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
+}
+
+unsigned int HGetParametersCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return 0;
+}
+
+const char *HGetParametersCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+int HGetParametersCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HGetParametersCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+const char *HGetParametersCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HGetParametersCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetParametersCall *pp = (HGetParametersCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HGetParametersCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetParametersCall *pp = (HGetParametersCall *)object; (void)pp;
+    switch (field) {
+        default: return "";
+    }
+}
+
+bool HGetParametersCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetParametersCall *pp = (HGetParametersCall *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *HGetParametersCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+void *HGetParametersCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetParametersCall *pp = (HGetParametersCall *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+Register_Class(HGetParametersResponse);
+
+HGetParametersResponse::HGetParametersResponse(const char *name, int kind) : BaseResponseMessage(name,kind)
+{
+    this->capacity_var = 0;
+    this->rescueCapacity_var = 0;
+    this->bandwidth_var = 0;
+}
+
+HGetParametersResponse::HGetParametersResponse(const HGetParametersResponse& other) : BaseResponseMessage(other)
+{
+    copy(other);
+}
+
+HGetParametersResponse::~HGetParametersResponse()
+{
+}
+
+HGetParametersResponse& HGetParametersResponse::operator=(const HGetParametersResponse& other)
+{
+    if (this==&other) return *this;
+    BaseResponseMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HGetParametersResponse::copy(const HGetParametersResponse& other)
+{
+    this->capacity_var = other.capacity_var;
+    this->rescueCapacity_var = other.rescueCapacity_var;
+    this->bandwidth_var = other.bandwidth_var;
+}
+
+void HGetParametersResponse::parsimPack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimPack(b);
+    doPacking(b,this->capacity_var);
+    doPacking(b,this->rescueCapacity_var);
+    doPacking(b,this->bandwidth_var);
+}
+
+void HGetParametersResponse::parsimUnpack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimUnpack(b);
+    doUnpacking(b,this->capacity_var);
+    doUnpacking(b,this->rescueCapacity_var);
+    doUnpacking(b,this->bandwidth_var);
+}
+
+int HGetParametersResponse::getCapacity() const
+{
+    return capacity_var;
+}
+
+void HGetParametersResponse::setCapacity(int capacity)
+{
+    this->capacity_var = capacity;
+}
+
+int HGetParametersResponse::getRescueCapacity() const
+{
+    return rescueCapacity_var;
+}
+
+void HGetParametersResponse::setRescueCapacity(int rescueCapacity)
+{
+    this->rescueCapacity_var = rescueCapacity;
+}
+
+double HGetParametersResponse::getBandwidth() const
+{
+    return bandwidth_var;
+}
+
+void HGetParametersResponse::setBandwidth(double bandwidth)
+{
+    this->bandwidth_var = bandwidth;
+}
+
+class HGetParametersResponseDescriptor : public cClassDescriptor
+{
+  public:
+    HGetParametersResponseDescriptor();
+    virtual ~HGetParametersResponseDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HGetParametersResponseDescriptor);
+
+HGetParametersResponseDescriptor::HGetParametersResponseDescriptor() : cClassDescriptor("HGetParametersResponse", "BaseResponseMessage")
+{
+}
+
+HGetParametersResponseDescriptor::~HGetParametersResponseDescriptor()
+{
+}
+
+bool HGetParametersResponseDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HGetParametersResponse *>(obj)!=NULL;
+}
+
+const char *HGetParametersResponseDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HGetParametersResponseDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 3+basedesc->getFieldCount(object) : 3;
+}
+
+unsigned int HGetParametersResponseDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISEDITABLE,
+        FD_ISEDITABLE,
+        FD_ISEDITABLE,
+    };
+    return (field>=0 && field<3) ? fieldTypeFlags[field] : 0;
+}
+
+const char *HGetParametersResponseDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "capacity",
+        "rescueCapacity",
+        "bandwidth",
+    };
+    return (field>=0 && field<3) ? fieldNames[field] : NULL;
+}
+
+int HGetParametersResponseDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='c' && strcmp(fieldName, "capacity")==0) return base+0;
+    if (fieldName[0]=='r' && strcmp(fieldName, "rescueCapacity")==0) return base+1;
+    if (fieldName[0]=='b' && strcmp(fieldName, "bandwidth")==0) return base+2;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HGetParametersResponseDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "int",
+        "int",
+        "double",
+    };
+    return (field>=0 && field<3) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *HGetParametersResponseDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HGetParametersResponseDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetParametersResponse *pp = (HGetParametersResponse *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HGetParametersResponseDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetParametersResponse *pp = (HGetParametersResponse *)object; (void)pp;
+    switch (field) {
+        case 0: return long2string(pp->getCapacity());
+        case 1: return long2string(pp->getRescueCapacity());
+        case 2: return double2string(pp->getBandwidth());
+        default: return "";
+    }
+}
+
+bool HGetParametersResponseDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetParametersResponse *pp = (HGetParametersResponse *)object; (void)pp;
+    switch (field) {
+        case 0: pp->setCapacity(string2long(value)); return true;
+        case 1: pp->setRescueCapacity(string2long(value)); return true;
+        case 2: pp->setBandwidth(string2double(value)); return true;
+        default: return false;
+    }
+}
+
+const char *HGetParametersResponseDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        NULL,
+        NULL,
+        NULL,
+    };
+    return (field>=0 && field<3) ? fieldStructNames[field] : NULL;
+}
+
+void *HGetParametersResponseDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HGetParametersResponse *pp = (HGetParametersResponse *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
 Register_Class(HSelectParentCall);
 
 HSelectParentCall::HSelectParentCall(const char *name, int kind) : BaseCallMessage(name,kind)
