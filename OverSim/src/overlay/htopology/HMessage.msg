@@ -123,7 +123,7 @@ packet HJoinResponse extends BaseResponseMessage {
     int joined;
 }
 
-// call to get children from node
+// used to send video segment (generated or received from a node)
 packet HVideoSegmentCall extends BaseCallMessage {
     HVideoSegment segment;
 }

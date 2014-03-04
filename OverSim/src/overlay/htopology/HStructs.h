@@ -15,6 +15,8 @@ class HLeaveOverlayCall;
 struct HVideoSegment {
     char videoSegment[SEGMENT_SIZE];
     int segmentID;
+    simtime_t issuanceTime;     // TODO using this for estimating the delivery time required, but may not always be a true measure
+                                // The nodes themselves might not be having synchronized clocks
 };
 
 // Used to store the parameters required in selecting the node's replacement
@@ -29,7 +31,7 @@ struct HNodeReplacement {
 
 // Parameters used to determine the rank of a rescue node [wrt. thisNode]
 struct RankingParameters {
-    simtime_t rtt;          // RoundTrip Time between thisNode & the given node
+    long long rtt;          // RoundTrip Time between thisNode & the given node
     int capacity;           // No. of children nodes the given node can support
     int rescueCapacity;     // No. of rescueChildren the given node can support
     double bandwidth;       // in terms of Kbps
@@ -46,7 +48,7 @@ private:
 
     void calculateRank () {
         rank =    RankingFactors.bandwidth * parameters.bandwidth
-                + RankingFactors.rtt.raw() * parameters.rtt.raw()
+                + RankingFactors.rtt * parameters.rtt
                 + RankingFactors.rescueCapacity * parameters.rescueCapacity
                 + RankingFactors.capacity * parameters.capacity;
     }

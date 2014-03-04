@@ -103,6 +103,18 @@ Define_Module(HTopology);
  *  DONE FIXED SIZE SEGMENTS
  *  DONE QUEUE or a bounded size buffer to store the packets received
  *
+ *  TODO TIMERS
+ *      1) Generation of packets
+ *      2) Deadline of segments as per given packet generation rate [TODO
+ *          this will always be known or remain constant throughout the
+ *          streaming life cycle]
+ *      3) Calculating the parameters [ranking parameters]
+ *          TODO
+ *               - should be called once every (2*MAX-RTT or 4*MAX-RTT), otherwise there'll be lots of overhead
+ *               - should be carefully set to a bit higher value than the once currently set
+ *
+ *      4) Do we need to refresh data in our children parameters, with the help of timers?
+ *
  *  TODO enhancements
  *  1) Bootstrapping need to change a bit
  *  2) Remove a node from bootstrap list once it's full & add it's children in the list
@@ -177,6 +189,10 @@ void HTopology::initializeOverlay(int stage) {
    joinRetry = par("joinRetry");
    joinDelay = par("joinDelay");
    packetGenRate = par("packetGenRate");
+
+   // TODO this should be estimated in varying period of time [instead of estimating regularly]
+   // Initially it should be done at a bit higher rate, then frequency should reduce gradually
+   rescueParameterEstimationRate = par("rescueParameterEstimationRate");
    isSource = false;
 
    initializedRescueRanks = false;
@@ -295,7 +311,7 @@ void HTopology::changeState (int STATE) {
 
             // Start the packet generation module
             packetGenTimer = new cMessage("Packet Generation Timer");
-            schedulePacketGeneration();
+            scheduleTimer(packetGenTimer, packetGenRate);
         } else {
             // TODO remove the call to getBootstrapNode
             // EV <<"will remove this node from bootstrapping list" << endl;
@@ -331,8 +347,30 @@ void HTopology::changeState (int STATE) {
             << endl;
         }
         getParentModule()->getParentModule()->bubble("Enter READY state.");
+
+        // Start the rescueParameter estimation timer
+        rescueParametersTimer = new cMessage("Rescue Parameters Estimation Timer");
+        scheduleTimer(rescueParametersTimer, rescueParameterEstimationRate);
         break;
     }
+}
+
+void HTopology::handleRescueParametersEstimationTimer (cMessage *msg) {
+    // Reset the parameters response variables
+    // TODO associate a number denoting the parameter estimation round [so that we don't have collision
+    //  between two invocations]
+    parametersResponseReceived=0;
+    HGetParametersCall *parametersCall = new HGetParametersCall();
+    for (KeyToRescueNodeMap::iterator it=ancestors.begin();
+            it!=ancestors.end(); ++it, parametersResponseReceived++) {
+        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), parametersCall);
+    }
+
+    for (KeyToRescueNodeMap::iterator it=nodesOneUp.begin();
+            it!=nodesOneUp.end(); ++it, parametersResponseReceived++) {
+        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), parametersCall);
+    }
+    // TODO should we reschedule the call here? I DON'T THINK SO
 }
 
 void HTopology::handleTimerEvent(cMessage* msg) {
@@ -344,7 +382,13 @@ void HTopology::handleTimerEvent(cMessage* msg) {
     }
     // Packet Generation Timer
     else if(msg == packetGenTimer) {
+        EV << "packet generation timer" << endl;
         handlePacketGenerationTimer(msg);
+    }
+    // Gather the rescue parameters
+    else if(msg == rescueParametersTimer) {
+        EV << "parameters estimation timer" << endl;
+        handleRescueParametersEstimationTimer (msg);
     }
     // unknown self message
     else {
@@ -353,10 +397,10 @@ void HTopology::handleTimerEvent(cMessage* msg) {
     }
 }
 
-void HTopology::schedulePacketGeneration () {
-    cancelEvent(packetGenTimer);
-    take (packetGenTimer);
-    scheduleAt(simTime()+packetGenRate, packetGenTimer);
+void HTopology::scheduleTimer(cMessage* timer, double rate) {
+    cancelEvent(timer);
+    take (timer);
+    scheduleAt(simTime()+rate, timer);
 }
 
 void HTopology::sendSegmentToChildren(HVideoSegmentCall *videoCall) {
@@ -386,7 +430,8 @@ void HTopology::handleVideoSegment (BaseCallMessage *msg) {
 // At source node:- packet is generated & sent to the children
 
 void HTopology::handlePacketGenerationTimer(cMessage* msg) {
-    schedulePacketGeneration();     // Schedule the run again
+    // Schedule the run again
+    scheduleTimer(packetGenTimer, packetGenRate);
 
     if (state != READY) {
         EV << "Packet generation message called w/o node being in READY state" << endl;
@@ -399,6 +444,7 @@ void HTopology::handlePacketGenerationTimer(cMessage* msg) {
     HVideoSegmentCall *videoCall = new HVideoSegmentCall();
     HVideoSegment segment;
     segment.segmentID = segmentID++;
+    segment.issuanceTime = simTime();
     strncpy (segment.videoSegment, pkt.c_str(), SEGMENT_SIZE);
     videoCall->setSegment(segment);
     videoCall->setBitLength(HVIDEOSEGMENTCALL_L(videoCall));
@@ -799,12 +845,12 @@ void HTopology::handleGetParametersResponse (BaseResponseMessage *msg, simtime_t
     OverlayKey key = mrpc->getSrcNode().getKey();
 
     if (ancestors.find(key) != ancestors.end()) {
-        RankingParameters parameters = {rtt, mrpc->getCapacity(), mrpc->getRescueCapacity(), mrpc->getBandwidth()};
+        RankingParameters parameters = {rtt.raw(), mrpc->getCapacity(), mrpc->getRescueCapacity(), mrpc->getBandwidth()};
         ancestors[key].setRankingParameters(parameters);
         parametersResponseReceived++;
     }
     else if (nodesOneUp.find(key) != nodesOneUp.end()) {
-        RankingParameters parameters = {rtt, mrpc->getCapacity(), mrpc->getRescueCapacity(), mrpc->getBandwidth()};
+        RankingParameters parameters = {rtt.raw(), mrpc->getCapacity(), mrpc->getRescueCapacity(), mrpc->getBandwidth()};
         nodesOneUp[key].setRankingParameters(parameters);
         parametersResponseReceived++;
     }
@@ -812,6 +858,9 @@ void HTopology::handleGetParametersResponse (BaseResponseMessage *msg, simtime_t
     if (parametersResponseReceived >= parametersResponseRequired-PARAMETERS_RESPONSE_BUFFER) {
         initializedRescueRanks = true;
         // call the ranking function
+        // TODO AFAIK, every time you get a new message after the buffer #of responses,
+        // you'll remove the previous one & reschedule the new one => you'll ultimately have a new one
+        scheduleTimer(rescueParametersTimer, rescueParameterEstimationRate);
     }
 }
 

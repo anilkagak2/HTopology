@@ -80,6 +80,7 @@ void HStreaming::handleTimerEvent(cMessage* msg) {
         }*/
     } else {
         // unknown message types are discarded
+        EV << "unknown message: " << msg->getDisplayString() << endl;
         delete msg;
     }
 }

@@ -85,6 +85,7 @@ class HTopology : public BaseOverlay {
     void handleVideoSegment (BaseCallMessage *msg);
     void sendSegmentToChildren(HVideoSegmentCall *videoCall);
     void handlePacketGenerationTimer (cMessage *msg);
+    void handleRescueParametersEstimationTimer (cMessage *msg);
 
     void handleJoinCall (BaseCallMessage *msg);
     void handleLeaveCall (BaseCallMessage *msg);
@@ -111,8 +112,12 @@ class HTopology : public BaseOverlay {
     // timer messages
     cMessage* join_timer; /**< */
     cMessage *packetGenTimer;
+    cMessage *rescueParametersTimer;
+    //cMessage *childrenParametersTimer;
+    //cMessage *deadlineTimer;
     double joinDelay;
     double packetGenRate;
+    double rescueParameterEstimationRate;
 
   public:
     int nodeID;             // my ID in the overlay
@@ -144,7 +149,7 @@ class HTopology : public BaseOverlay {
     int rescueCapacity () { return maxRescueChildren - rescueChildren.size(); }
 
     void handleJoinTimerExpired(cMessage* msg);
-    void schedulePacketGeneration ();
+    void scheduleTimer (cMessage *timer, double rate);
 
     void handleTimerEvent(cMessage*);
 

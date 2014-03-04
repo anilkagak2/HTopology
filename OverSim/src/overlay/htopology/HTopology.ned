@@ -33,6 +33,7 @@ simple HTopology extends BaseOverlay
         int joinRetry;
         double joinDelay @unit(s); // delay between join retries (sec)
         double packetGenRate @unit(s); // time gap between generation of two packets
+        double rescueParameterEstimationRate @unit(s); // time gap between successive parameters estimations
         
         // TODO add parameters required for configuration purpose
         // May be we can try to configure things like
