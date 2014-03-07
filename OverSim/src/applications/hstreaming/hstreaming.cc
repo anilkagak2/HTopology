@@ -55,7 +55,7 @@ void HStreaming::handleTimerEvent(cMessage* msg) {
         // reschedule our message
         scheduleAt(simTime() + sendPeriod, timerMsg);
 
-        EV << "got a timer event" << endl;
+        EV << "got a timer event: " << msg->getOwner()->getClassName() << endl;
         // if the simulator is still busy creating the network,
         // let's wait a bit longer
         if (underlayConfigurator->isInInitPhase()) return;

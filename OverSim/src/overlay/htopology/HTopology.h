@@ -81,9 +81,10 @@ class HTopology : public BaseOverlay {
     void changeState (int state);       // change the STATE of this node to state
     NodeHandle getNodeHandle(MapIterator iter, MapIterator end);
 
+    HVideoSegment generateVideoSegment ();
     // store the segment in your cache & distribute
     void handleVideoSegment (BaseCallMessage *msg);
-    void sendSegmentToChildren(HVideoSegmentCall *videoCall);
+    void sendSegmentToChildren(HVideoSegment segment);
     void handlePacketGenerationTimer (cMessage *msg);
     void handleRescueParametersEstimationTimer (cMessage *msg);
 

@@ -382,6 +382,7 @@ void HTopology::handleTimerEvent(cMessage* msg) {
     }
     // Packet Generation Timer
     else if(msg == packetGenTimer) {
+        EV << "msg owner is " << msg->getOwner()->getClassName() << endl;
         EV << "packet generation timer" << endl;
         handlePacketGenerationTimer(msg);
     }
@@ -403,15 +404,28 @@ void HTopology::scheduleTimer(cMessage* timer, double rate) {
     scheduleAt(simTime()+rate, timer);
 }
 
-void HTopology::sendSegmentToChildren(HVideoSegmentCall *videoCall) {
+void HTopology::sendSegmentToChildren(HVideoSegment segment) {
     // Schedule the transfer to all the children & rescue nodes
     // TODO may be we can use the ideology asked in the proposed algorithm
     // Send to only half of the nodes & then ask them to deliver the packet to their neighbors
-    MapIterator it;
-    for (it = children.begin(); it != children.end(); ++it)
+    EV << "Called sendSegmenttochildren" << endl;
+    MapIterator it; int i=0;
+    for (it = children.begin(); it != children.end(); ++it, ++i) {
+        EV << "Got it : " << i << endl;
+
+        HVideoSegmentCall *videoCall = new HVideoSegmentCall();
+        videoCall->setSegment(segment);
+        videoCall->setBitLength(HVIDEOSEGMENTCALL_L(videoCall));
+
         sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), videoCall);
-    for (it = rescueChildren.begin(); it != rescueChildren.end(); ++it)
+    }
+    for (it = rescueChildren.begin(); it != rescueChildren.end(); ++it) {
+        HVideoSegmentCall *videoCall = new HVideoSegmentCall();
+        videoCall->setSegment(segment);
+        videoCall->setBitLength(HVIDEOSEGMENTCALL_L(videoCall));
+
         sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), videoCall);
+    }
 }
 
 // store the segment in your cache & distribute
@@ -422,10 +436,27 @@ void HTopology::handleVideoSegment (BaseCallMessage *msg) {
             << ": from -> " << mrpc->getSrcNode() << endl;
 
     addSegmentToCache(mrpc->getSegment());
-    sendSegmentToChildren(mrpc);
+
+    /*MapIterator it=children.begin();
+    if (it !=children.end())
+        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), (*it).first, mrpc);*/
+    sendSegmentToChildren(mrpc->getSegment());
+
     delete msg;
 }
 
+
+HVideoSegment HTopology::generateVideoSegment () {
+    EV << "Generating a new video segment" << endl;
+    // Generate a new message & deliver it to all the nodes
+    string pkt = "message-" + tToString(intuniform(0, INT_MAX));
+
+    HVideoSegment segment;
+    segment.segmentID = segmentID++;
+    //segment.issuanceTime = simTime();
+    strncpy (segment.videoSegment, pkt.c_str(), SEGMENT_SIZE-1);
+    return segment;
+}
 
 // At source node:- packet is generated & sent to the children
 
@@ -438,22 +469,19 @@ void HTopology::handlePacketGenerationTimer(cMessage* msg) {
         return;     // If not ready, then it cann't be processed
     }
 
-    // Generate a new message & deliver it to all the nodes
-    string pkt = "message-" + tToString(intuniform(0, INT_MAX));
-
-    HVideoSegmentCall *videoCall = new HVideoSegmentCall();
-    HVideoSegment segment;
-    segment.segmentID = segmentID++;
-    segment.issuanceTime = simTime();
-    strncpy (segment.videoSegment, pkt.c_str(), SEGMENT_SIZE);
-    videoCall->setSegment(segment);
-    videoCall->setBitLength(HVIDEOSEGMENTCALL_L(videoCall));
-    //videoCall->setSegment(pkt.c_str());
-    //videoCall->setSegmentID(segmentID++);
+    //HVideoSegmentCall *videoCall = new HVideoSegmentCall();
+    HVideoSegment segment = generateVideoSegment();
+    /*videoCall->setSegment(segment);
+    videoCall->setBitLength(HVIDEOSEGMENTCALL_L(videoCall));*/
     // TODO BUG CAN BE IN THIS setBitLength thing, please verify it properly
 
-    EV << thisNode << ":Generated message is: " << pkt ;
-    sendSegmentToChildren(videoCall);
+    EV << thisNode << ":Generated message is: " << segment.videoSegment;// videoCall->getSegment().videoSegment ;
+
+    /*MapIterator it=children.begin();
+    if (it !=children.end())
+        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), (*it).first, videoCall);*/
+
+    sendSegmentToChildren(segment);
 }
 
 
@@ -968,8 +996,10 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
     // Same macros as in handleRpc
 
     // start a switch
-    RPC_SWITCH_START(msg);
+    /*RPC_SWITCH_START(msg);
 
+        // TODO this timeout seems to overshooting the actual time required to send to the children
+        // I think you should change the timeout period associated with this call, otherwise it'll assume the node is DEAD
         RPC_ON_CALL(HVideoSegment) {
             HVideoSegmentCall *mrpc = (HVideoSegmentCall *)msg;
             if (children.find(destKey) == children.end()) {
@@ -991,7 +1021,7 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
             }
         }
     // end the switch
-    RPC_SWITCH_END();
+    RPC_SWITCH_END();*/
 }
 
 void HTopology::handleCapacityResponse (BaseResponseMessage *msg) {
