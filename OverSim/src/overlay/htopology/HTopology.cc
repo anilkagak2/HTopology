@@ -154,6 +154,7 @@ HTopology::~HTopology(){
     // destroy self timer messages
     cancelAndDelete(join_timer);
     cancelAndDelete(packetGenTimer);
+    cancelAndDelete(rescueParametersTimer);
 }
 
 void HTopology::initialize() {
@@ -417,14 +418,14 @@ void HTopology::sendSegmentToChildren(HVideoSegment segment) {
         videoCall->setSegment(segment);
         videoCall->setBitLength(HVIDEOSEGMENTCALL_L(videoCall));
 
-        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), videoCall);
+        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), (*it).first, videoCall);
     }
     for (it = rescueChildren.begin(); it != rescueChildren.end(); ++it) {
         HVideoSegmentCall *videoCall = new HVideoSegmentCall();
         videoCall->setSegment(segment);
         videoCall->setBitLength(HVIDEOSEGMENTCALL_L(videoCall));
 
-        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), videoCall);
+        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), (*it).first, videoCall);
     }
 }
 
@@ -442,7 +443,12 @@ void HTopology::handleVideoSegment (BaseCallMessage *msg) {
         sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), (*it).first, mrpc);*/
     sendSegmentToChildren(mrpc->getSegment());
 
-    delete msg;
+    // Send response back to the sending node
+    HVideoSegmentResponse *rrpc =  new HVideoSegmentResponse();
+    rrpc->setBitLength(HVIDEOSEGMENTRESPONSE_L(rrpc));
+    sendRpcResponse(mrpc, rrpc);
+
+    //delete msg;
 }
 
 
@@ -545,7 +551,9 @@ void HTopology::finishOverlay() {
 
         // to children
         for (MapIterator it=children.begin(); it!=children.end(); ++it) {
-            sendRouteRpcCall(OVERLAY_COMP, (*it).second.getHandle(), leaveCall);
+            HLeaveOverlayCall *leaveCall = new HLeaveOverlayCall();
+            leaveCall->setBitLength(HLEAVEOVERLAYCALL_L(leaveCall));
+            sendRouteRpcCall(OVERLAY_COMP, (*it).second.getHandle(), (*it).first, leaveCall);
         }
         // TODO ideally you should wait till you receive response from your parent
     }
@@ -732,12 +740,16 @@ void HTopology::selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mr
      * */
     // Let the parent handle this situation, for now
 
-    HNodeReplacement nreplacement;
+    // TODO mrpc is NULL in handleRpcTimeout event
+    EV << "Called the select replacement event, but no functionality yet."
+            " We'll look for the functionality after debugging the issue" << endl;
+
+/*    HNodeReplacement nreplacement;
     nreplacement.node = mrpc->getSrcNode();
     nreplacement.mrpc = mrpc;
     leaveRequests[mrpc->getSrcNode().getKey()] = nreplacement;
 
-    getParametersForSelectionAlgo(mrpc->getSrcNode().getKey());
+    getParametersForSelectionAlgo(mrpc->getSrcNode().getKey());*/
 
     // TODO do we need to setup any other parameter?
 }
@@ -996,7 +1008,7 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
     // Same macros as in handleRpc
 
     // start a switch
-    /*RPC_SWITCH_START(msg);
+    RPC_SWITCH_START(msg);
 
         // TODO this timeout seems to overshooting the actual time required to send to the children
         // I think you should change the timeout period associated with this call, otherwise it'll assume the node is DEAD
@@ -1006,6 +1018,8 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
                 EV << "not my child, why Am i sending it a video segment?" << endl;
             }
             else {
+                EV << "Node failed is my child: " << children[destKey] << endl;
+
                 // TODO
                 //  Notify the failure to the children
                 NodeVector nodeChildren = children[destKey].getNodeVector();
@@ -1013,7 +1027,7 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
                 switchCall->setBitLength(HSWITCHTORESCUEMODECALL_L(switchCall));
 
                 for (size_t i=0; i<nodeChildren.size(); ++i) {
-                    sendRouteRpcCall (OVERLAY_COMP, nodeChildren[i], switchCall);
+                    sendRouteRpcCall (OVERLAY_COMP, nodeChildren[i], nodeChildren[i].getKey(), switchCall);
                 }
 
                 //  Select a replacement
@@ -1021,7 +1035,7 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
             }
         }
     // end the switch
-    RPC_SWITCH_END();*/
+    RPC_SWITCH_END();
 }
 
 void HTopology::handleCapacityResponse (BaseResponseMessage *msg) {
@@ -1062,6 +1076,10 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
 
         RPC_ON_RESPONSE(HGetParameters) {
             handleGetParametersResponse(msg, rtt);
+        }
+
+        RPC_ON_RESPONSE (HVideoSegment) {
+            EV << "got an hVideoSegment call's response" << endl;
         }
 
         RPC_ON_RESPONSE(HScheduleSegments) {

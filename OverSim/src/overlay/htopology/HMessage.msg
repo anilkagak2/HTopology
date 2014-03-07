@@ -39,6 +39,7 @@ cplusplus {{
 // should it be length() or capacity()
 // isn't TYPE_L for string a bit more than required?
 #define HVIDEOSEGMENTCALL_L(msg)			(BASECALL_L(msg) + NONCE_L + SEGMENT_SIZE * TYPE_L)
+#define HVIDEOSEGMENTRESPONSE_L(msg) 		BASERESPONSE_L(msg)
 
 #define HLEAVEOVERLAYCALL_L(msg)			BASECALL_L(msg)
 #define HLEAVEOVERLAYRESPONSE_L(msg) 		BASERESPONSE_L(msg) + TYPE_L
@@ -126,6 +127,10 @@ packet HJoinResponse extends BaseResponseMessage {
 // used to send video segment (generated or received from a node)
 packet HVideoSegmentCall extends BaseCallMessage {
     HVideoSegment segment;
+}
+
+// Using this for determining the timeout event [TODO not quite sure if this will give the trigger]
+packet HVideoSegmentResponse extends BaseResponseMessage {
 }
 
 // Signal that the source node is going to leave the overlay
