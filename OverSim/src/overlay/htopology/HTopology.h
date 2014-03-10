@@ -16,6 +16,7 @@
 #ifndef __OVERSIM_HTOPOLOGY_H_
 #define __OVERSIM_HTOPOLOGY_H_
 
+#include <GlobalStatistics.h>
 #include <omnetpp.h>
 #include <queue>
 #include <sstream>
@@ -89,6 +90,7 @@ class HTopology : public BaseOverlay {
     void handleRescueParametersEstimationTimer (cMessage *msg);
 
     void handleJoinCall (BaseCallMessage *msg);
+    void handleJoinResponse (BaseResponseMessage *msg);
     void handleLeaveCall (BaseCallMessage *msg);
 
     void handleNewParentSelectedCall (BaseCallMessage *msg);
@@ -97,6 +99,8 @@ class HTopology : public BaseOverlay {
     void addSegmentToCache (HVideoSegment& videoSegment);
     void handleScheduleSegmentsCall (BaseCallMessage *msg);
     void handleScheduleSegmentsResponse (BaseResponseMessage *msg);
+
+    void handleCapacityCall (BaseCallMessage *msg);
     void handleCapacityResponse (BaseResponseMessage *msg);
 
     void selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mrpc);
@@ -119,6 +123,19 @@ class HTopology : public BaseOverlay {
     double joinDelay;
     double packetGenRate;
     double rescueParameterEstimationRate;
+
+    // STATS
+    long long numSentMessages[MESSAGE_TYPES];
+    long long numRecvMessages[MESSAGE_TYPES];
+    simtime_t joinRequestTime, joinAcceptanceTime;  // time taken in the joining process
+    bool notReceivedPacket;
+    simtime_t firstPacketRecvingTime;               // this - joinRequestTime should give you the startup time for a node
+    simtime_t leaveRequestTime, leaveGrantedTime;   // time take in a graceful leave of a node
+    long long numPackets;                           // If source => generated, else received
+    long long parameterEstimationRounds;          // # of times parameter estimation was done by a node
+
+    // Initialize the statistics, to be estimated during the simulation
+    void initializeStats ();
 
   public:
     int nodeID;             // my ID in the overlay

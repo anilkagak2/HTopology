@@ -4711,6 +4711,7 @@ $O/overlay/htopology/HTopology.o: overlay/htopology/HTopology.cc \
 	common/CommonMessages_m.h \
 	common/Comparator.h \
 	common/ExtTCPSocketMap.h \
+	common/GlobalStatistics.h \
 	common/InitStages.h \
 	common/IterativeLookupConfiguration.h \
 	common/NodeHandle.h \

@@ -10,6 +10,34 @@ using std::string;
 
 #define SEGMENT_SIZE 100
 
+// # of messages supported by HTopology
+#define MESSAGE_TYPES 11
+
+/*
+ * Below given type are for Call messages
+ * Response are of the following type
+ *  HCapacity
+ *  HGetParameters
+ *  HSelectParent
+ *  HVideoSegment
+ *  HScheduleSegments
+ *  HGetChildren
+ *  HJoin
+ * */
+enum HMessageType {
+    ECapacity,
+    EGetParameters,
+    ESelectParent,
+    EVideoSegment,
+    ELeaveOverlay,
+    EResponsibilityAsParent,
+    ENewParentSelected,
+    EScheduleSegments,
+    ESwitchToRescueMode,
+    EGetChildren,
+    EJoin
+};
+
 class HLeaveOverlayCall;
 
 struct HVideoSegment {

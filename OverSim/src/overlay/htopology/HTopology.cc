@@ -121,6 +121,19 @@ Define_Module(HTopology);
  *      => reduces the number of messages exchanged in joining of a new node
  *
  *  TODO statistics & simulation environment
+ *    DONE startup time -> node's 1st request to join && the acceptance response
+ *    DONE startup packet -> node joining time && 1st packet received
+ *      transfer delay -> packet issuance time && receiving simulation time TODO do we need to synchronize all the clocks
+ *    DONE  total number of messages sent [divide into all the types we've defined in HMessage.msg file]
+ *
+ *      TODO parameter estimation shouldn't be done by the root node, anyways there are bugs associated with the current timer
+ *      number of times parameterEstimation was done.
+ *      ranks calculated [average rank available at a node, maximum, minimum & median]
+ *      load at a node -> #ofChildren && #ofRescueChildren
+ *    DONE #ofPacketsGenerated
+ *      max reaching time of this packet to any node
+ *      max height of the tree
+ *
  *  1) What kind of network topology will work?
  *      One like our institute & other like a general Internet (with nodes behind proxy)
  *  2) What all statistics should be captured?
@@ -166,6 +179,15 @@ void HTopology::initialize() {
     EV << "got a message in handleMessage: HTopology" << endl;
     delete msg;
 }*/
+
+void HTopology::initializeStats () {
+    // #ofMessages sent & recvd
+    memset(numSentMessages, 0, sizeof numSentMessages);
+    memset(numRecvMessages, 0, sizeof numRecvMessages);
+
+    notReceivedPacket=true;
+    parameterEstimationRounds=numPackets=0;
+}
 
 // Called when the module is being initialized
 void HTopology::initializeOverlay(int stage) {
@@ -316,6 +338,8 @@ void HTopology::changeState (int STATE) {
             packetGenTimer = new cMessage("Packet Generation Timer");
             scheduleTimer(packetGenTimer, packetGenRate);
         } else {
+            joinRequestTime = simTime();            // FILL IN THE JOIN REQUEST TIME
+
             // TODO remove the call to getBootstrapNode
             // EV <<"will remove this node from bootstrapping list" << endl;
             //bootstrapList->removeBootstrapNode(thisNode, overlayId);
@@ -363,6 +387,8 @@ void HTopology::changeState (int STATE) {
 }
 
 void HTopology::handleRescueParametersEstimationTimer (cMessage *msg) {
+    parameterEstimationRounds++;
+
     // Reset the parameters response variables
     // TODO associate a number denoting the parameter estimation round [so that we don't have collision
     //  between two invocations]
@@ -447,6 +473,12 @@ void HTopology::sendSegmentToChildren(HVideoSegment segment) {
 
 // store the segment in your cache & distribute
 void HTopology::handleVideoSegment (BaseCallMessage *msg) {
+    numSentMessages[EVideoSegment]++;
+    if (notReceivedPacket) {
+        firstPacketRecvingTime = simTime();
+        notReceivedPacket = false;
+    }
+
     HVideoSegmentCall *mrpc = (HVideoSegmentCall *)msg;
 
     EV << thisNode << ": received " << mrpc->getSegment().videoSegment
@@ -475,6 +507,7 @@ HVideoSegment HTopology::generateVideoSegment () {
 
     HVideoSegment segment;
     segment.segmentID = segmentID++;
+    numPackets++;
     //segment.issuanceTime = simTime();
     strncpy (segment.videoSegment, pkt.c_str(), SEGMENT_SIZE-1);
     return segment;
@@ -491,18 +524,8 @@ void HTopology::handlePacketGenerationTimer(cMessage* msg) {
         return;     // If not ready, then it cann't be processed
     }
 
-    //HVideoSegmentCall *videoCall = new HVideoSegmentCall();
     HVideoSegment segment = generateVideoSegment();
-    /*videoCall->setSegment(segment);
-    videoCall->setBitLength(HVIDEOSEGMENTCALL_L(videoCall));*/
-    // TODO BUG CAN BE IN THIS setBitLength thing, please verify it properly
-
     EV << thisNode << ":Generated message is: " << segment.videoSegment;// videoCall->getSegment().videoSegment ;
-
-    /*MapIterator it=children.begin();
-    if (it !=children.end())
-        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), (*it).first, videoCall);*/
-
     sendSegmentToChildren(segment);
 }
 
@@ -556,8 +579,8 @@ void HTopology::joinOverlay() {
 
 // Called when the module is about to be destroyed
 void HTopology::finishOverlay() {
-    // TODO if parent is set, use HLeaveCall
     if (!parent.isUnspecified()) {
+        leaveRequestTime = simTime();
         HLeaveOverlayCall *leaveCall = new HLeaveOverlayCall();
         leaveCall->setBitLength(HLEAVEOVERLAYCALL_L(leaveCall));
 
@@ -580,6 +603,8 @@ void HTopology::finishOverlay() {
 
     // save the statistics (see BaseApp)
     // globalStatistics->addStdDev("MyOverlay: Dropped packets", numDropped);
+    globalStatistics->addStdDev("VideoSegmentSent", numSentMessages[EVideoSegment]);
+    globalStatistics->addStdDev("VideoSegmentReceived", numRecvMessages[EVideoSegment]);
     EV << thisNode << ": Leaving the overlay." << std::endl;
 }
 
@@ -639,6 +664,8 @@ NodeHandle HTopology::getNodeHandle(MapIterator iter, MapIterator end) {
 // NodesOneUp
 // respond to the getChildren call
 void HTopology::sendChildren (BaseCallMessage *msg) {
+    numSentMessages[EGetChildren]++;
+
     HGetChildrenCall *mrpc = (HGetChildrenCall *) msg;
     HGetChildrenResponse *rrpc =  new HGetChildrenResponse();
 
@@ -667,6 +694,7 @@ void HTopology::initializeNodesOneUp () {
 
 // fills up the nodes one up field in the overlay
 void HTopology::setNodesOneUp (BaseResponseMessage* msg) {
+    numRecvMessages[EGetChildren]++;
     HGetChildrenResponse* mrpc = (HGetChildrenResponse*)msg;          // get Response message
 
     // just remove our parent from this list & add them to the nodesOneUp
@@ -687,6 +715,8 @@ void HTopology::setNodesOneUp (BaseResponseMessage* msg) {
 }
 
 void HTopology::handleJoinCall (BaseCallMessage *msg) {
+    numSentMessages[EJoin]++;
+
     HJoinCall *mrpc = (HJoinCall*) msg;
     HJoinResponse *rrpc = new HJoinResponse ();
     EV << thisNode << ": received Join call from " <<  msg->getSrcNode() << endl;
@@ -772,6 +802,7 @@ void HTopology::selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mr
 
 
 void HTopology::handleLeaveCall (BaseCallMessage *msg) {
+    numSentMessages[ELeaveOverlay]++;
     /*
      * If you are the parent of the caller -> find a replacement of the node
      * Else
@@ -797,6 +828,8 @@ void HTopology::handleLeaveCall (BaseCallMessage *msg) {
 }
 
 void HTopology::handleNewParentSelectedCall (BaseCallMessage *msg) {
+    numSentMessages[ENewParentSelected]++;
+
     HNewParentSelectedCall *mrpc = (HNewParentSelectedCall*)msg;
 
     // Ideally this node should also be acting in rescue mode
@@ -810,6 +843,8 @@ void HTopology::handleNewParentSelectedCall (BaseCallMessage *msg) {
 }
 
 void HTopology::handleResponsibilityAsParentCall (BaseCallMessage *msg) {
+    numSentMessages[EResponsibilityAsParent]++;
+
     HResponsibilityAsParentCall *mrpc = (HResponsibilityAsParentCall *)msg;
 
     // Ideally this node should also be acting in rescue mode
@@ -831,6 +866,8 @@ void HTopology::handleResponsibilityAsParentCall (BaseCallMessage *msg) {
     // TODO do we update our parent about our new children? I Think NO. He already know about them
 }
 void HTopology::handleScheduleSegmentsCall (BaseCallMessage *msg) {
+    numSentMessages[EScheduleSegments]++;
+
     HScheduleSegmentsCall *scheduleCall = (HScheduleSegmentsCall *)msg;
     int startSegmentID = scheduleCall->getStartSegmentID();
     int count = scheduleCall->getCount();
@@ -867,6 +904,8 @@ void HTopology::addSegmentToCache (HVideoSegment& videoSegment) {
 }
 
 void HTopology::handleScheduleSegmentsResponse (BaseResponseMessage *msg) {
+    numRecvMessages[EScheduleSegments]++;
+
     HScheduleSegmentsResponse *scheduleResponse = (HScheduleSegmentsResponse *)msg;
     int N=scheduleResponse->getSegmentsArraySize();
     for (int i=0; i<N; ++i) {
@@ -875,6 +914,8 @@ void HTopology::handleScheduleSegmentsResponse (BaseResponseMessage *msg) {
 }
 
 void HTopology::handleSwitchToRescueModeCall (BaseCallMessage *msg) {
+    numSentMessages[ESwitchToRescueMode]++;
+
     HSwitchToRescueModeCall *switchCall = (HSwitchToRescueModeCall *)msg;
     if (switchCall->getSrcNode() != grandParent.getHandle()) {
         EV << "There's some problem with switchToRescueModeCall" << endl;
@@ -886,6 +927,8 @@ void HTopology::handleSwitchToRescueModeCall (BaseCallMessage *msg) {
 }
 
 void HTopology::handleGetParametersCall (BaseCallMessage *msg) {
+    numSentMessages[EGetParameters]++;
+
     HGetParametersCall *mrpc = (HGetParametersCall *)msg;
     HGetParametersResponse *rrpc = new HGetParametersResponse ();
     rrpc->setCapacity(capacity());
@@ -897,6 +940,8 @@ void HTopology::handleGetParametersCall (BaseCallMessage *msg) {
 }
 
 void HTopology::handleGetParametersResponse (BaseResponseMessage *msg, simtime_t rtt) {
+    numRecvMessages[EGetParameters]++;
+
     HGetParametersResponse *mrpc = (HGetParametersResponse*) msg;
     OverlayKey key = mrpc->getSrcNode().getKey();
 
@@ -930,6 +975,22 @@ void HTopology::handleGetParametersResponse (BaseResponseMessage *msg, simtime_t
     }
 }
 
+void HTopology::handleCapacityCall (BaseCallMessage *msg) {
+    numSentMessages[ECapacity]++;
+
+    HCapacityCall *mrpc = (HCapacityCall*)msg;          // get Call message
+    HCapacityResponse *rrpc = new HCapacityResponse();  // create response
+    rrpc->setRespondingNode(thisNode);
+
+    // TODO the capacity can be decided dynamically, but for now lets use the static version
+    rrpc->setCapacity(capacity());      // set the capacity left at this node
+    rrpc->setBitLength(HCAPACITYRESPONSE_L(rrpc));
+
+    // now send the response. sendRpcResponse can automatically tell where to send it to.
+    // note that sendRpcResponse will delete mrpc (aka msg)!
+    sendRpcResponse(mrpc, rrpc);
+}
+
 // RPC
 bool HTopology::handleRpcCall(BaseCallMessage *msg) {
     // There are many macros to simplify the handling of RPCs. The full list is in <OverSim>/src/common/RpcMacros.h.
@@ -938,18 +999,7 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
 
     // enters the following block if the message is of type HCapacityCall (note the shortened parameter!)
     RPC_ON_CALL(HCapacity) {
-        HCapacityCall *mrpc = (HCapacityCall*)msg;          // get Call message
-        HCapacityResponse *rrpc = new HCapacityResponse();  // create response
-        rrpc->setRespondingNode(thisNode);
-
-        // TODO the capacity can be decided dynamically, but for now lets use the static version
-        rrpc->setCapacity(capacity());      // set the capacity left at this node
-        rrpc->setBitLength(HCAPACITYRESPONSE_L(rrpc));
-
-        // now send the response. sendRpcResponse can automatically tell where to send it to.
-        // note that sendRpcResponse will delete mrpc (aka msg)!
-        sendRpcResponse(mrpc, rrpc);
-
+        handleCapacityCall(msg);
         RPC_HANDLED = true;  // set to true, since we did handle this RPC (default is false)
         break;
     }
@@ -961,6 +1011,7 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
     }
 
     RPC_ON_CALL(HSelectParent) {
+        numSentMessages[ESelectParent]++;
         //HSelectParentCall *mrpc = (HSelectParentCall)msg;
 
         // TODO Do check if the request is not a fake/malicious one
@@ -1065,6 +1116,8 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
 }
 
 void HTopology::handleCapacityResponse (BaseResponseMessage *msg) {
+    numRecvMessages[ECapacity]++;
+
     HCapacityResponse *mrpc = (HCapacityResponse*)msg;          // get Response message
     //if (queryNodesSelectionAlgo.find(mrpc->getSrcNode().getKey()) != queryNodesSelectionAlgo.end())
     // set the capacity for the key
@@ -1082,6 +1135,48 @@ void HTopology::handleCapacityResponse (BaseResponseMessage *msg) {
     queryNodesSelectionAlgo[key] = mrpc->getCapacity();
     if (queryNodesSelectionAlgo.size() == responseRequired) {
         goAheadWithRestSelectionProcess (leaveRequests[key].node.getKey());
+    }
+}
+
+void HTopology::handleJoinResponse (BaseResponseMessage *msg) {
+    numRecvMessages[EJoin]++;
+
+    HJoinResponse* mrpc = (HJoinResponse*)msg;          // get Response message
+    if (mrpc->getJoined() == true) {
+        joinAcceptanceTime = simTime();                 // FILL IN THE JOIN ACCEPTANCE TIME
+
+        EV << "We got a response from " << mrpc->getSrcNode() << endl;
+        parent.setHandle(mrpc->getSrcNode());
+
+        if (mrpc->getAncestorsArraySize() > 0)
+            grandParent.setHandle(mrpc->getAncestors(mrpc->getAncestorsArraySize()-1));
+
+        successorNode.setHandle(mrpc->getSuccessorNode());
+        predecessorNode.setHandle(mrpc->getPredecessorNode());
+
+        for (size_t i=0; i<mrpc->getAncestorsArraySize(); ++i) {
+            NodeHandle node = mrpc->getAncestors(i);
+            RescueNode hnode;
+            hnode.setHandle(node);
+            ancestors[node.getKey()] = hnode;
+        }
+
+        EV << "joined overlay :" ;
+        updateTooltip();
+    } else {
+        EV << thisNode << ": is going to join the overlay rooted at" << mrpc->getSuccessorNode() << endl;
+        HJoinCall *mcall = new HJoinCall();
+        mcall->setBitLength(JOINCALL_L (mcall));
+
+        // go on & call the given node
+        if (mrpc->getSuccessorNode().isUnspecified()) {
+            EV << "Incorrect response->" ;
+            EV << "NEED HELP" << endl;
+        } else {
+            // go ahead & add yourself to the child
+            EV << "joining at " << mrpc->getSuccessorNode() <<  endl;
+            sendRouteRpcCall (OVERLAY_COMP, mrpc->getSuccessorNode(), mcall);
+        }
     }
 }
 
@@ -1105,6 +1200,7 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
         }
 
         RPC_ON_RESPONSE (HVideoSegment) {
+            numRecvMessages[EVideoSegment]++;
             EV << "got an hVideoSegment call's response" << endl;
         }
 
@@ -1113,6 +1209,7 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
         }
 
         RPC_ON_RESPONSE(HSelectParent) {
+            numRecvMessages[ESelectParent]++;
             // TODO, will there really be any response message of this sort?
         }
 
@@ -1121,41 +1218,7 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
         }
 
         RPC_ON_RESPONSE(HJoin) {
-            HJoinResponse* mrpc = (HJoinResponse*)msg;          // get Response message
-            if (mrpc->getJoined() == true) {
-                EV << "We got a response from " << mrpc->getSrcNode() << endl;
-                parent.setHandle(mrpc->getSrcNode());
-
-                if (mrpc->getAncestorsArraySize() > 0)
-                    grandParent.setHandle(mrpc->getAncestors(mrpc->getAncestorsArraySize()-1));
-
-                successorNode.setHandle(mrpc->getSuccessorNode());
-                predecessorNode.setHandle(mrpc->getPredecessorNode());
-
-                for (size_t i=0; i<mrpc->getAncestorsArraySize(); ++i) {
-                    NodeHandle node = mrpc->getAncestors(i);
-                    RescueNode hnode;
-                    hnode.setHandle(node);
-                    ancestors[node.getKey()] = hnode;
-                }
-
-                EV << "joined overlay :" ;
-                updateTooltip();
-            } else {
-                EV << thisNode << ": is going to join the overlay rooted at" << mrpc->getSuccessorNode() << endl;
-                HJoinCall *mcall = new HJoinCall();
-                mcall->setBitLength(JOINCALL_L (mcall));
-
-                // go on & call the given node
-                if (mrpc->getSuccessorNode().isUnspecified()) {
-                    EV << "Incorrect response->" ;
-                    EV << "NEED HELP" << endl;
-                } else {
-                    // go ahead & add yourself to the child
-                    EV << "joining at " << mrpc->getSuccessorNode() <<  endl;
-                    sendRouteRpcCall (OVERLAY_COMP, mrpc->getSuccessorNode(), mcall);
-                }
-            }
+            handleJoinResponse(msg);
             // TODO when to delete which message?
             // there'll be lots of memory leaks :D
         }
