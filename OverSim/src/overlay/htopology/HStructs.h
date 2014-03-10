@@ -38,7 +38,7 @@ struct RankingParameters {
 };
 
 // These are the factors, multiplied to the rankingParameters in order to calculate the metric defining the ranking
-const RankingParameters RankingFactors = {50, 1, 1, 50};
+const RankingParameters RankingFactors = {1, 25, 25, 1};
 
 class RescueNode {
 private:
@@ -51,6 +51,7 @@ private:
                 + RankingFactors.rtt * parameters.rtt
                 + RankingFactors.rescueCapacity * parameters.rescueCapacity
                 + RankingFactors.capacity * parameters.capacity;
+        // std::cout << "Rank is " << rank << endl;
     }
 public:
     void setHandle(NodeHandle& node) { this->node = node; }

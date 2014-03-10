@@ -97,22 +97,22 @@ Define_Module(HTopology);
  *  DONE ScheduleSegmentsCall, ScheduleSegmentsResponse -> asking to send some of the segments within [SegmentID, SegmmentID + count]
  *  DONE SwitchToRescueModeCall  -> ask these nodes to switch to rescue modes as their parent node failed
  *  HGetParametersCall, HGetParametersResponse -> ask the ranking parameters to the node
- *      TODO Start a timer, so that we can keep fresh data in here
+ *      DONE Start a timer, so that we can keep fresh data in here
  *
  *  cache can be managed by buffer depicted in Anysee or STL-<map>
  *  DONE FIXED SIZE SEGMENTS
  *  DONE QUEUE or a bounded size buffer to store the packets received
  *
  *  TODO TIMERS
- *      1) Generation of packets
+ *     DONE  1) Generation of packets
  *      2) Deadline of segments as per given packet generation rate [TODO
  *          this will always be known or remain constant throughout the
  *          streaming life cycle]
  *      3) Calculating the parameters [ranking parameters]
+ *     DONE Basic Functionality
  *          TODO
  *               - should be called once every (2*MAX-RTT or 4*MAX-RTT), otherwise there'll be lots of overhead
  *               - should be carefully set to a bit higher value than the once currently set
- *
  *      4) Do we need to refresh data in our children parameters, with the help of timers?
  *
  *  TODO enhancements
@@ -193,6 +193,7 @@ void HTopology::initializeOverlay(int stage) {
 
    // TODO this should be estimated in varying period of time [instead of estimating regularly]
    // Initially it should be done at a bit higher rate, then frequency should reduce gradually
+   // Can you check what's the use of Jain's Parameter? [We studied in Networks course, if that can be applied here]
    rescueParameterEstimationRate = par("rescueParameterEstimationRate");
    isSource = false;
 
@@ -217,6 +218,7 @@ void HTopology::initializeOverlay(int stage) {
    // self-messages
    join_timer = new cMessage("join_timer");
    packetGenTimer = NULL;
+   rescueParametersTimer = NULL;
 
    EV << thisNode << ": initialized." << std::endl;
 
@@ -335,6 +337,10 @@ void HTopology::changeState (int STATE) {
         state = READY;
         setOverlayReady(true);
 
+        if (rescueParametersTimer == NULL)
+            rescueParametersTimer = new cMessage ("Rescue_Parameters_Timer");
+        scheduleTimer(rescueParametersTimer, rescueParameterEstimationRate);
+
         if (!bootstrapNode.isUnspecified()) {
             EV <<"will remove this node from bootstrapping list" << endl;
             bootstrapList->removeBootstrapNode(thisNode, overlayId);
@@ -361,15 +367,24 @@ void HTopology::handleRescueParametersEstimationTimer (cMessage *msg) {
     // TODO associate a number denoting the parameter estimation round [so that we don't have collision
     //  between two invocations]
     parametersResponseReceived=0;
-    HGetParametersCall *parametersCall = new HGetParametersCall();
     for (KeyToRescueNodeMap::iterator it=ancestors.begin();
             it!=ancestors.end(); ++it, parametersResponseReceived++) {
-        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), parametersCall);
+        if ((*it).first == thisNode.getKey()) {
+            EV << "We were sending self message via ancestors" << endl;
+            continue;
+        }
+        HGetParametersCall *parametersCall = new HGetParametersCall();
+        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), (*it).first, parametersCall);
     }
 
     for (KeyToRescueNodeMap::iterator it=nodesOneUp.begin();
             it!=nodesOneUp.end(); ++it, parametersResponseReceived++) {
-        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), parametersCall);
+        if ((*it).first == thisNode.getKey()) {
+            EV << "We were sending self message via nodesOneUp" << endl;
+            continue;
+        }
+        HGetParametersCall *parametersCall = new HGetParametersCall();
+        sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), (*it).first, parametersCall);
     }
     // TODO should we reschedule the call here? I DON'T THINK SO
 }
@@ -394,8 +409,9 @@ void HTopology::handleTimerEvent(cMessage* msg) {
     }
     // unknown self message
     else {
-        error("HTopology::handleTimerEvent(): received self message of "
-              "unknown type!");
+        EV << "Unknown Message is: " << msg->getClassName() << endl;
+        //error("HTopology::handleTimerEvent(): received self message of "
+        //      "unknown type!");
     }
 }
 
@@ -884,18 +900,28 @@ void HTopology::handleGetParametersResponse (BaseResponseMessage *msg, simtime_t
     HGetParametersResponse *mrpc = (HGetParametersResponse*) msg;
     OverlayKey key = mrpc->getSrcNode().getKey();
 
+    EV << "rtt: " << rtt.inUnit(SIMTIME_MS)
+            << "capacity: " << mrpc->getCapacity()
+            << ", rescue capacity: "<< mrpc->getRescueCapacity()
+            << ", bandwidth: "<<  mrpc->getBandwidth()<< endl;
+
     if (ancestors.find(key) != ancestors.end()) {
-        RankingParameters parameters = {rtt.raw(), mrpc->getCapacity(), mrpc->getRescueCapacity(), mrpc->getBandwidth()};
+        RankingParameters parameters = {rtt.inUnit(SIMTIME_MS), mrpc->getCapacity(), mrpc->getRescueCapacity(), mrpc->getBandwidth()};
         ancestors[key].setRankingParameters(parameters);
         parametersResponseReceived++;
+        EV << "Updating parameters at entry: " << ancestors[key].getHandle()
+                        << " && rank is " << ancestors[key].getRank() << endl;
     }
     else if (nodesOneUp.find(key) != nodesOneUp.end()) {
-        RankingParameters parameters = {rtt.raw(), mrpc->getCapacity(), mrpc->getRescueCapacity(), mrpc->getBandwidth()};
+        RankingParameters parameters = {rtt.inUnit(SIMTIME_MS), mrpc->getCapacity(), mrpc->getRescueCapacity(), mrpc->getBandwidth()};
         nodesOneUp[key].setRankingParameters(parameters);
         parametersResponseReceived++;
+        EV << "Updating parameters at entry: " << nodesOneUp[key].getHandle()
+                << " && rank is " << nodesOneUp[key].getRank() << endl;
     }
 
     if (parametersResponseReceived >= parametersResponseRequired-PARAMETERS_RESPONSE_BUFFER) {
+        EV << "Restarting the parameters estimation timer " << endl;
         initializedRescueRanks = true;
         // call the ranking function
         // TODO AFAIK, every time you get a new message after the buffer #of responses,
