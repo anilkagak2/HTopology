@@ -45,11 +45,16 @@ typedef KeyToNodeMap::iterator MapIterator;
 typedef std::map<OverlayKey, RescueNode> KeyToRescueNodeMap;
 typedef KeyToRescueNodeMap::iterator RescueMapIterator;
 
-/**
- * TODO - Generated class
- */
-
-
+/*
+ * HTopology -> description of the hybrid topology for Live P2P streaming
+ *              Hybrid based on the tree & mesh concepts
+ *
+ * Project   -> SIMULATION TO BE SCHEDULED && FULL SCALE RESULTS ARE TO BE GATHERED
+ * Status        && COMPARED WITH EXISTING TOPOLOGIES
+ *
+ * Simulation -> Cleaning up the code & completing the TODOs. Major work remains in testing node failures.
+ * Status
+ * */
 class HTopology : public BaseOverlay {
   protected:
     virtual void initialize();
@@ -65,11 +70,12 @@ class HTopology : public BaseOverlay {
     int parametersResponseRequired;
     bool initializedRescueRanks;
 
-    int noOfChildren;       // current count of the children; TODO same as children.size()
+    int noOfChildren;           // current count of the children; TODO same as children.size()
     int maxChildren;            // Maximum no. of children to be supported
     int maxRescueChildren;      // Maximum no. of rescue children to be supported
     double bandwidth;           // Bandwidth present at this node
 
+    // TODO Queue for storing the packets -> source need infinite queue, others need fixed size
     vector<HVideoSegment> cache;   // video cache
     int cachePointer;       // pointer to the cache
     int segmentID;          // segmentID to start with
@@ -141,9 +147,6 @@ class HTopology : public BaseOverlay {
     int nodeID;             // my ID in the overlay
     int modeOfOperation;    // GENERAL_MODE / RESCUE_MODE
     TransportAddress bootstrapNode; /**< node used to bootstrap */
-
-    // TODO
-    // Queue for storing the packets -> source need infinite queue, others need fixed size
 
     // Links to other nodes in the overlay
     HNode parent, grandParent;

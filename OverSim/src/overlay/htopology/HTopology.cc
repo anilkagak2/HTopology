@@ -20,7 +20,13 @@
 Define_Module(HTopology);
 
 /*
- * TODO
+ * TODO Go through all the TODO's & resolve them if possible
+ * TODO Sit someday & fix the message lengths [we've updated the message structures but the lengths remain the same]
+ * TODO A node may not have the RescueParametersTimer scheduled [because it has no ancestor (we don't count
+ *      the parent here) && hence no nodesOneUp]. But if sometime later it populates these parameters,
+ *      then we'll have to schedule the timer [REMEMBER THIS THING AT RE-JOINING the NODE AT SOME OTHER PARENT]
+ *
+ * DONE
  * MAJOR CONCERN NOW
  *  -> SCHEDULING (in rescue mode over a set of nodes)
  *      Can  be taken care of, if only RANKING works fine
@@ -41,6 +47,7 @@ Define_Module(HTopology);
  *
  *          Periodically gather information about these parameters from the potentially rescue nodes
  *
+ *  TODO Improve the ranking factors
  *          Ranking (for the time being, assume to be a linear function of these parameters with some weights
  *              which need to derived (experimentally or heuristically))
  *
@@ -105,8 +112,8 @@ Define_Module(HTopology);
  *
  *  TODO TIMERS
  *     DONE  1) Generation of packets
- *      2) Deadline of segments as per given packet generation rate [TODO
- *          this will always be known or remain constant throughout the
+ *      2) Deadline of segments as per given packet generation rate
+ *          [this will always be known or remain constant throughout the
  *          streaming life cycle]
  *      3) Calculating the parameters [ranking parameters]
  *     DONE Basic Functionality
@@ -123,7 +130,10 @@ Define_Module(HTopology);
  *  TODO statistics & simulation environment
  *    DONE startup time -> node's 1st request to join && the acceptance response
  *    DONE startup packet -> node joining time && 1st packet received
- *      transfer delay -> packet issuance time && receiving simulation time TODO do we need to synchronize all the clocks
+ *    DONE transfer delay -> packet issuance time && receiving simulation time TODO do we need to synchronize all the clocks
+ *         packet loss [#of packets reaching after the deadline is over, or not at all reaching]
+ *         How does a node know, when a segment is reaching the deadline?
+ *             - May be use the SYNC signal sent by the root to all the nodes[so that they can figure out their status in the stream]
  *    DONE  total number of messages sent [divide into all the types we've defined in HMessage.msg file]
  *
  *      TODO parameter estimation shouldn't be done by the root node, anyways there are bugs associated with the current timer
@@ -131,7 +141,7 @@ Define_Module(HTopology);
  *      ranks calculated [average rank available at a node, maximum, minimum & median]
  *      load at a node -> #ofChildren && #ofRescueChildren
  *    DONE #ofPacketsGenerated
- *      max reaching time of this packet to any node
+ *    DONE[transfer delay handles this]  max reaching time of this packet to any node
  *      max height of the tree
  *
  *  1) What kind of network topology will work?
@@ -361,9 +371,12 @@ void HTopology::changeState (int STATE) {
         state = READY;
         setOverlayReady(true);
 
-        if (rescueParametersTimer == NULL)
-            rescueParametersTimer = new cMessage ("Rescue_Parameters_Timer");
-        scheduleTimer(rescueParametersTimer, rescueParameterEstimationRate);
+        // Parameter estimation will not be done by the root node
+        if (!isSource) {
+            if (rescueParametersTimer == NULL)
+                rescueParametersTimer = new cMessage ("Rescue_Parameters_Timer");
+            scheduleTimer(rescueParametersTimer, rescueParameterEstimationRate);
+        }
 
         if (!bootstrapNode.isUnspecified()) {
             EV <<"will remove this node from bootstrapping list" << endl;
@@ -389,12 +402,15 @@ void HTopology::changeState (int STATE) {
 void HTopology::handleRescueParametersEstimationTimer (cMessage *msg) {
     parameterEstimationRounds++;
 
-    // Reset the parameters response variables
-    // TODO associate a number denoting the parameter estimation round [so that we don't have collision
-    //  between two invocations]
-    parametersResponseReceived=0;
+    /* Reset the parameters response variables
+     * TODO associate a number denoting the parameter estimation round
+     *      [so that we don't have collision between two invocations]
+     *  DONE add a timeout associated with this message, so that we can debug the current timers problem
+     *       - BTW there was not such problem, instead the nodes didn't have the ancestors & nodesOneUp :)
+     */
+    parametersResponseReceived=parametersResponseRequired=0;
     for (KeyToRescueNodeMap::iterator it=ancestors.begin();
-            it!=ancestors.end(); ++it, parametersResponseReceived++) {
+            it!=ancestors.end(); ++it, parametersResponseRequired++) {
         if ((*it).first == thisNode.getKey()) {
             EV << "We were sending self message via ancestors" << endl;
             continue;
@@ -404,7 +420,7 @@ void HTopology::handleRescueParametersEstimationTimer (cMessage *msg) {
     }
 
     for (KeyToRescueNodeMap::iterator it=nodesOneUp.begin();
-            it!=nodesOneUp.end(); ++it, parametersResponseReceived++) {
+            it!=nodesOneUp.end(); ++it, parametersResponseRequired++) {
         if ((*it).first == thisNode.getKey()) {
             EV << "We were sending self message via nodesOneUp" << endl;
             continue;
@@ -484,6 +500,9 @@ void HTopology::handleVideoSegment (BaseCallMessage *msg) {
     EV << thisNode << ": received " << mrpc->getSegment().videoSegment
             << ": from -> " << mrpc->getSrcNode() << endl;
 
+    // TODO transferDelay = (simTime() - mrpc->getSegment().issuanceTime), how do we plot or use this info
+    EV << "transfer delay for this packet: " << (simTime() - mrpc->getSegment().issuanceTime) << endl;
+
     addSegmentToCache(mrpc->getSegment());
 
     /*MapIterator it=children.begin();
@@ -508,7 +527,7 @@ HVideoSegment HTopology::generateVideoSegment () {
     HVideoSegment segment;
     segment.segmentID = segmentID++;
     numPackets++;
-    //segment.issuanceTime = simTime();
+    segment.issuanceTime = simTime();
     strncpy (segment.videoSegment, pkt.c_str(), SEGMENT_SIZE-1);
     return segment;
 }
@@ -720,6 +739,8 @@ void HTopology::handleJoinCall (BaseCallMessage *msg) {
     HJoinCall *mrpc = (HJoinCall*) msg;
     HJoinResponse *rrpc = new HJoinResponse ();
     EV << thisNode << ": received Join call from " <<  msg->getSrcNode() << endl;
+
+    // TODO capacity()>0 && modeOfOperation==GENERAL_MODE
     if (capacity()>0) {
         EV << thisNode << ": will be adding node: " << msg->getSrcNode() << ": as child" << endl;
         noOfChildren++;
@@ -738,7 +759,7 @@ void HTopology::handleJoinCall (BaseCallMessage *msg) {
 
         // What is required by a new node?
         // Children & rescueChildren will be empty.
-        // TODO nodesOneUp?? (Let the child figure out this parameter)
+        // nodesOneUp?? (Let the child figure out this parameter)
         // ancestors = thisNode->ancestors + thisNode
         // set the ancestors array
         if (!parent.isUnspecified())
@@ -757,6 +778,18 @@ void HTopology::handleJoinCall (BaseCallMessage *msg) {
         rrpc->setSuccessorNode(getNodeHandle(it++, children.end()));
         rrpc->setPredecessorNode(getNodeHandle(it--, children.end()));
         rrpc->setJoined(true);
+
+        // Remove yourself from the bootstrapping in case your capacity==0
+        if (capacity()==0) {
+            // remove yourself from the bootstrapping thing
+            // && care to check if your children are there in the bootstrapping list
+            for (MapIterator it=children.begin(); it !=children.end(); ++it) {
+                // Insert our children into the bootstrap list
+                bootstrapList->registerBootstrapNode((*it).second.getHandle(), overlayId);
+                //bootstrapList->insertBootstrapCandidate((*it).second.getHandle());
+            }
+            bootstrapList->removeBootstrapNode(thisNode, overlayId);
+        }
     } else {
         // TODO may be check if anyone of them can support the children
         // Try to keep the height of the tree as low as possible
@@ -929,6 +962,8 @@ void HTopology::handleSwitchToRescueModeCall (BaseCallMessage *msg) {
 void HTopology::handleGetParametersCall (BaseCallMessage *msg) {
     numSentMessages[EGetParameters]++;
 
+    EV << "Got a getParameters call from " << msg->getSrcNode() << endl;
+
     HGetParametersCall *mrpc = (HGetParametersCall *)msg;
     HGetParametersResponse *rrpc = new HGetParametersResponse ();
     rrpc->setCapacity(capacity());
@@ -968,8 +1003,8 @@ void HTopology::handleGetParametersResponse (BaseResponseMessage *msg, simtime_t
     if (parametersResponseReceived >= parametersResponseRequired-PARAMETERS_RESPONSE_BUFFER) {
         EV << "Restarting the parameters estimation timer " << endl;
         initializedRescueRanks = true;
-        // call the ranking function
-        // TODO AFAIK, every time you get a new message after the buffer #of responses,
+        // TODO call the ranking function
+        // AFAIK, every time you get a new message after the buffer #of responses,
         // you'll remove the previous one & reschedule the new one => you'll ultimately have a new one
         scheduleTimer(rescueParametersTimer, rescueParameterEstimationRate);
     }
@@ -1077,7 +1112,6 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
 
 // Called when an RPC we sent has timed out.
 // Don't delete msg here!
-// TODO
 void HTopology::handleRpcTimeout(BaseCallMessage* msg,
                                  const TransportAddress& dest,
                                  cPolymorphic* context, int rpcId,
@@ -1087,7 +1121,8 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
     // start a switch
     RPC_SWITCH_START(msg);
 
-        // TODO this timeout seems to overshooting the actual time required to send to the children
+        // DONE this timeout seems to overshooting the actual time required to send to the children
+        //  - problem was that there was no response message which can negate the timeout period & hence a response was created
         // I think you should change the timeout period associated with this call, otherwise it'll assume the node is DEAD
         RPC_ON_CALL(HVideoSegment) {
             HVideoSegmentCall *mrpc = (HVideoSegmentCall *)msg;
@@ -1097,19 +1132,21 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
             else {
                 EV << "Node failed is my child: " << children[destKey] << endl;
 
-                // TODO
                 //  Notify the failure to the children
                 NodeVector nodeChildren = children[destKey].getNodeVector();
-                HSwitchToRescueModeCall *switchCall = new HSwitchToRescueModeCall();
-                switchCall->setBitLength(HSWITCHTORESCUEMODECALL_L(switchCall));
-
                 for (size_t i=0; i<nodeChildren.size(); ++i) {
+                    HSwitchToRescueModeCall *switchCall = new HSwitchToRescueModeCall();
+                    switchCall->setBitLength(HSWITCHTORESCUEMODECALL_L(switchCall));
                     sendRouteRpcCall (OVERLAY_COMP, nodeChildren[i], nodeChildren[i].getKey(), switchCall);
                 }
 
                 //  Select a replacement
                 selectReplacement(children[destKey].getHandle(), NULL);
             }
+        }
+
+        RPC_ON_CALL(HGetParameters) {
+            EV << "TIMEOUT HGETPARAMETERS: couldn't send to " << dest << endl;
         }
     // end the switch
     RPC_SWITCH_END();
@@ -1124,7 +1161,7 @@ void HTopology::handleCapacityResponse (BaseResponseMessage *msg) {
 
     OverlayKey key = mrpc->getParentNode().getKey();
     if (leaveRequests.find(key) == leaveRequests.end()) {
-        // TODO
+        // TODO NOT QUITE SURE WHAT SHOULD BE DONE?
         EV << "some malicious activity going around" << endl;
         return;
     }
@@ -1358,10 +1395,9 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
 
 // generate transfer characteristics & rank them
 void HTopology::rankRescueNodes () {
-    // TODO
+    // TODO RankRescueNodes : I guess this method has been implemented with some other name
     // Need to decide on some transfer characteristics in order to rank the nodes
     // same can be used for selection of parent in this kind of scenario
-    // TODO
 }
 
 // choose a rescue parent for yourself
@@ -1412,7 +1448,6 @@ vector<NodeHandle> HTopology::getRankedRescueNodes () {
 
 // look for alternatives on deadline approaching segments
 void HTopology::scheduleDeadlineSegments (int startSegmentID, int count, int perNode) {
-    // TODO
     vector<NodeHandle> rankedNodes = getRankedRescueNodes();
     int nodeNo=0;
 
@@ -1423,8 +1458,7 @@ void HTopology::scheduleDeadlineSegments (int startSegmentID, int count, int per
         scheduleCall->setCount(perNode);
         scheduleCall->setBitLength(HSCHEDULESEGMENTSCALL_L(scheduleCall));
 
-        // send to the node in the order of priority
-        // TODO
+        // TODO send to the node in the order of priority
         // 1) should the bandwidth be of concern too?
         // 2) what about the timeRemaining to deadline?
         sendRouteRpcCall(OVERLAY_COMP, rankedNodes[nodeNo++], scheduleCall);
@@ -1436,9 +1470,9 @@ void HTopology::scheduleDeadlineSegments (int startSegmentID, int count, int per
 
 // Advance Features
 void HTopology::optimizeTree () {
-    // TODO
+    // TODO Deals with height consideration of the tree
 }
 
 void HTopology::calculateResourceAllocationPolicy () {
-    // TODO
+    // TODO Resource allocation policy in case we're left with limited resources to spare[see Anysee]
 }

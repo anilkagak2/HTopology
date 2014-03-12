@@ -38,7 +38,9 @@ cplusplus {{
 
 // should it be length() or capacity()
 // isn't TYPE_L for string a bit more than required?
-#define HVIDEOSEGMENTCALL_L(msg)			(BASECALL_L(msg) + NONCE_L + SEGMENT_SIZE * TYPE_L)
+// 2*NOCE_L is for simtime_t (int64_t)
+#define HVIDEOSEGMENT_L						((SEGMENT_SIZE) * TYPE_L + NONCE_L + 2*NONCE_L)
+#define HVIDEOSEGMENTCALL_L(msg)			(BASECALL_L(msg) + HVIDEOSEGMENT_L)
 #define HVIDEOSEGMENTRESPONSE_L(msg) 		BASERESPONSE_L(msg)
 
 #define HLEAVEOVERLAYCALL_L(msg)			BASECALL_L(msg)
@@ -49,14 +51,13 @@ cplusplus {{
 		
 // SEGMENTS SHOULD BE OF FIXED SIZE
 // No.of chars + 1
-#define HVIDEOSEGMENT_L						((SEGMENT_SIZE) * TYPE_L + NONCE_L)
 #define HSCHEDULESEGMENTSCALL_L(msg)		(BASECALL_L(msg) + 2*TYPE_L)
 #define HSCHEDULESEGMENTSRESPONSE_L(msg)	(BASERESPONSE_L(msg) + (msg->getSegmentsArraySize()) * HVIDEOSEGMENT_L)
 
 #define HSWITCHTORESCUEMODECALL_L(msg)		BASECALL_L(msg)
 
 #define HGETPARAMETERSCALL_L(msg)			BASECALL_L(msg)
-#define HGETPARAMETERSRESPONSE_L(msg)		(BASERESPONSE_L(msg) + NONCE_L)
+#define HGETPARAMETERSRESPONSE_L(msg)		(BASERESPONSE_L(msg) + 4*NONCE_L)
 }}
 class noncobject TransportAddress;
 class noncobject NodeHandle;

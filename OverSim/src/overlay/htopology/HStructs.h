@@ -43,8 +43,12 @@ class HLeaveOverlayCall;
 struct HVideoSegment {
     char videoSegment[SEGMENT_SIZE];
     int segmentID;
-    //simtime_t issuanceTime;     // TODO using this for estimating the delivery time required, but may not always be a true measure
-                                // The nodes themselves might not be having synchronized clocks
+
+    /* NOTE using this for estimating the delivery time required, but may not always be a true measure
+     *      The nodes themselves might not be having synchronized clocks
+     *      Here it should work, as the simulation environment has the same clock simTime()
+     * */
+    simtime_t issuanceTime;
 };
 
 // Used to store the parameters required in selecting the node's replacement

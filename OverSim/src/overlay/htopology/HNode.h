@@ -11,13 +11,14 @@
 #include <NodeHandle.h>
 #include <NodeVector.h>
 
-// TODO specify Node class on the lines of NodeHandle
+// specify Node class on the lines of NodeHandle
 class HNode {
   protected://fields
       NodeHandle handle;
 
-      // TODO Why do we want to keep track of children of some node?
+      // Why do we want to keep track of children of some node?
       // We can always go and ask them about their children, right?
+      // In case the children fails, it won't be easy to find out all its children [right?]
       NodeVector children;
       // some more properties of a node should be kept here
 
