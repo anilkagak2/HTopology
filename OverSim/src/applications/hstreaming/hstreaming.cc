@@ -28,61 +28,20 @@ void HStreaming::initializeApp(int stage) {
 
     if (stage != MIN_STAGE_APP) return;
 
-    // copy the module parameter values to our own variables
-    sendPeriod = par("sendPeriod");
-
-    // tell the GUI to display our variables
-    //WATCH(numSent);
-
-    // start our timer!
-    timerMsg = new cMessage("MyApplication Timer");
-    scheduleAt(simTime() + sendPeriod, timerMsg);
-
     // TODO really?
     bindToPort(2000);
 }
 
 // finish is called when the module is being destroyed
 void HStreaming::finishApp() {
-    //delete timerMsg;
 }
 
 
 // handleTimerEvent is called when a timer event triggers
 void HStreaming::handleTimerEvent(cMessage* msg) {
-    // is this our timer?
-    if (msg == timerMsg) {
-        // reschedule our message
-        scheduleAt(simTime() + sendPeriod, timerMsg);
-
-        EV << "got a timer event: " << msg->getOwner()->getClassName() << endl;
-        // if the simulator is still busy creating the network,
-        // let's wait a bit longer
-        if (underlayConfigurator->isInInitPhase()) return;
-
-        /*for (int i = 0; i < numToSend; i++) {
-
-            // let's create a random key
-            OverlayKey randomKey(intuniform(1, largestKey));
-
-            MyMessage *myMessage; // the message we'll send
-            myMessage = new MyMessage();
-            myMessage->setType(MYMSG_PING); // set the message type to PING
-            myMessage->setSenderAddress(thisNode); // set the sender address to our own
-            myMessage->setByteLength(100); // set the message length to 100 bytes
-
-            numSent++; // update statistics
-
-            EV << thisNode.getIp() << ": Sending packet to "
-               << randomKey << "!" << std::endl;
-
-            callRoute(randomKey, myMessage); // send it to the overlay
-        }*/
-    } else {
-        // unknown message types are discarded
-        EV << "unknown message: " << msg->getDisplayString() << endl;
-        delete msg;
-    }
+    // unknown message types are discarded
+    EV << "unknown message: " << msg->getDisplayString() << endl;
+    delete msg;
 }
 
 std::string getComponentName (int id) {

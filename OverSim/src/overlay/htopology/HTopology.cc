@@ -20,6 +20,13 @@
 Define_Module(HTopology);
 
 /*
+ * Hot Issues
+ * 1) RandomChurn Generator sometimes kill the source node as well. NOT A GOOD CHOICE OF CHURN.
+ *      Need to fix this issue.
+ * 2) Registering children as bootstrapping nodes when my capacity()==0, fails.
+ * 3) Cleaning up unnecessary code.
+ * 4) No AddAsRescueChild request sent. [AddAsRescueChildCall & Response messages]
+ *
  * TODO Go through all the TODO's & resolve them if possible
  * TODO Sit someday & fix the message lengths [we've updated the message structures but the lengths remain the same]
  * TODO A node may not have the RescueParametersTimer scheduled [because it has no ancestor (we don't count
@@ -103,7 +110,7 @@ Define_Module(HTopology);
  *  DONE ResponsibilityAsParentCall -> called node is selected as a parent for given set of children
  *  DONE ScheduleSegmentsCall, ScheduleSegmentsResponse -> asking to send some of the segments within [SegmentID, SegmmentID + count]
  *  DONE SwitchToRescueModeCall  -> ask these nodes to switch to rescue modes as their parent node failed
- *  HGetParametersCall, HGetParametersResponse -> ask the ranking parameters to the node
+ *  DONE HGetParametersCall, HGetParametersResponse -> ask the ranking parameters to the node
  *      DONE Start a timer, so that we can keep fresh data in here
  *
  *  cache can be managed by buffer depicted in Anysee or STL-<map>
@@ -175,7 +182,6 @@ bool compareRescueNodes (const RescueNode& L, const RescueNode& R) { return L.ge
 
 HTopology::~HTopology(){
     // destroy self timer messages
-    cancelAndDelete(join_timer);
     cancelAndDelete(packetGenTimer);
     cancelAndDelete(rescueParametersTimer);
 }
@@ -248,7 +254,6 @@ void HTopology::initializeOverlay(int stage) {
    WATCH(cachePointer);
 
    // self-messages
-   join_timer = new cMessage("join_timer");
    packetGenTimer = NULL;
    rescueParametersTimer = NULL;
 
@@ -317,13 +322,6 @@ void HTopology::changeState (int STATE) {
     case JOIN:
         state = JOIN;
 
-        // initiate join process
-        cancelEvent(join_timer);
-        // workaround: prevent notificationBoard from taking
-        // ownership of join_timer message
-        take(join_timer);
-        scheduleAt(simTime(), join_timer);
-
         // debug message
         if (debugOutput) {
             EV << "[Chord::changeState() @ " << thisNode.getIp()
@@ -391,10 +389,6 @@ void HTopology::changeState (int STATE) {
             << endl;
         }
         getParentModule()->getParentModule()->bubble("Enter READY state.");
-
-        // Start the rescueParameter estimation timer
-        rescueParametersTimer = new cMessage("Rescue Parameters Estimation Timer");
-        scheduleTimer(rescueParametersTimer, rescueParameterEstimationRate);
         break;
     }
 }
@@ -432,14 +426,8 @@ void HTopology::handleRescueParametersEstimationTimer (cMessage *msg) {
 }
 
 void HTopology::handleTimerEvent(cMessage* msg) {
-    // catch JOIN timer
-    if (msg == join_timer) {
-        //handleJoinTimerExpired(msg);
-        EV << "join timer was called but not handled" << endl;
-        EV << "need to do something about this timer" << endl;
-    }
     // Packet Generation Timer
-    else if(msg == packetGenTimer) {
+    if(msg == packetGenTimer) {
         EV << "msg owner is " << msg->getOwner()->getClassName() << endl;
         EV << "packet generation timer" << endl;
         handlePacketGenerationTimer(msg);
@@ -546,40 +534,6 @@ void HTopology::handlePacketGenerationTimer(cMessage* msg) {
     HVideoSegment segment = generateVideoSegment();
     EV << thisNode << ":Generated message is: " << segment.videoSegment;// videoCall->getSegment().videoSegment ;
     sendSegmentToChildren(segment);
-}
-
-
-void HTopology::handleJoinTimerExpired(cMessage* msg) {
-    // only process timer, if node is not joined yet
-    if (state == READY)
-        return;
-
-    // enter state JOIN
-    if (state != JOIN)
-        changeState(JOIN);
-
-    // change bootstrap node from time to time
-    joinRetry--;
-    if (joinRetry == 0) {
-        joinRetry = par("joinRetry");
-        changeState(JOIN);
-        return;
-    }
-
-    // call JOIN RPC
-    HJoinCall* call = new HJoinCall("JoinCall");
-    call->setBitLength(JOINCALL_L(call));
-
-    RoutingType routingType = (defaultRoutingType == FULL_RECURSIVE_ROUTING ||
-                               defaultRoutingType == RECURSIVE_SOURCE_ROUTING) ?
-                              SEMI_RECURSIVE_ROUTING : defaultRoutingType;
-
-    sendRouteRpcCall(OVERLAY_COMP, bootstrapNode, thisNode.getKey(),
-                     call, NULL, routingType, joinDelay);
-
-    // schedule next join process in the case this one fails
-    cancelEvent(join_timer);
-    scheduleAt(simTime() + joinDelay, msg);
 }
 
 // Called when the module is ready to join the overlay
@@ -811,7 +765,7 @@ void HTopology::handleJoinCall (BaseCallMessage *msg) {
 
 void HTopology::selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mrpc) {
     /*
-     * 1) Find replacement for the src of the message
+     * 1) Find replacement for the source of the message
      * 2) Notify the replacement to all the children after the decision is taken
      *
      * TODO who should take this decision? parent of the node or the children?
@@ -819,16 +773,15 @@ void HTopology::selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mr
      * */
     // Let the parent handle this situation, for now
 
-    // TODO mrpc is NULL in handleRpcTimeout event
-    EV << "Called the select replacement event, but no functionality yet."
-            " We'll look for the functionality after debugging the issue" << endl;
+    // NOTE mrpc is NULL in handleRpcTimeout event
+    EV << "Called the select replacement event, and we're back with the functionality." << endl;
 
-/*    HNodeReplacement nreplacement;
-    nreplacement.node = mrpc->getSrcNode();
-    nreplacement.mrpc = mrpc;
-    leaveRequests[mrpc->getSrcNode().getKey()] = nreplacement;
+    HNodeReplacement nreplacement;
+    nreplacement.node = node;
+    nreplacement.mrpc = mrpc;           // NOTE this can be NULL
+    leaveRequests[node.getKey()] = nreplacement;
 
-    getParametersForSelectionAlgo(mrpc->getSrcNode().getKey());*/
+    getParametersForSelectionAlgo(node.getKey());
 
     // TODO do we need to setup any other parameter?
 }
@@ -849,7 +802,7 @@ void HTopology::handleLeaveCall (BaseCallMessage *msg) {
 
         /*
          * 1) Go in rescue mode
-         * 2) Schedule your deadlines as per the ranked rescue set
+         * 2) TODO Schedule your deadlines as per the ranked rescue set
          *      Until your grandparent tells you the replacement
          * */
         modeOfOperation = RESCUE_MODE;
@@ -1175,6 +1128,9 @@ void HTopology::handleCapacityResponse (BaseResponseMessage *msg) {
     }
 }
 
+// TODO add Timeout for the JoinCall, because it might happen that there is
+//      no response from the bootstrap node we requested to join, in which case
+//      we should move on to some other node
 void HTopology::handleJoinResponse (BaseResponseMessage *msg) {
     numRecvMessages[EJoin]++;
 
@@ -1329,11 +1285,14 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
     if (replacementDone) {
         // 1) Notify the node about the result
         // Send the HLeaveOverlayResponse to the node, whose replacement has been found
-        HLeaveOverlayResponse *rrpc = new HLeaveOverlayResponse();
-        rrpc->setPermissionGranted(true);
-        rrpc->setBitLength(HLEAVEOVERLAYRESPONSE_L(rrpc));
-        sendRpcResponse(leaveRequests[key].mrpc, rrpc);
-
+        // May be some node can serve till a viable solution is found
+        if (leaveRequests[key].mrpc != NULL) {
+            // TODO this won't be handled right?
+            HLeaveOverlayResponse *rrpc = new HLeaveOverlayResponse();
+            rrpc->setPermissionGranted(true);
+            rrpc->setBitLength(HLEAVEOVERLAYRESPONSE_L(rrpc));
+            sendRpcResponse(leaveRequests[key].mrpc, rrpc);
+        }
 
         // 2) Replace the child with this newly selected parent (children list)
         NodeVector newChildren = children[key].getNodeVector();
@@ -1349,7 +1308,7 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
         }
         HNode newNode = children[key];
         NodeHandle oldNode = newNode.getHandle();
-        children.erase(key);
+        // children.erase(key);
         newNode.setHandle(newHandle);
         newNode.setNodeVector(newChildren);
         children[newHandle.getKey()] = newNode;
@@ -1367,12 +1326,12 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
 
         // 4) Inform children about the new parent
         // TODO what about the successor & predecessor
-        HNewParentSelectedCall *msg = new HNewParentSelectedCall();
-        msg->setParent(newNode.getHandle());
-        msg->setBitLength(HNEWPARENTSELECTEDCALL_L (msg));
-
-        for (size_t i=0; i<newChildren.size(); ++i)
+        for (size_t i=0; i<newChildren.size(); ++i) {
+            HNewParentSelectedCall *msg = new HNewParentSelectedCall();
+            msg->setParent(newNode.getHandle());
+            msg->setBitLength(HNEWPARENTSELECTEDCALL_L (msg));
             sendRouteRpcCall(OVERLAY_COMP, newChildren[i], msg);
+        }
         // END BOOK-KEEPING
     } else {
         // Couldn't select a parent for the children,
@@ -1380,6 +1339,9 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
         EV << "Couldn't select a new node" << endl;
     }
 
+    // TODO this we've to do in any case
+    children.erase(key);
+    noOfChildren--;
     leaveRequests.erase (key);
     // 1) Get the node's children from the handle
     // 2) Job is to pick a node from this list & make it the new parent & let this propagate till the last level

@@ -24,24 +24,12 @@
  */
 class HStreaming : public BaseApp {
   protected:
-    // module parameters
-    simtime_t sendPeriod;     // we'll store the "sendPeriod" parameter here
-
-    // our timer
-    cMessage *timerMsg;
 
     // application routines
     void initializeApp(int stage);                 // called when the module is being created
     void finishApp();                              // called when the module is about to be destroyed
     void handleTimerEvent(cMessage* msg);          // called when we received a timer message
-    //void deliver(OverlayKey& key, cMessage* msg);  // called when we receive a message from the overlay
-    //void handleUDPMessage(cMessage* msg);          // called when we receive a UDP message
     void handleReadyMessage(CompReadyMessage* msg);// handle ready message
-
-  public:
-    HStreaming() { timerMsg = NULL; };
-    ~HStreaming() { cancelAndDelete(timerMsg); };
-
 };
 
 #endif

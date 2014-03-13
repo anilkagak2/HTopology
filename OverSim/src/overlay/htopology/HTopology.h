@@ -121,7 +121,6 @@ class HTopology : public BaseOverlay {
     void setNodesOneUp (BaseResponseMessage* msg);  // Set these nodes from the response
 
     // timer messages
-    cMessage* join_timer; /**< */
     cMessage *packetGenTimer;
     cMessage *rescueParametersTimer;
     //cMessage *childrenParametersTimer;
@@ -169,7 +168,6 @@ class HTopology : public BaseOverlay {
     int capacity () {return maxChildren - noOfChildren; } //children.size(); }
     int rescueCapacity () { return maxRescueChildren - rescueChildren.size(); }
 
-    void handleJoinTimerExpired(cMessage* msg);
     void scheduleTimer (cMessage *timer, double rate);
 
     void handleTimerEvent(cMessage*);
