@@ -54,6 +54,9 @@
 
 #define HGETPARAMETERSCALL_L(msg)			BASECALL_L(msg)
 #define HGETPARAMETERSRESPONSE_L(msg)		(BASERESPONSE_L(msg) + 4*NONCE_L)
+
+#define HREGISTERINBOOTSTRAPPINGCALL_L(msg)			BASECALL_L(msg)
+#define HREGISTERINBOOTSTRAPPINGRESPONSE_L(msg)		BASERESPONSE_L(msg)
 // }}
 
 
@@ -824,6 +827,72 @@ class HGetChildrenResponse : public ::BaseResponseMessage
 
 inline void doPacking(cCommBuffer *b, HGetChildrenResponse& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, HGetChildrenResponse& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HRegisterInBootstrappingCall extends BaseCallMessage {
+ * }
+ * </pre>
+ */
+class HRegisterInBootstrappingCall : public ::BaseCallMessage
+{
+  protected:
+
+  private:
+    void copy(const HRegisterInBootstrappingCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HRegisterInBootstrappingCall&);
+
+  public:
+    HRegisterInBootstrappingCall(const char *name=NULL, int kind=0);
+    HRegisterInBootstrappingCall(const HRegisterInBootstrappingCall& other);
+    virtual ~HRegisterInBootstrappingCall();
+    HRegisterInBootstrappingCall& operator=(const HRegisterInBootstrappingCall& other);
+    virtual HRegisterInBootstrappingCall *dup() const {return new HRegisterInBootstrappingCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+};
+
+inline void doPacking(cCommBuffer *b, HRegisterInBootstrappingCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HRegisterInBootstrappingCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HRegisterInBootstrappingResponse extends BaseResponseMessage {
+ * }
+ * </pre>
+ */
+class HRegisterInBootstrappingResponse : public ::BaseResponseMessage
+{
+  protected:
+
+  private:
+    void copy(const HRegisterInBootstrappingResponse& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HRegisterInBootstrappingResponse&);
+
+  public:
+    HRegisterInBootstrappingResponse(const char *name=NULL, int kind=0);
+    HRegisterInBootstrappingResponse(const HRegisterInBootstrappingResponse& other);
+    virtual ~HRegisterInBootstrappingResponse();
+    HRegisterInBootstrappingResponse& operator=(const HRegisterInBootstrappingResponse& other);
+    virtual HRegisterInBootstrappingResponse *dup() const {return new HRegisterInBootstrappingResponse(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+};
+
+inline void doPacking(cCommBuffer *b, HRegisterInBootstrappingResponse& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HRegisterInBootstrappingResponse& obj) {obj.parsimUnpack(b);}
 
 /**
  * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.

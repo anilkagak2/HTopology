@@ -58,6 +58,9 @@ cplusplus {{
 
 #define HGETPARAMETERSCALL_L(msg)			BASECALL_L(msg)
 #define HGETPARAMETERSRESPONSE_L(msg)		(BASERESPONSE_L(msg) + 4*NONCE_L)
+
+#define HREGISTERINBOOTSTRAPPINGCALL_L(msg)			BASECALL_L(msg)
+#define HREGISTERINBOOTSTRAPPINGRESPONSE_L(msg)		BASERESPONSE_L(msg)
 }}
 class noncobject TransportAddress;
 class noncobject NodeHandle;
@@ -176,6 +179,14 @@ packet HGetChildrenCall extends BaseCallMessage {
 // response for children
 packet HGetChildrenResponse extends BaseResponseMessage {
     NodeHandle children[];
+}
+
+// signalling the child so that he/she registers as bootstrapNode
+packet HRegisterInBootstrappingCall extends BaseCallMessage {
+}
+
+// signals the parent to remove himself from bootstrapping mechanism 
+packet HRegisterInBootstrappingResponse extends BaseResponseMessage {
 }
 
 packet HMessage {

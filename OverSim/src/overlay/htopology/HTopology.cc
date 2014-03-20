@@ -23,9 +23,48 @@ Define_Module(HTopology);
  * Hot Issues
  * 1) RandomChurn Generator sometimes kill the source node as well. NOT A GOOD CHOICE OF CHURN.
  *      Need to fix this issue.
- * 2) Registering children as bootstrapping nodes when my capacity()==0, fails.
+ * DONE 2) Registering children as bootstrapping nodes when my capacity()==0, fails. [RegisterAsBootstrapNode Call & Response]
  * 3) Cleaning up unnecessary code.
  * 4) No AddAsRescueChild request sent. [AddAsRescueChildCall & Response messages]
+ * DONE 5) Record the statistics into user friendly figures.
+ *
+ *  STATS
+ *      Startup Delay    : Delay between join request issuance & acceptance time
+ *      Transfer Delay   : Delay between source & the end node [packet transfer operation]
+ *      Control Overhead : Control traffic volume / Video traffic volume at each node
+ *      Continuity Index : which is the number of segments that arrive before or on playback deadlines over the total number segments.
+ *
+ *      Simulation Parameters
+ *      Coolstreaming
+ *          120min total duration of streaming (typical length of the movie)
+ *          500Kbps default streaming rate
+ *          each segment contains one second of the stream
+ *          each node contains 60s of streaming data
+ *          playback starts after 10s of receiving the first segment
+ *
+ *      Anysee
+ *          40s buffer [they say Coolstreming requires 120s buffer]
+ *
+ *      Target:
+ *          Low Startup delay <= 2s
+ *          Low End-To-End delay
+ *          Low Control Overhead??
+ *
+ *      Topology        Startup Delay       Transfer Delay  ControlOverhead     HeightOfTree    ContinuityIndex     HopCount[Transfer]
+ *      Coolstreaming   60s                                 1.6%
+ *      Anysee          20s                 200ms           1.0%                7[at max]
+ *      Anysee2                                             0.9%
+ *
+ * - Which churn to follow?
+ * - Fine Tuning the ranking parameters. I've to rank the rescue nodes wrt their capabilities to serve as rescue parent.
+ *      Need to estimate the parameters [Linear regression]
+ * - Optimizations:
+ *      - Mapping Logical overlay to be physically close [as far as possible] while maintaining the tree height as low as possible
+ *      - Different nodes will be able to support different #of children & rescue children. [WE STARTED OUT WITH BASIC FROM ALL NODES]
+ *      - Low startup delay [nodes should pick up the stream without formally being the part of the overlay]
+ *          - How can source node direct the new node to a set of nodes for asking the initial data??
+ *              [Stable nodes can inform the bootstrap server so that they can serve these initial requests]
+ *      - Remove unnecessary control overheads
  *
  * TODO Go through all the TODO's & resolve them if possible
  * TODO Sit someday & fix the message lengths [we've updated the message structures but the lengths remain the same]
@@ -378,7 +417,10 @@ void HTopology::changeState (int STATE) {
 
         if (!bootstrapNode.isUnspecified()) {
             EV <<"will remove this node from bootstrapping list" << endl;
+            registeredInBootstrapping=false;
             bootstrapList->removeBootstrapNode(thisNode, overlayId);
+        } else {
+            registeredInBootstrapping=true;
         }
 
         // debug message
@@ -488,7 +530,10 @@ void HTopology::handleVideoSegment (BaseCallMessage *msg) {
     EV << thisNode << ": received " << mrpc->getSegment().videoSegment
             << ": from -> " << mrpc->getSrcNode() << endl;
 
-    // TODO transferDelay = (simTime() - mrpc->getSegment().issuanceTime), how do we plot or use this info
+    // TODO STATS1 Transfer Delay
+    // Record this transfer delay into the histogram
+    // transferDelay = (simTime() - mrpc->getSegment().issuanceTime), how do we plot or use this info
+    globalStatistics->recordHistogram("HTopology: Transfer Delay", (simTime() - mrpc->getSegment().issuanceTime).dbl());
     EV << "transfer delay for this packet: " << (simTime() - mrpc->getSegment().issuanceTime) << endl;
 
     addSegmentToCache(mrpc->getSegment());
@@ -550,6 +595,26 @@ void HTopology::joinOverlay() {
     changeState(JOIN);
 }
 
+// Save the statistics recorded in the simulation
+void HTopology::saveStatistics () {
+    // TODO STAT2 Startup Time for the node
+    globalStatistics->recordHistogram("HTopology: StartupTime=JoinAccepted - JoinRequested", (joinAcceptanceTime-joinRequestTime).dbl());
+    //globalStatistics->addStdDev("HTopology: StartupTime=JoinAccepted - JoinRequested", (joinAcceptanceTime-joinRequestTime).dbl());
+
+    // TODO STAT3 Streaming Startup time for the node
+    globalStatistics->recordHistogram("HTopology: StreamingStartupTime=FirstPacketRecved - JoinRequested", (firstPacketRecvingTime-joinRequestTime).dbl());
+    //globalStatistics->addStdDev("HTopology: StreamingStartupTime=FirstPacketRecved - JoinRequested", (firstPacketRecvingTime-joinRequestTime).dbl());
+
+    // TODO STAT4 Number of packets generated at the source node
+    globalStatistics->addStdDev("PacketsGeneratedAtSource", numPackets);
+
+    // TODO # Of VideoSegment Sent & Received
+    globalStatistics->recordHistogram("VideoSegmentSent", numSentMessages[EVideoSegment]);
+    globalStatistics->recordHistogram("VideoSegmentReceived", numRecvMessages[EVideoSegment]);
+/*    globalStatistics->addStdDev("VideoSegmentSent", numSentMessages[EVideoSegment]);
+    globalStatistics->addStdDev("VideoSegmentReceived", numRecvMessages[EVideoSegment]);*/
+}
+
 // Called when the module is about to be destroyed
 void HTopology::finishOverlay() {
     if (!parent.isUnspecified()) {
@@ -575,9 +640,7 @@ void HTopology::finishOverlay() {
     setOverlayReady(false);
 
     // save the statistics (see BaseApp)
-    // globalStatistics->addStdDev("MyOverlay: Dropped packets", numDropped);
-    globalStatistics->addStdDev("VideoSegmentSent", numSentMessages[EVideoSegment]);
-    globalStatistics->addStdDev("VideoSegmentReceived", numRecvMessages[EVideoSegment]);
+    saveStatistics();
     EV << thisNode << ": Leaving the overlay." << std::endl;
 }
 
@@ -739,10 +802,13 @@ void HTopology::handleJoinCall (BaseCallMessage *msg) {
             // && care to check if your children are there in the bootstrapping list
             for (MapIterator it=children.begin(); it !=children.end(); ++it) {
                 // Insert our children into the bootstrap list
-                bootstrapList->registerBootstrapNode((*it).second.getHandle(), overlayId);
-                //bootstrapList->insertBootstrapCandidate((*it).second.getHandle());
+                HRegisterInBootstrappingCall *registerCall = new HRegisterInBootstrappingCall();
+                registerCall->setBitLength(HREGISTERINBOOTSTRAPPINGCALL_L(registerCall));
+
+                sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), (*it).first, registerCall);
+                // bootstrapList->registerBootstrapNode((*it).second.getHandle(), overlayId);
             }
-            bootstrapList->removeBootstrapNode(thisNode, overlayId);
+            // bootstrapList->removeBootstrapNode(thisNode, overlayId);
         }
     } else {
         // TODO may be check if anyone of them can support the children
@@ -963,6 +1029,41 @@ void HTopology::handleGetParametersResponse (BaseResponseMessage *msg, simtime_t
     }
 }
 
+void HTopology::handleRegisterInBootstrappingCall (BaseCallMessage *msg) {
+    HRegisterInBootstrappingCall *mrpc = (HRegisterInBootstrappingCall *)msg;
+    if (parent.getHandle().isUnspecified()
+            || (mrpc->getSrcNode() != parent.getHandle())) {
+        EV << "Received a register in bootstrapping call, but its fake." << endl;
+        delete msg;
+    } else {
+        EV << thisNode << ": Registering in bootstrapping mechanism." << endl;
+        bootstrapList->registerBootstrapNode(thisNode, overlayId);
+
+        HRegisterInBootstrappingResponse *rrpc = new HRegisterInBootstrappingResponse();
+        rrpc->setBitLength(HREGISTERINBOOTSTRAPPINGRESPONSE_L(rrpc));
+        sendRpcResponse(mrpc, rrpc);
+    }
+}
+
+void HTopology::handleRegisterInBootstrappingResponse (BaseResponseMessage *msg) {
+    HRegisterInBootstrappingResponse *mrpc = (HRegisterInBootstrappingResponse *)msg;
+    NodeHandle node = mrpc->getSrcNode();
+    // TODO do you care about the capacity()==0 here??
+    if (children.find(node.getKey()) == children.end()) {
+        EV << "Fake register in bootstrap response" << endl;
+    } else {
+        if (registeredInBootstrapping) {
+            registeredInBootstrapping=false;
+            bootstrapList->removeBootstrapNode(thisNode, overlayId);
+        } else {
+            EV << "register bootstrap response: i'm not at all registered in the list" << endl;
+        }
+    }
+
+    // TODO might produce some bugs
+    // delete msg;
+}
+
 void HTopology::handleCapacityCall (BaseCallMessage *msg) {
     numSentMessages[ECapacity]++;
 
@@ -1045,6 +1146,12 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
 
     RPC_ON_CALL(HGetChildren) {
         sendChildren (msg);
+        RPC_HANDLED = true;
+        break;
+    }
+
+    RPC_ON_CALL(HRegisterInBootstrapping) {
+        handleRegisterInBootstrappingCall(msg);
         RPC_HANDLED = true;
         break;
     }
@@ -1208,6 +1315,10 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
 
         RPC_ON_RESPONSE(HGetChildren) {
             setNodesOneUp(msg);
+        }
+
+        RPC_ON_RESPONSE(HRegisterInBootstrapping) {
+            handleRegisterInBootstrappingResponse(msg);
         }
 
         RPC_ON_RESPONSE(HJoin) {

@@ -115,10 +115,16 @@ class HTopology : public BaseOverlay {
     void handleGetParametersCall (BaseCallMessage *msg);
     void handleGetParametersResponse (BaseResponseMessage *msg, simtime_t rtt);
 
+    bool registeredInBootstrapping;
+    void handleRegisterInBootstrappingCall (BaseCallMessage *msg);
+    void handleRegisterInBootstrappingResponse (BaseResponseMessage *msg);
+
     /* NodesOneUP */
     void sendChildren (BaseCallMessage *msg);       // respond to the getChildren call
     void initializeNodesOneUp ();                   // use the ancestors array to figure out these nodes
     void setNodesOneUp (BaseResponseMessage* msg);  // Set these nodes from the response
+
+    void saveStatistics ();                         // Save the stats recorded in the simulation
 
     // timer messages
     cMessage *packetGenTimer;

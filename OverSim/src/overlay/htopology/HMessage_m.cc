@@ -4663,6 +4663,418 @@ void *HGetChildrenResponseDescriptor::getFieldStructPointer(void *object, int fi
     }
 }
 
+Register_Class(HRegisterInBootstrappingCall);
+
+HRegisterInBootstrappingCall::HRegisterInBootstrappingCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+}
+
+HRegisterInBootstrappingCall::HRegisterInBootstrappingCall(const HRegisterInBootstrappingCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+HRegisterInBootstrappingCall::~HRegisterInBootstrappingCall()
+{
+}
+
+HRegisterInBootstrappingCall& HRegisterInBootstrappingCall::operator=(const HRegisterInBootstrappingCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HRegisterInBootstrappingCall::copy(const HRegisterInBootstrappingCall& other)
+{
+}
+
+void HRegisterInBootstrappingCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+}
+
+void HRegisterInBootstrappingCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+}
+
+class HRegisterInBootstrappingCallDescriptor : public cClassDescriptor
+{
+  public:
+    HRegisterInBootstrappingCallDescriptor();
+    virtual ~HRegisterInBootstrappingCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HRegisterInBootstrappingCallDescriptor);
+
+HRegisterInBootstrappingCallDescriptor::HRegisterInBootstrappingCallDescriptor() : cClassDescriptor("HRegisterInBootstrappingCall", "BaseCallMessage")
+{
+}
+
+HRegisterInBootstrappingCallDescriptor::~HRegisterInBootstrappingCallDescriptor()
+{
+}
+
+bool HRegisterInBootstrappingCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HRegisterInBootstrappingCall *>(obj)!=NULL;
+}
+
+const char *HRegisterInBootstrappingCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HRegisterInBootstrappingCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
+}
+
+unsigned int HRegisterInBootstrappingCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return 0;
+}
+
+const char *HRegisterInBootstrappingCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+int HRegisterInBootstrappingCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HRegisterInBootstrappingCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+const char *HRegisterInBootstrappingCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HRegisterInBootstrappingCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRegisterInBootstrappingCall *pp = (HRegisterInBootstrappingCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HRegisterInBootstrappingCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRegisterInBootstrappingCall *pp = (HRegisterInBootstrappingCall *)object; (void)pp;
+    switch (field) {
+        default: return "";
+    }
+}
+
+bool HRegisterInBootstrappingCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRegisterInBootstrappingCall *pp = (HRegisterInBootstrappingCall *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *HRegisterInBootstrappingCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+void *HRegisterInBootstrappingCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRegisterInBootstrappingCall *pp = (HRegisterInBootstrappingCall *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+Register_Class(HRegisterInBootstrappingResponse);
+
+HRegisterInBootstrappingResponse::HRegisterInBootstrappingResponse(const char *name, int kind) : BaseResponseMessage(name,kind)
+{
+}
+
+HRegisterInBootstrappingResponse::HRegisterInBootstrappingResponse(const HRegisterInBootstrappingResponse& other) : BaseResponseMessage(other)
+{
+    copy(other);
+}
+
+HRegisterInBootstrappingResponse::~HRegisterInBootstrappingResponse()
+{
+}
+
+HRegisterInBootstrappingResponse& HRegisterInBootstrappingResponse::operator=(const HRegisterInBootstrappingResponse& other)
+{
+    if (this==&other) return *this;
+    BaseResponseMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HRegisterInBootstrappingResponse::copy(const HRegisterInBootstrappingResponse& other)
+{
+}
+
+void HRegisterInBootstrappingResponse::parsimPack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimPack(b);
+}
+
+void HRegisterInBootstrappingResponse::parsimUnpack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimUnpack(b);
+}
+
+class HRegisterInBootstrappingResponseDescriptor : public cClassDescriptor
+{
+  public:
+    HRegisterInBootstrappingResponseDescriptor();
+    virtual ~HRegisterInBootstrappingResponseDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HRegisterInBootstrappingResponseDescriptor);
+
+HRegisterInBootstrappingResponseDescriptor::HRegisterInBootstrappingResponseDescriptor() : cClassDescriptor("HRegisterInBootstrappingResponse", "BaseResponseMessage")
+{
+}
+
+HRegisterInBootstrappingResponseDescriptor::~HRegisterInBootstrappingResponseDescriptor()
+{
+}
+
+bool HRegisterInBootstrappingResponseDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HRegisterInBootstrappingResponse *>(obj)!=NULL;
+}
+
+const char *HRegisterInBootstrappingResponseDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HRegisterInBootstrappingResponseDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
+}
+
+unsigned int HRegisterInBootstrappingResponseDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return 0;
+}
+
+const char *HRegisterInBootstrappingResponseDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+int HRegisterInBootstrappingResponseDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HRegisterInBootstrappingResponseDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+const char *HRegisterInBootstrappingResponseDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HRegisterInBootstrappingResponseDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRegisterInBootstrappingResponse *pp = (HRegisterInBootstrappingResponse *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HRegisterInBootstrappingResponseDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRegisterInBootstrappingResponse *pp = (HRegisterInBootstrappingResponse *)object; (void)pp;
+    switch (field) {
+        default: return "";
+    }
+}
+
+bool HRegisterInBootstrappingResponseDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRegisterInBootstrappingResponse *pp = (HRegisterInBootstrappingResponse *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *HRegisterInBootstrappingResponseDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+void *HRegisterInBootstrappingResponseDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRegisterInBootstrappingResponse *pp = (HRegisterInBootstrappingResponse *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
 Register_Class(HMessage);
 
 HMessage::HMessage(const char *name, int kind) : cPacket(name,kind)
