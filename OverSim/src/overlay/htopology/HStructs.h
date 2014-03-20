@@ -8,7 +8,7 @@
 #include <cstring>
 using std::string;
 
-#define SEGMENT_SIZE 100
+#define SEGMENT_SIZE 100100
 
 // # of messages supported by HTopology
 #define MESSAGE_TYPES 11

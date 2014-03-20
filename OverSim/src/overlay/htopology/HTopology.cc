@@ -23,10 +23,24 @@ Define_Module(HTopology);
  * Hot Issues
  * 1) RandomChurn Generator sometimes kill the source node as well. NOT A GOOD CHOICE OF CHURN.
  *      Need to fix this issue.
- * DONE 2) Registering children as bootstrapping nodes when my capacity()==0, fails. [RegisterAsBootstrapNode Call & Response]
+ *      FIXED -> Use two churn generators one with NoChurn & other with Churn[any of the three churns]
+ * 2) Registering children as bootstrapping nodes when my capacity()==0, fails. [RegisterAsBootstrapNode Call & Response]
+ *      FIXED => But this will still not guarantee that tree is balanced.
  * 3) Cleaning up unnecessary code.
  * 4) No AddAsRescueChild request sent. [AddAsRescueChildCall & Response messages]
- * DONE 5) Record the statistics into user friendly figures.
+ * 5) Record the statistics into user friendly figures.
+ *      FIXED => but not quite sure which type of graph should be plotted
+ * 6) Change the string size [generate packets with bit rate as that of 360p video or similar]
+ *      Generally 1segment comprises of 1s video
+ *      Bit Rate for 360p = 1000kbps
+ *      => 1s video will contain 1000*1000 bits = 10^6 bits
+ *
+ *      Sometimes the packet transfer delay crosses 1s [1.5-1.6s and the rate at which the packet is generated is 1s
+ *      => some nodes will definitely be out of sync. Need some solutions here.]
+ *      This was the case without any churn.
+ *
+ * 7) What If a node wants to see full video coverage? [None of the nodes are keeping track
+ *      of the full video stream, except the source.]
  *
  *  STATS
  *      Startup Delay    : Delay between join request issuance & acceptance time
@@ -267,6 +281,7 @@ void HTopology::initializeOverlay(int stage) {
    joinRetry = par("joinRetry");
    joinDelay = par("joinDelay");
    packetGenRate = par("packetGenRate");
+   videoBitRate = par("videoBitRate");
 
    // TODO this should be estimated in varying period of time [instead of estimating regularly]
    // Initially it should be done at a bit higher rate, then frequency should reduce gradually
@@ -554,8 +569,10 @@ void HTopology::handleVideoSegment (BaseCallMessage *msg) {
 
 HVideoSegment HTopology::generateVideoSegment () {
     EV << "Generating a new video segment" << endl;
+    string msg(SEGMENT_SIZE-100,'M');
+
     // Generate a new message & deliver it to all the nodes
-    string pkt = "message-" + tToString(intuniform(0, INT_MAX));
+    string pkt = msg + "message-" + tToString(intuniform(0, INT_MAX));
 
     HVideoSegment segment;
     segment.segmentID = segmentID++;

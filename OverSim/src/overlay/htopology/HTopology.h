@@ -132,6 +132,7 @@ class HTopology : public BaseOverlay {
     //cMessage *childrenParametersTimer;
     //cMessage *deadlineTimer;
     double joinDelay;
+    int videoBitRate;
     double packetGenRate;
     double rescueParameterEstimationRate;
 

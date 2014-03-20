@@ -31,7 +31,8 @@ simple HTopology extends BaseOverlay
         int maxRescueChildren;		// Maximum number of rescue children allowed at a node
         double bandwidth;			// TODO need to set the Kbps
         int joinRetry;
-        double joinDelay @unit(s); // delay between join retries (sec)
+        double joinDelay @unit(s);  // delay between join retries (sec)
+        int videoBitRate;			// 360p => 1000kbps
         double packetGenRate @unit(s); // time gap between generation of two packets
         double rescueParameterEstimationRate @unit(s); // time gap between successive parameters estimations
         
