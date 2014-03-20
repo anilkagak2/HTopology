@@ -1,15 +1,15 @@
-file 608 1394464929                                             
+file 602 1394788156                                             
 version 2
-run HStreaming-0-20140310-20:14:46-6204
+run HStreaming-0-20140314-14:33:43-6344
 attr configname HStreaming
-attr datetime 20140310-20:14:46
+attr datetime 20140314-14:33:43
 attr experiment HStreaming
 attr inifile htopology.ini
 attr iterationvars ""
 attr iterationvars2 $repetition=0
 attr measurement ""
 attr network oversim.underlay.simpleunderlay.SimpleUnderlayNetwork
-attr processid 6204
+attr processid 6344
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -17,4 +17,4 @@ attr runnumber 0
 attr seedset 0
 
 vector 1  SimpleUnderlayNetwork.globalObserver.globalStatistics  "GlobalNodeList: Number of nodes"  ETV
-1	542 66 310 1269 50 250 5 4 4 20 80
+1	542 60 2406 10004 50 200 4 40 40 160 6400
