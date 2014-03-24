@@ -2043,6 +2043,654 @@ void *HJoinResponseDescriptor::getFieldStructPointer(void *object, int field, in
     }
 }
 
+Register_Class(HRescueJoinCall);
+
+HRescueJoinCall::HRescueJoinCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+}
+
+HRescueJoinCall::HRescueJoinCall(const HRescueJoinCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+HRescueJoinCall::~HRescueJoinCall()
+{
+}
+
+HRescueJoinCall& HRescueJoinCall::operator=(const HRescueJoinCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HRescueJoinCall::copy(const HRescueJoinCall& other)
+{
+}
+
+void HRescueJoinCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+}
+
+void HRescueJoinCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+}
+
+class HRescueJoinCallDescriptor : public cClassDescriptor
+{
+  public:
+    HRescueJoinCallDescriptor();
+    virtual ~HRescueJoinCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HRescueJoinCallDescriptor);
+
+HRescueJoinCallDescriptor::HRescueJoinCallDescriptor() : cClassDescriptor("HRescueJoinCall", "BaseCallMessage")
+{
+}
+
+HRescueJoinCallDescriptor::~HRescueJoinCallDescriptor()
+{
+}
+
+bool HRescueJoinCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HRescueJoinCall *>(obj)!=NULL;
+}
+
+const char *HRescueJoinCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HRescueJoinCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
+}
+
+unsigned int HRescueJoinCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return 0;
+}
+
+const char *HRescueJoinCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+int HRescueJoinCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HRescueJoinCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+const char *HRescueJoinCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HRescueJoinCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRescueJoinCall *pp = (HRescueJoinCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HRescueJoinCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRescueJoinCall *pp = (HRescueJoinCall *)object; (void)pp;
+    switch (field) {
+        default: return "";
+    }
+}
+
+bool HRescueJoinCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRescueJoinCall *pp = (HRescueJoinCall *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *HRescueJoinCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+void *HRescueJoinCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRescueJoinCall *pp = (HRescueJoinCall *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+Register_Class(HRescueJoinResponse);
+
+HRescueJoinResponse::HRescueJoinResponse(const char *name, int kind) : BaseResponseMessage(name,kind)
+{
+    this->joined_var = 0;
+}
+
+HRescueJoinResponse::HRescueJoinResponse(const HRescueJoinResponse& other) : BaseResponseMessage(other)
+{
+    copy(other);
+}
+
+HRescueJoinResponse::~HRescueJoinResponse()
+{
+}
+
+HRescueJoinResponse& HRescueJoinResponse::operator=(const HRescueJoinResponse& other)
+{
+    if (this==&other) return *this;
+    BaseResponseMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HRescueJoinResponse::copy(const HRescueJoinResponse& other)
+{
+    this->joined_var = other.joined_var;
+}
+
+void HRescueJoinResponse::parsimPack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimPack(b);
+    doPacking(b,this->joined_var);
+}
+
+void HRescueJoinResponse::parsimUnpack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimUnpack(b);
+    doUnpacking(b,this->joined_var);
+}
+
+int HRescueJoinResponse::getJoined() const
+{
+    return joined_var;
+}
+
+void HRescueJoinResponse::setJoined(int joined)
+{
+    this->joined_var = joined;
+}
+
+class HRescueJoinResponseDescriptor : public cClassDescriptor
+{
+  public:
+    HRescueJoinResponseDescriptor();
+    virtual ~HRescueJoinResponseDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HRescueJoinResponseDescriptor);
+
+HRescueJoinResponseDescriptor::HRescueJoinResponseDescriptor() : cClassDescriptor("HRescueJoinResponse", "BaseResponseMessage")
+{
+}
+
+HRescueJoinResponseDescriptor::~HRescueJoinResponseDescriptor()
+{
+}
+
+bool HRescueJoinResponseDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HRescueJoinResponse *>(obj)!=NULL;
+}
+
+const char *HRescueJoinResponseDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HRescueJoinResponseDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+}
+
+unsigned int HRescueJoinResponseDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISEDITABLE,
+    };
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+}
+
+const char *HRescueJoinResponseDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "joined",
+    };
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+}
+
+int HRescueJoinResponseDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='j' && strcmp(fieldName, "joined")==0) return base+0;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HRescueJoinResponseDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "int",
+    };
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *HRescueJoinResponseDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HRescueJoinResponseDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRescueJoinResponse *pp = (HRescueJoinResponse *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HRescueJoinResponseDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRescueJoinResponse *pp = (HRescueJoinResponse *)object; (void)pp;
+    switch (field) {
+        case 0: return long2string(pp->getJoined());
+        default: return "";
+    }
+}
+
+bool HRescueJoinResponseDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRescueJoinResponse *pp = (HRescueJoinResponse *)object; (void)pp;
+    switch (field) {
+        case 0: pp->setJoined(string2long(value)); return true;
+        default: return false;
+    }
+}
+
+const char *HRescueJoinResponseDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        NULL,
+    };
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+}
+
+void *HRescueJoinResponseDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRescueJoinResponse *pp = (HRescueJoinResponse *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+Register_Class(HRemoveRescueLinkCall);
+
+HRemoveRescueLinkCall::HRemoveRescueLinkCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+}
+
+HRemoveRescueLinkCall::HRemoveRescueLinkCall(const HRemoveRescueLinkCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+HRemoveRescueLinkCall::~HRemoveRescueLinkCall()
+{
+}
+
+HRemoveRescueLinkCall& HRemoveRescueLinkCall::operator=(const HRemoveRescueLinkCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HRemoveRescueLinkCall::copy(const HRemoveRescueLinkCall& other)
+{
+}
+
+void HRemoveRescueLinkCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+}
+
+void HRemoveRescueLinkCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+}
+
+class HRemoveRescueLinkCallDescriptor : public cClassDescriptor
+{
+  public:
+    HRemoveRescueLinkCallDescriptor();
+    virtual ~HRemoveRescueLinkCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HRemoveRescueLinkCallDescriptor);
+
+HRemoveRescueLinkCallDescriptor::HRemoveRescueLinkCallDescriptor() : cClassDescriptor("HRemoveRescueLinkCall", "BaseCallMessage")
+{
+}
+
+HRemoveRescueLinkCallDescriptor::~HRemoveRescueLinkCallDescriptor()
+{
+}
+
+bool HRemoveRescueLinkCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HRemoveRescueLinkCall *>(obj)!=NULL;
+}
+
+const char *HRemoveRescueLinkCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HRemoveRescueLinkCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
+}
+
+unsigned int HRemoveRescueLinkCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return 0;
+}
+
+const char *HRemoveRescueLinkCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+int HRemoveRescueLinkCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HRemoveRescueLinkCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+const char *HRemoveRescueLinkCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HRemoveRescueLinkCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRemoveRescueLinkCall *pp = (HRemoveRescueLinkCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HRemoveRescueLinkCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRemoveRescueLinkCall *pp = (HRemoveRescueLinkCall *)object; (void)pp;
+    switch (field) {
+        default: return "";
+    }
+}
+
+bool HRemoveRescueLinkCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRemoveRescueLinkCall *pp = (HRemoveRescueLinkCall *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *HRemoveRescueLinkCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+void *HRemoveRescueLinkCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HRemoveRescueLinkCall *pp = (HRemoveRescueLinkCall *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
 Register_Class(HVideoSegmentCall);
 
 HVideoSegmentCall::HVideoSegmentCall(const char *name, int kind) : BaseCallMessage(name,kind)

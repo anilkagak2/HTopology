@@ -119,6 +119,10 @@ class HTopology : public BaseOverlay {
     void handleRegisterInBootstrappingCall (BaseCallMessage *msg);
     void handleRegisterInBootstrappingResponse (BaseResponseMessage *msg);
 
+    void handleRescueJoinCall (BaseCallMessage *msg);
+    void handleRescueJoinResponse (BaseResponseMessage *msg);
+    void handleRemoveRescueLinkCall (BaseCallMessage *msg);
+
     /* NodesOneUP */
     void sendChildren (BaseCallMessage *msg);       // respond to the getChildren call
     void initializeNodesOneUp ();                   // use the ancestors array to figure out these nodes
@@ -149,13 +153,34 @@ class HTopology : public BaseOverlay {
     // Initialize the statistics, to be estimated during the simulation
     void initializeStats ();
 
+    // Helpers for AddOns
+    // selection of a new parent algorithm
+    // Helpers
+    void getParametersForSelectionAlgo (const OverlayKey& key);
+    void goAheadWithRestSelectionProcess (const OverlayKey& key);
+
+    vector<RescueNode> currentRescueNodes;
+
+    // AddOns
+    void sendRescueCall ();                             // Picks up the next valid rescueParent & calls for the help
+    void selectRescueParent ();                         // choose a rescue parent for yourself
+    void scheduleDeadlineSegments (int startSegmentID,
+            int count, int perNode);                    // look for alternatives on deadline approaching segments
+
+    vector<RescueNode> getRankedRescueNodes ();         // returns the RescueNode structures for the ranked rescue nodes
+    vector<NodeHandle> getRankedRescueNodeHandles ();   // returns the NodeHandles for the ranked rescue nodes
+
+    // Advance Features
+    void optimizeTree ();
+    void calculateResourceAllocationPolicy ();
+
   public:
     int nodeID;             // my ID in the overlay
     int modeOfOperation;    // GENERAL_MODE / RESCUE_MODE
     TransportAddress bootstrapNode; /**< node used to bootstrap */
 
     // Links to other nodes in the overlay
-    HNode parent, grandParent;
+    HNode parent, grandParent, rescueParent;
     HNode successorNode, predecessorNode;
     KeyToNodeMap children, rescueChildren;
     //KeyToNodeMap siblings;
@@ -209,25 +234,6 @@ class HTopology : public BaseOverlay {
                           cPolymorphic* context, int rpcId,
                           const OverlayKey&);
 
-    // Helpers for AddOns
-    // selection of a new parent algorithm
-    // Helpers
-    void getParametersForSelectionAlgo (const OverlayKey& key);
-    void goAheadWithRestSelectionProcess (const OverlayKey& key);
-
-    // AddOns
-    bool selectRescueParent ();                         // choose a rescue parent for yourself
-    bool addAsRescueChild (const NodeHandle& node);     // add "node" as a rescue child
-    bool removeRescueChild (const NodeHandle& node);    // remove this node from rescue children list
-    void rankRescueNodes ();                            // generate transfer characteristics & rank them
-    void scheduleDeadlineSegments (int startSegmentID,
-            int count, int perNode);                    // look for alternatives on deadline approaching segments
-
-    vector<NodeHandle> getRankedRescueNodes ();         // returns the ranked nodes in their decreasing ranking order
-
-    // Advance Features
-    void optimizeTree ();
-    void calculateResourceAllocationPolicy ();
 };
 
 #endif

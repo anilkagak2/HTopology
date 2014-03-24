@@ -24,6 +24,11 @@
 #define JOINCALL_L(msg) 					BASECALL_L(msg)
 #define HJOINRESPONSE_L(msg) 				(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
                              					(msg->getAncestorsArraySize() * NODEHANDLE_L) + TYPE_L)
+                             					
+#define HRESCUEJOINCALL_L(msg)				BASECALL_L(msg)
+#define HRESCUEJOINRESPONSE_L(msg)			(BASERESPONSE_L(msg) + TYPE_L)
+        
+#define HREMOVERESCUELINKCALL_L(msg)		BASECALL_L(msg)
         
 #define HGETCHILDRENCALL_L(msg)				BASECALL_L(msg)
 #define HGETCHILDRENRESPONSE_L(msg) 		(BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L))
@@ -413,6 +418,109 @@ class HJoinResponse : public ::BaseResponseMessage
 
 inline void doPacking(cCommBuffer *b, HJoinResponse& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, HJoinResponse& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HRescueJoinCall extends BaseCallMessage {
+ * }
+ * </pre>
+ */
+class HRescueJoinCall : public ::BaseCallMessage
+{
+  protected:
+
+  private:
+    void copy(const HRescueJoinCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HRescueJoinCall&);
+
+  public:
+    HRescueJoinCall(const char *name=NULL, int kind=0);
+    HRescueJoinCall(const HRescueJoinCall& other);
+    virtual ~HRescueJoinCall();
+    HRescueJoinCall& operator=(const HRescueJoinCall& other);
+    virtual HRescueJoinCall *dup() const {return new HRescueJoinCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+};
+
+inline void doPacking(cCommBuffer *b, HRescueJoinCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HRescueJoinCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HRescueJoinResponse extends BaseResponseMessage {
+ *     int joined;
+ * }
+ * </pre>
+ */
+class HRescueJoinResponse : public ::BaseResponseMessage
+{
+  protected:
+    int joined_var;
+
+  private:
+    void copy(const HRescueJoinResponse& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HRescueJoinResponse&);
+
+  public:
+    HRescueJoinResponse(const char *name=NULL, int kind=0);
+    HRescueJoinResponse(const HRescueJoinResponse& other);
+    virtual ~HRescueJoinResponse();
+    HRescueJoinResponse& operator=(const HRescueJoinResponse& other);
+    virtual HRescueJoinResponse *dup() const {return new HRescueJoinResponse(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual int getJoined() const;
+    virtual void setJoined(int joined);
+};
+
+inline void doPacking(cCommBuffer *b, HRescueJoinResponse& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HRescueJoinResponse& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HRemoveRescueLinkCall extends BaseCallMessage {
+ * }
+ * </pre>
+ */
+class HRemoveRescueLinkCall : public ::BaseCallMessage
+{
+  protected:
+
+  private:
+    void copy(const HRemoveRescueLinkCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HRemoveRescueLinkCall&);
+
+  public:
+    HRemoveRescueLinkCall(const char *name=NULL, int kind=0);
+    HRemoveRescueLinkCall(const HRemoveRescueLinkCall& other);
+    virtual ~HRemoveRescueLinkCall();
+    HRemoveRescueLinkCall& operator=(const HRemoveRescueLinkCall& other);
+    virtual HRemoveRescueLinkCall *dup() const {return new HRemoveRescueLinkCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+};
+
+inline void doPacking(cCommBuffer *b, HRemoveRescueLinkCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HRemoveRescueLinkCall& obj) {obj.parsimUnpack(b);}
 
 /**
  * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.

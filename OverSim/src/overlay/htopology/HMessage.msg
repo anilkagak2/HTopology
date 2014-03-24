@@ -28,6 +28,11 @@ cplusplus {{
 #define JOINCALL_L(msg) 					BASECALL_L(msg)
 #define HJOINRESPONSE_L(msg) 				(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
                              					(msg->getAncestorsArraySize() * NODEHANDLE_L) + TYPE_L)
+                             					
+#define HRESCUEJOINCALL_L(msg)				BASECALL_L(msg)
+#define HRESCUEJOINRESPONSE_L(msg)			(BASERESPONSE_L(msg) + TYPE_L)
+        
+#define HREMOVERESCUELINKCALL_L(msg)		BASECALL_L(msg)
         
 #define HGETCHILDRENCALL_L(msg)				BASECALL_L(msg)
 #define HGETCHILDRENRESPONSE_L(msg) 		(BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L))
@@ -108,7 +113,7 @@ packet HSelectParentResponse extends BaseResponseMessage {
 };
 
 //
-// Message used to join a chord overlay
+// Message used to join the overlay
 //
 packet HJoinCall extends BaseCallMessage {
 }
@@ -126,6 +131,25 @@ packet HJoinResponse extends BaseResponseMessage {
     NodeHandle successorNode;
     NodeHandle predecessorNode;
     int joined;
+}
+
+//
+// Message used to join the node [source is switching to rescue mode]
+//
+packet HRescueJoinCall extends BaseCallMessage {
+}
+
+//
+// Message used to answer to a RescueJoinCall message
+//
+packet HRescueJoinResponse extends BaseResponseMessage {
+    int joined;
+}
+
+//
+// Message used to remove the rescue link between rescueParent & ourself
+//
+packet HRemoveRescueLinkCall extends BaseCallMessage {
 }
 
 // used to send video segment (generated or received from a node)
