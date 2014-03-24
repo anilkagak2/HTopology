@@ -29,9 +29,11 @@
 #define HRESCUEJOINRESPONSE_L(msg)			(BASERESPONSE_L(msg) + TYPE_L)
         
 #define HREMOVERESCUELINKCALL_L(msg)		BASECALL_L(msg)
+#define HCHILDADDEDCALL_L(msg)				( BASECALL_L(msg) + NODEHANDLE_L )
         
-#define HGETCHILDRENCALL_L(msg)				BASECALL_L(msg)
-#define HGETCHILDRENRESPONSE_L(msg) 		(BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L))
+#define HGETCHILDRENCALL_L(msg)				( BASECALL_L(msg) + TYPE_L)
+#define HGETCHILDRENRESPONSE_L(msg) 		( BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L) + TYPE_L)
+
 #define HCAPACITYCALL_L(msg) 				BASECALL_L(msg) + KEY_L
 #define HCAPACITYRESPONSE_L(msg) 			(BASERESPONSE_L(msg) + (2*NODEHANDLE_L) + TYPE_L)
 #define HSELECTPARENTCALL_L(msg) 			HCAPACITYCALL_L(msg)
@@ -330,12 +332,14 @@ inline void doUnpacking(cCommBuffer *b, HSelectParentResponse& obj) {obj.parsimU
  * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HJoinCall extends BaseCallMessage {
+ *     NodeHandle child;
  * }
  * </pre>
  */
 class HJoinCall : public ::BaseCallMessage
 {
   protected:
+    NodeHandle child_var;
 
   private:
     void copy(const HJoinCall& other);
@@ -354,6 +358,9 @@ class HJoinCall : public ::BaseCallMessage
     virtual void parsimUnpack(cCommBuffer *b);
 
     // field getter/setter methods
+    virtual NodeHandle& getChild();
+    virtual const NodeHandle& getChild() const {return const_cast<HJoinCall*>(this)->getChild();}
+    virtual void setChild(const NodeHandle& child);
 };
 
 inline void doPacking(cCommBuffer *b, HJoinCall& obj) {obj.parsimPack(b);}
@@ -521,6 +528,44 @@ class HRemoveRescueLinkCall : public ::BaseCallMessage
 
 inline void doPacking(cCommBuffer *b, HRemoveRescueLinkCall& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, HRemoveRescueLinkCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HChildAddedCall extends BaseCallMessage {
+ *     NodeHandle child;
+ * }
+ * </pre>
+ */
+class HChildAddedCall : public ::BaseCallMessage
+{
+  protected:
+    NodeHandle child_var;
+
+  private:
+    void copy(const HChildAddedCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HChildAddedCall&);
+
+  public:
+    HChildAddedCall(const char *name=NULL, int kind=0);
+    HChildAddedCall(const HChildAddedCall& other);
+    virtual ~HChildAddedCall();
+    HChildAddedCall& operator=(const HChildAddedCall& other);
+    virtual HChildAddedCall *dup() const {return new HChildAddedCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual NodeHandle& getChild();
+    virtual const NodeHandle& getChild() const {return const_cast<HChildAddedCall*>(this)->getChild();}
+    virtual void setChild(const NodeHandle& child);
+};
+
+inline void doPacking(cCommBuffer *b, HChildAddedCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HChildAddedCall& obj) {obj.parsimUnpack(b);}
 
 /**
  * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
@@ -866,12 +911,14 @@ inline void doUnpacking(cCommBuffer *b, HSwitchToRescueModeCall& obj) {obj.parsi
  * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HGetChildrenCall extends BaseCallMessage {
+ *     int forGrandChildrenAccumulation;
  * }
  * </pre>
  */
 class HGetChildrenCall : public ::BaseCallMessage
 {
   protected:
+    int forGrandChildrenAccumulation_var;
 
   private:
     void copy(const HGetChildrenCall& other);
@@ -890,6 +937,8 @@ class HGetChildrenCall : public ::BaseCallMessage
     virtual void parsimUnpack(cCommBuffer *b);
 
     // field getter/setter methods
+    virtual int getForGrandChildrenAccumulation() const;
+    virtual void setForGrandChildrenAccumulation(int forGrandChildrenAccumulation);
 };
 
 inline void doPacking(cCommBuffer *b, HGetChildrenCall& obj) {obj.parsimPack(b);}
@@ -899,6 +948,7 @@ inline void doUnpacking(cCommBuffer *b, HGetChildrenCall& obj) {obj.parsimUnpack
  * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
  * <pre>
  * packet HGetChildrenResponse extends BaseResponseMessage {
+ *     int forGrandChildrenAccumulation;
  *     NodeHandle children[];
  * }
  * </pre>
@@ -906,6 +956,7 @@ inline void doUnpacking(cCommBuffer *b, HGetChildrenCall& obj) {obj.parsimUnpack
 class HGetChildrenResponse : public ::BaseResponseMessage
 {
   protected:
+    int forGrandChildrenAccumulation_var;
     NodeHandle *children_var; // array ptr
     unsigned int children_arraysize;
 
@@ -926,6 +977,8 @@ class HGetChildrenResponse : public ::BaseResponseMessage
     virtual void parsimUnpack(cCommBuffer *b);
 
     // field getter/setter methods
+    virtual int getForGrandChildrenAccumulation() const;
+    virtual void setForGrandChildrenAccumulation(int forGrandChildrenAccumulation);
     virtual void setChildrenArraySize(unsigned int size);
     virtual unsigned int getChildrenArraySize() const;
     virtual NodeHandle& getChildren(unsigned int k);

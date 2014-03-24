@@ -24,7 +24,7 @@ std::ostream& operator<<(std::ostream& os, const HNode& node) {
 //default-constructor
 HNode::HNode() {
     handle = NodeHandle();
-    children = NodeVector();
+    //children = NodeVector();
 }
 
 //copy constructor
@@ -35,7 +35,7 @@ HNode::HNode ( const HNode& node) {
 
 HNode::HNode ( const TransportAddress& ta ) {
     handle = NodeHandle (ta);
-    children = NodeVector();
+    //children = NodeVector();
 }
 
 //complete constructor
@@ -137,6 +137,12 @@ void HNode::netUnpack(cCommBuffer *b) {
     //cMessage::netUnpack(b);
     doUnpacking(b,this->handle);
     doUnpacking(b,this->children);
+}
+
+void HNode::addChild(NodeHandle child) {
+    // TODO we don't check for redundancy right now
+    // children should have been maintained in a set or map
+    children.add(child);
 }
 
 TransportAddress* HNode::dup() const {

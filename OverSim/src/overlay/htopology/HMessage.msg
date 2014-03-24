@@ -33,9 +33,11 @@ cplusplus {{
 #define HRESCUEJOINRESPONSE_L(msg)			(BASERESPONSE_L(msg) + TYPE_L)
         
 #define HREMOVERESCUELINKCALL_L(msg)		BASECALL_L(msg)
+#define HCHILDADDEDCALL_L(msg)				( BASECALL_L(msg) + NODEHANDLE_L )
         
-#define HGETCHILDRENCALL_L(msg)				BASECALL_L(msg)
-#define HGETCHILDRENRESPONSE_L(msg) 		(BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L))
+#define HGETCHILDRENCALL_L(msg)				( BASECALL_L(msg) + TYPE_L)
+#define HGETCHILDRENRESPONSE_L(msg) 		( BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L) + TYPE_L)
+
 #define HCAPACITYCALL_L(msg) 				BASECALL_L(msg) + KEY_L
 #define HCAPACITYRESPONSE_L(msg) 			(BASERESPONSE_L(msg) + (2*NODEHANDLE_L) + TYPE_L)
 #define HSELECTPARENTCALL_L(msg) 			HCAPACITYCALL_L(msg)
@@ -116,6 +118,7 @@ packet HSelectParentResponse extends BaseResponseMessage {
 // Message used to join the overlay
 //
 packet HJoinCall extends BaseCallMessage {
+    NodeHandle child;
 }
 
 //
@@ -150,6 +153,13 @@ packet HRescueJoinResponse extends BaseResponseMessage {
 // Message used to remove the rescue link between rescueParent & ourself
 //
 packet HRemoveRescueLinkCall extends BaseCallMessage {
+}
+
+//
+// Inform our parent that we've added a new node as our child
+//
+packet HChildAddedCall extends BaseCallMessage {
+    NodeHandle child;
 }
 
 // used to send video segment (generated or received from a node)
@@ -198,10 +208,12 @@ packet HSwitchToRescueModeCall extends BaseCallMessage {
 
 // call to get children from node
 packet HGetChildrenCall extends BaseCallMessage {
+    int forGrandChildrenAccumulation;
 }
 
 // response for children
 packet HGetChildrenResponse extends BaseResponseMessage {
+    int forGrandChildrenAccumulation;
     NodeHandle children[];
 }
 

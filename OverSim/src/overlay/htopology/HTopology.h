@@ -123,6 +123,9 @@ class HTopology : public BaseOverlay {
     void handleRescueJoinResponse (BaseResponseMessage *msg);
     void handleRemoveRescueLinkCall (BaseCallMessage *msg);
 
+    void handleChildAddedCall (BaseCallMessage *msg);
+    void handleGetChildrenResponse (BaseResponseMessage *msg);
+
     /* NodesOneUP */
     void sendChildren (BaseCallMessage *msg);       // respond to the getChildren call
     void initializeNodesOneUp ();                   // use the ancestors array to figure out these nodes

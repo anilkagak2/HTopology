@@ -146,6 +146,8 @@ class HNode {
       void setHandle (NodeHandle handle);
       void setNodeVector (NodeVector nvector);
 
+      void addChild(NodeHandle child);
+
       /**
        * indicates if this NodeHandle is specified
        *

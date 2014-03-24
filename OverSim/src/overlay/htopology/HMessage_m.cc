@@ -1530,16 +1530,29 @@ HJoinCall& HJoinCall::operator=(const HJoinCall& other)
 
 void HJoinCall::copy(const HJoinCall& other)
 {
+    this->child_var = other.child_var;
 }
 
 void HJoinCall::parsimPack(cCommBuffer *b)
 {
     BaseCallMessage::parsimPack(b);
+    doPacking(b,this->child_var);
 }
 
 void HJoinCall::parsimUnpack(cCommBuffer *b)
 {
     BaseCallMessage::parsimUnpack(b);
+    doUnpacking(b,this->child_var);
+}
+
+NodeHandle& HJoinCall::getChild()
+{
+    return child_var;
+}
+
+void HJoinCall::setChild(const NodeHandle& child)
+{
+    this->child_var = child;
 }
 
 class HJoinCallDescriptor : public cClassDescriptor
@@ -1589,7 +1602,7 @@ const char *HJoinCallDescriptor::getProperty(const char *propertyname) const
 int HJoinCallDescriptor::getFieldCount(void *object) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
 }
 
 unsigned int HJoinCallDescriptor::getFieldTypeFlags(void *object, int field) const
@@ -1600,7 +1613,10 @@ unsigned int HJoinCallDescriptor::getFieldTypeFlags(void *object, int field) con
             return basedesc->getFieldTypeFlags(object, field);
         field -= basedesc->getFieldCount(object);
     }
-    return 0;
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISCOMPOUND,
+    };
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
 }
 
 const char *HJoinCallDescriptor::getFieldName(void *object, int field) const
@@ -1611,12 +1627,17 @@ const char *HJoinCallDescriptor::getFieldName(void *object, int field) const
             return basedesc->getFieldName(object, field);
         field -= basedesc->getFieldCount(object);
     }
-    return NULL;
+    static const char *fieldNames[] = {
+        "child",
+    };
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
 }
 
 int HJoinCallDescriptor::findField(void *object, const char *fieldName) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='c' && strcmp(fieldName, "child")==0) return base+0;
     return basedesc ? basedesc->findField(object, fieldName) : -1;
 }
 
@@ -1628,7 +1649,10 @@ const char *HJoinCallDescriptor::getFieldTypeString(void *object, int field) con
             return basedesc->getFieldTypeString(object, field);
         field -= basedesc->getFieldCount(object);
     }
-    return NULL;
+    static const char *fieldTypeStrings[] = {
+        "NodeHandle",
+    };
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
 }
 
 const char *HJoinCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
@@ -1668,6 +1692,7 @@ std::string HJoinCallDescriptor::getFieldAsString(void *object, int field, int i
     }
     HJoinCall *pp = (HJoinCall *)object; (void)pp;
     switch (field) {
+        case 0: {std::stringstream out; out << pp->getChild(); return out.str();}
         default: return "";
     }
 }
@@ -1694,7 +1719,10 @@ const char *HJoinCallDescriptor::getFieldStructName(void *object, int field) con
             return basedesc->getFieldStructName(object, field);
         field -= basedesc->getFieldCount(object);
     }
-    return NULL;
+    static const char *fieldStructNames[] = {
+        "NodeHandle",
+    };
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
 }
 
 void *HJoinCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
@@ -1707,6 +1735,7 @@ void *HJoinCallDescriptor::getFieldStructPointer(void *object, int field, int i)
     }
     HJoinCall *pp = (HJoinCall *)object; (void)pp;
     switch (field) {
+        case 0: return (void *)(&pp->getChild()); break;
         default: return NULL;
     }
 }
@@ -2687,6 +2716,241 @@ void *HRemoveRescueLinkCallDescriptor::getFieldStructPointer(void *object, int f
     }
     HRemoveRescueLinkCall *pp = (HRemoveRescueLinkCall *)object; (void)pp;
     switch (field) {
+        default: return NULL;
+    }
+}
+
+Register_Class(HChildAddedCall);
+
+HChildAddedCall::HChildAddedCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+}
+
+HChildAddedCall::HChildAddedCall(const HChildAddedCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+HChildAddedCall::~HChildAddedCall()
+{
+}
+
+HChildAddedCall& HChildAddedCall::operator=(const HChildAddedCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HChildAddedCall::copy(const HChildAddedCall& other)
+{
+    this->child_var = other.child_var;
+}
+
+void HChildAddedCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+    doPacking(b,this->child_var);
+}
+
+void HChildAddedCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+    doUnpacking(b,this->child_var);
+}
+
+NodeHandle& HChildAddedCall::getChild()
+{
+    return child_var;
+}
+
+void HChildAddedCall::setChild(const NodeHandle& child)
+{
+    this->child_var = child;
+}
+
+class HChildAddedCallDescriptor : public cClassDescriptor
+{
+  public:
+    HChildAddedCallDescriptor();
+    virtual ~HChildAddedCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HChildAddedCallDescriptor);
+
+HChildAddedCallDescriptor::HChildAddedCallDescriptor() : cClassDescriptor("HChildAddedCall", "BaseCallMessage")
+{
+}
+
+HChildAddedCallDescriptor::~HChildAddedCallDescriptor()
+{
+}
+
+bool HChildAddedCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HChildAddedCall *>(obj)!=NULL;
+}
+
+const char *HChildAddedCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HChildAddedCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+}
+
+unsigned int HChildAddedCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISCOMPOUND,
+    };
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+}
+
+const char *HChildAddedCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "child",
+    };
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+}
+
+int HChildAddedCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='c' && strcmp(fieldName, "child")==0) return base+0;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HChildAddedCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "NodeHandle",
+    };
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *HChildAddedCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HChildAddedCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HChildAddedCall *pp = (HChildAddedCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HChildAddedCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HChildAddedCall *pp = (HChildAddedCall *)object; (void)pp;
+    switch (field) {
+        case 0: {std::stringstream out; out << pp->getChild(); return out.str();}
+        default: return "";
+    }
+}
+
+bool HChildAddedCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HChildAddedCall *pp = (HChildAddedCall *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *HChildAddedCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        "NodeHandle",
+    };
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+}
+
+void *HChildAddedCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HChildAddedCall *pp = (HChildAddedCall *)object; (void)pp;
+    switch (field) {
+        case 0: return (void *)(&pp->getChild()); break;
         default: return NULL;
     }
 }
@@ -4838,6 +5102,7 @@ Register_Class(HGetChildrenCall);
 
 HGetChildrenCall::HGetChildrenCall(const char *name, int kind) : BaseCallMessage(name,kind)
 {
+    this->forGrandChildrenAccumulation_var = 0;
 }
 
 HGetChildrenCall::HGetChildrenCall(const HGetChildrenCall& other) : BaseCallMessage(other)
@@ -4859,16 +5124,29 @@ HGetChildrenCall& HGetChildrenCall::operator=(const HGetChildrenCall& other)
 
 void HGetChildrenCall::copy(const HGetChildrenCall& other)
 {
+    this->forGrandChildrenAccumulation_var = other.forGrandChildrenAccumulation_var;
 }
 
 void HGetChildrenCall::parsimPack(cCommBuffer *b)
 {
     BaseCallMessage::parsimPack(b);
+    doPacking(b,this->forGrandChildrenAccumulation_var);
 }
 
 void HGetChildrenCall::parsimUnpack(cCommBuffer *b)
 {
     BaseCallMessage::parsimUnpack(b);
+    doUnpacking(b,this->forGrandChildrenAccumulation_var);
+}
+
+int HGetChildrenCall::getForGrandChildrenAccumulation() const
+{
+    return forGrandChildrenAccumulation_var;
+}
+
+void HGetChildrenCall::setForGrandChildrenAccumulation(int forGrandChildrenAccumulation)
+{
+    this->forGrandChildrenAccumulation_var = forGrandChildrenAccumulation;
 }
 
 class HGetChildrenCallDescriptor : public cClassDescriptor
@@ -4918,7 +5196,7 @@ const char *HGetChildrenCallDescriptor::getProperty(const char *propertyname) co
 int HGetChildrenCallDescriptor::getFieldCount(void *object) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
 }
 
 unsigned int HGetChildrenCallDescriptor::getFieldTypeFlags(void *object, int field) const
@@ -4929,7 +5207,10 @@ unsigned int HGetChildrenCallDescriptor::getFieldTypeFlags(void *object, int fie
             return basedesc->getFieldTypeFlags(object, field);
         field -= basedesc->getFieldCount(object);
     }
-    return 0;
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISEDITABLE,
+    };
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
 }
 
 const char *HGetChildrenCallDescriptor::getFieldName(void *object, int field) const
@@ -4940,12 +5221,17 @@ const char *HGetChildrenCallDescriptor::getFieldName(void *object, int field) co
             return basedesc->getFieldName(object, field);
         field -= basedesc->getFieldCount(object);
     }
-    return NULL;
+    static const char *fieldNames[] = {
+        "forGrandChildrenAccumulation",
+    };
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
 }
 
 int HGetChildrenCallDescriptor::findField(void *object, const char *fieldName) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='f' && strcmp(fieldName, "forGrandChildrenAccumulation")==0) return base+0;
     return basedesc ? basedesc->findField(object, fieldName) : -1;
 }
 
@@ -4957,7 +5243,10 @@ const char *HGetChildrenCallDescriptor::getFieldTypeString(void *object, int fie
             return basedesc->getFieldTypeString(object, field);
         field -= basedesc->getFieldCount(object);
     }
-    return NULL;
+    static const char *fieldTypeStrings[] = {
+        "int",
+    };
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
 }
 
 const char *HGetChildrenCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
@@ -4997,6 +5286,7 @@ std::string HGetChildrenCallDescriptor::getFieldAsString(void *object, int field
     }
     HGetChildrenCall *pp = (HGetChildrenCall *)object; (void)pp;
     switch (field) {
+        case 0: return long2string(pp->getForGrandChildrenAccumulation());
         default: return "";
     }
 }
@@ -5011,6 +5301,7 @@ bool HGetChildrenCallDescriptor::setFieldAsString(void *object, int field, int i
     }
     HGetChildrenCall *pp = (HGetChildrenCall *)object; (void)pp;
     switch (field) {
+        case 0: pp->setForGrandChildrenAccumulation(string2long(value)); return true;
         default: return false;
     }
 }
@@ -5023,7 +5314,10 @@ const char *HGetChildrenCallDescriptor::getFieldStructName(void *object, int fie
             return basedesc->getFieldStructName(object, field);
         field -= basedesc->getFieldCount(object);
     }
-    return NULL;
+    static const char *fieldStructNames[] = {
+        NULL,
+    };
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
 }
 
 void *HGetChildrenCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
@@ -5044,6 +5338,7 @@ Register_Class(HGetChildrenResponse);
 
 HGetChildrenResponse::HGetChildrenResponse(const char *name, int kind) : BaseResponseMessage(name,kind)
 {
+    this->forGrandChildrenAccumulation_var = 0;
     children_arraysize = 0;
     this->children_var = 0;
 }
@@ -5070,6 +5365,7 @@ HGetChildrenResponse& HGetChildrenResponse::operator=(const HGetChildrenResponse
 
 void HGetChildrenResponse::copy(const HGetChildrenResponse& other)
 {
+    this->forGrandChildrenAccumulation_var = other.forGrandChildrenAccumulation_var;
     delete [] this->children_var;
     this->children_var = (other.children_arraysize==0) ? NULL : new NodeHandle[other.children_arraysize];
     children_arraysize = other.children_arraysize;
@@ -5080,6 +5376,7 @@ void HGetChildrenResponse::copy(const HGetChildrenResponse& other)
 void HGetChildrenResponse::parsimPack(cCommBuffer *b)
 {
     BaseResponseMessage::parsimPack(b);
+    doPacking(b,this->forGrandChildrenAccumulation_var);
     b->pack(children_arraysize);
     doPacking(b,this->children_var,children_arraysize);
 }
@@ -5087,6 +5384,7 @@ void HGetChildrenResponse::parsimPack(cCommBuffer *b)
 void HGetChildrenResponse::parsimUnpack(cCommBuffer *b)
 {
     BaseResponseMessage::parsimUnpack(b);
+    doUnpacking(b,this->forGrandChildrenAccumulation_var);
     delete [] this->children_var;
     b->unpack(children_arraysize);
     if (children_arraysize==0) {
@@ -5095,6 +5393,16 @@ void HGetChildrenResponse::parsimUnpack(cCommBuffer *b)
         this->children_var = new NodeHandle[children_arraysize];
         doUnpacking(b,this->children_var,children_arraysize);
     }
+}
+
+int HGetChildrenResponse::getForGrandChildrenAccumulation() const
+{
+    return forGrandChildrenAccumulation_var;
+}
+
+void HGetChildrenResponse::setForGrandChildrenAccumulation(int forGrandChildrenAccumulation)
+{
+    this->forGrandChildrenAccumulation_var = forGrandChildrenAccumulation;
 }
 
 void HGetChildrenResponse::setChildrenArraySize(unsigned int size)
@@ -5172,7 +5480,7 @@ const char *HGetChildrenResponseDescriptor::getProperty(const char *propertyname
 int HGetChildrenResponseDescriptor::getFieldCount(void *object) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+    return basedesc ? 2+basedesc->getFieldCount(object) : 2;
 }
 
 unsigned int HGetChildrenResponseDescriptor::getFieldTypeFlags(void *object, int field) const
@@ -5184,9 +5492,10 @@ unsigned int HGetChildrenResponseDescriptor::getFieldTypeFlags(void *object, int
         field -= basedesc->getFieldCount(object);
     }
     static unsigned int fieldTypeFlags[] = {
+        FD_ISEDITABLE,
         FD_ISARRAY | FD_ISCOMPOUND,
     };
-    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<2) ? fieldTypeFlags[field] : 0;
 }
 
 const char *HGetChildrenResponseDescriptor::getFieldName(void *object, int field) const
@@ -5198,16 +5507,18 @@ const char *HGetChildrenResponseDescriptor::getFieldName(void *object, int field
         field -= basedesc->getFieldCount(object);
     }
     static const char *fieldNames[] = {
+        "forGrandChildrenAccumulation",
         "children",
     };
-    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+    return (field>=0 && field<2) ? fieldNames[field] : NULL;
 }
 
 int HGetChildrenResponseDescriptor::findField(void *object, const char *fieldName) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount(object) : 0;
-    if (fieldName[0]=='c' && strcmp(fieldName, "children")==0) return base+0;
+    if (fieldName[0]=='f' && strcmp(fieldName, "forGrandChildrenAccumulation")==0) return base+0;
+    if (fieldName[0]=='c' && strcmp(fieldName, "children")==0) return base+1;
     return basedesc ? basedesc->findField(object, fieldName) : -1;
 }
 
@@ -5220,9 +5531,10 @@ const char *HGetChildrenResponseDescriptor::getFieldTypeString(void *object, int
         field -= basedesc->getFieldCount(object);
     }
     static const char *fieldTypeStrings[] = {
+        "int",
         "NodeHandle",
     };
-    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+    return (field>=0 && field<2) ? fieldTypeStrings[field] : NULL;
 }
 
 const char *HGetChildrenResponseDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
@@ -5248,7 +5560,7 @@ int HGetChildrenResponseDescriptor::getArraySize(void *object, int field) const
     }
     HGetChildrenResponse *pp = (HGetChildrenResponse *)object; (void)pp;
     switch (field) {
-        case 0: return pp->getChildrenArraySize();
+        case 1: return pp->getChildrenArraySize();
         default: return 0;
     }
 }
@@ -5263,7 +5575,8 @@ std::string HGetChildrenResponseDescriptor::getFieldAsString(void *object, int f
     }
     HGetChildrenResponse *pp = (HGetChildrenResponse *)object; (void)pp;
     switch (field) {
-        case 0: {std::stringstream out; out << pp->getChildren(i); return out.str();}
+        case 0: return long2string(pp->getForGrandChildrenAccumulation());
+        case 1: {std::stringstream out; out << pp->getChildren(i); return out.str();}
         default: return "";
     }
 }
@@ -5278,6 +5591,7 @@ bool HGetChildrenResponseDescriptor::setFieldAsString(void *object, int field, i
     }
     HGetChildrenResponse *pp = (HGetChildrenResponse *)object; (void)pp;
     switch (field) {
+        case 0: pp->setForGrandChildrenAccumulation(string2long(value)); return true;
         default: return false;
     }
 }
@@ -5291,9 +5605,10 @@ const char *HGetChildrenResponseDescriptor::getFieldStructName(void *object, int
         field -= basedesc->getFieldCount(object);
     }
     static const char *fieldStructNames[] = {
+        NULL,
         "NodeHandle",
     };
-    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+    return (field>=0 && field<2) ? fieldStructNames[field] : NULL;
 }
 
 void *HGetChildrenResponseDescriptor::getFieldStructPointer(void *object, int field, int i) const
@@ -5306,7 +5621,7 @@ void *HGetChildrenResponseDescriptor::getFieldStructPointer(void *object, int fi
     }
     HGetChildrenResponse *pp = (HGetChildrenResponse *)object; (void)pp;
     switch (field) {
-        case 0: return (void *)(&pp->getChildren(i)); break;
+        case 1: return (void *)(&pp->getChildren(i)); break;
         default: return NULL;
     }
 }

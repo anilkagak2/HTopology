@@ -720,7 +720,7 @@ void HTopology::sendChildren (BaseCallMessage *msg) {
 
     HGetChildrenCall *mrpc = (HGetChildrenCall *) msg;
     HGetChildrenResponse *rrpc =  new HGetChildrenResponse();
-
+    rrpc->setForGrandChildrenAccumulation(mrpc->getForGrandChildrenAccumulation());
     rrpc->setChildrenArraySize(children.size());
     rrpc->setBitLength(HGETCHILDRENRESPONSE_L(rrpc));
     int k=0;
@@ -738,6 +738,7 @@ void HTopology::initializeNodesOneUp () {
     // Need to call the last ancestor & get it's children
     // exclude our parent & go ahead with with other nodes
     HGetChildrenCall *msg = new HGetChildrenCall();
+    msg->setForGrandChildrenAccumulation (false);
     msg->setBitLength(HGETCHILDRENCALL_L (msg));
 
     // send it to the destination
@@ -788,7 +789,14 @@ void HTopology::handleJoinCall (BaseCallMessage *msg) {
 
         MapIterator it = children.find(child.getHandle().getKey());
 
-        // TODO Do we need to tell our parent, regarding we adopting a new child?
+        // Do we need to tell our parent, regarding we adopting a new child?
+        if (!parent.isUnspecified()) {
+            HChildAddedCall *childAdded = new HChildAddedCall();
+            childAdded->setChild(msg->getSrcNode());
+            childAdded->setBitLength(HCHILDADDEDCALL_L(childAdded));
+
+            sendRouteRpcCall(OVERLAY_COMP, parent.getHandle(), childAdded);
+        }
 
         // What is required by a new node?
         // Children & rescueChildren will be empty.
@@ -997,10 +1005,15 @@ void HTopology::handleResponsibilityAsParentCall (BaseCallMessage *msg) {
         HNode node;
         node.setHandle(mrpc->getChildren(i));
 
-        // TODO ask them about their children
+        // ask them about their children
         children[node.getHandle().getKey()] = node;
+        HGetChildrenCall *getChildrenCall = new HGetChildrenCall();
+        getChildrenCall->setForGrandChildrenAccumulation(true);
+        getChildrenCall->setBitLength(HGETCHILDRENCALL_L(getChildrenCall));
+        sendRouteRpcCall(OVERLAY_COMP, mrpc->getChildren(i), getChildrenCall);
     }
-    // TODO do we update our parent about our new children? I Think NO. He already know about them
+
+    // do we update our parent about our new children? I Think NO. He already know about them
 }
 
 void HTopology::handleScheduleSegmentsCall (BaseCallMessage *msg) {
@@ -1187,6 +1200,42 @@ void HTopology::handleGetParametersResponse (BaseResponseMessage *msg, simtime_t
     }
 }
 
+void HTopology::handleChildAddedCall (BaseCallMessage *msg) {
+    HChildAddedCall *mrpc = (HChildAddedCall *)msg;
+    if (children.find(mrpc->getSrcNode().getKey()) == children.end()) {
+        EV << thisNode << ": fake childAdded call from " << mrpc->getSrcNode() << endl;
+    } else {
+        EV << thisNode << ": adding our grandChild in the set ->" << mrpc->getChild() << endl;
+        /*NodeVector grandChildren = children[mrpc->getSrcNode().getKey()].getNodeVector();
+        grandChildren.add(mrpc->getChild());
+        children[mrpc->getSrcNode().getKey()].setNodeVector(grandChildren);
+        // TODO children[mrpc->getSrcNode().getKey()].addChild(mrpc->getChild());*/
+    }
+    delete msg;
+}
+
+void HTopology::handleGetChildrenResponse (BaseResponseMessage *msg) {
+    HGetChildrenResponse *childrenResponse = (HGetChildrenResponse*)msg;
+    if (childrenResponse->getForGrandChildrenAccumulation()) {
+        if (children.find(childrenResponse->getSrcNode().getKey()) == children.end()) {
+            EV << thisNode << ": fake getChildren response for grandchildren accumulation" << endl;
+        } else {
+            EV << thisNode << ": setting our grandChildren." << endl;
+            /*NodeVector grandChildren;
+            for (size_t i=0; i<childrenResponse->getChildrenArraySize(); ++i) {
+                EV << "adding a new child functionality missing" << endl;
+                grandChildren.add(childrenResponse->getChildren(i));
+                // TODO children[childrenResponse->getSrcNode().getKey()].addChild(childrenResponse->getChildren(i));
+            }
+            children[childrenResponse->getSrcNode().getKey()].setNodeVector(grandChildren);*/
+        }
+    } else {
+        EV << thisNode << ": setting NodesOneUp" << endl;
+        // Set NodesOneUp
+        setNodesOneUp(msg);
+    }
+}
+
 // RPC
 bool HTopology::handleRpcCall(BaseCallMessage *msg) {
     // There are many macros to simplify the handling of RPCs. The full list is in <OverSim>/src/common/RpcMacros.h.
@@ -1281,6 +1330,12 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
         break;
     }
 
+    RPC_ON_CALL(HChildAdded) {
+        handleChildAddedCall(msg);
+        RPC_HANDLED = true;
+        break;
+    }
+
     // end the switch
     RPC_SWITCH_END();
 
@@ -1366,7 +1421,8 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
         }
 
         RPC_ON_RESPONSE(HGetChildren) {
-            setNodesOneUp(msg);
+            //setNodesOneUp(msg);
+            handleGetChildrenResponse(msg);
         }
 
         RPC_ON_RESPONSE(HRegisterInBootstrapping) {
