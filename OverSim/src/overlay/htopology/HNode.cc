@@ -14,9 +14,14 @@ const HNode HNode::unspecifiedNode;
 std::ostream& operator<<(std::ostream& os, const HNode& node) {
     os << "thisNode:" << node.handle;
 
-    for (int i=0; i<node.children.size(); ++i) {
-        os << "child-" << i << ":" << node.children[i];
+    int i=0;
+    for(set<NodeHandle>::iterator it=node.children.begin(); it!=node.children.end(); ++it, ++i) {
+        os << "child-" << i << ":" << *it;
     }
+
+    /*for (size_t i=0; i<node.children.size(); ++i) {
+        os << "child-" << i << ":" << node.children[i];
+    }*/
 
     return os;
 };
@@ -38,17 +43,17 @@ HNode::HNode ( const TransportAddress& ta ) {
     //children = NodeVector();
 }
 
+
 //complete constructor
 HNode::HNode ( const OverlayKey& key,
               const IPvXAddress& ip, int port ) {
-    children = NodeVector();
     handle = NodeHandle (key, ip, port);
 }
 
 HNode::HNode( const OverlayKey& key, const TransportAddress& ta ) {
-    children = NodeVector();
     handle = NodeHandle (key, ta);
 }
+
 
 //public
 bool HNode::isUnspecified() const {
@@ -108,17 +113,25 @@ const NodeHandle HNode::getHandle() const {
     return handle;
 }
 
-const NodeVector HNode::getNodeVector () const {
+const set<NodeHandle> HNode::getChildren() const {
     return children;
 }
+
+void HNode::setChildren (set<NodeHandle> children) {
+    this->children = children;
+}
+
+/*const NodeVector HNode::getNodeVector () const {
+    return children;
+}*/
 
 void HNode::setHandle(NodeHandle handle) {
     this->handle = handle;
 }
 
-void HNode::setNodeVector (NodeVector nvector) {
+/*void HNode::setNodeVector (NodeVector nvector) {
     this->children = nvector;
-}
+}*/
 
 //private
 inline void HNode::assertUnspecified( const HNode& node) const {
@@ -142,7 +155,8 @@ void HNode::netUnpack(cCommBuffer *b) {
 void HNode::addChild(NodeHandle child) {
     // TODO we don't check for redundancy right now
     // children should have been maintained in a set or map
-    children.add(child);
+    children.insert(child);
+    //children.add(child);
 }
 
 TransportAddress* HNode::dup() const {

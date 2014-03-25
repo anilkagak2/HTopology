@@ -280,7 +280,9 @@ void HTopology::initializeOverlay(int stage) {
    modeOfOperation = GENERAL_MODE;
 
    // TODO Do we really have to set the key[will this not be generated for us?]
+   EV << thisNode << ": key just before assigning is " << endl;
    thisNode.setKey(OverlayKey(nodeID));     // set its key
+   EV << thisNode << ": key after assigning is " << endl;
 
    // initialize the rest of variables
    bufferMapSize = par("bufferSize");
@@ -1205,11 +1207,8 @@ void HTopology::handleChildAddedCall (BaseCallMessage *msg) {
     if (children.find(mrpc->getSrcNode().getKey()) == children.end()) {
         EV << thisNode << ": fake childAdded call from " << mrpc->getSrcNode() << endl;
     } else {
-        EV << thisNode << ": adding our grandChild in the set ->" << mrpc->getChild() << endl;
-        /*NodeVector grandChildren = children[mrpc->getSrcNode().getKey()].getNodeVector();
-        grandChildren.add(mrpc->getChild());
-        children[mrpc->getSrcNode().getKey()].setNodeVector(grandChildren);
-        // TODO children[mrpc->getSrcNode().getKey()].addChild(mrpc->getChild());*/
+        EV << thisNode << ": adding our grandChild in the set for " << mrpc->getSrcNode() << "->" << mrpc->getChild() << endl;
+        children[mrpc->getSrcNode().getKey()].addChild(mrpc->getChild());
     }
     delete msg;
 }
@@ -1220,14 +1219,14 @@ void HTopology::handleGetChildrenResponse (BaseResponseMessage *msg) {
         if (children.find(childrenResponse->getSrcNode().getKey()) == children.end()) {
             EV << thisNode << ": fake getChildren response for grandchildren accumulation" << endl;
         } else {
-            EV << thisNode << ": setting our grandChildren." << endl;
-            /*NodeVector grandChildren;
+            EV << thisNode << ": setting our grandChildren for the child : " << childrenResponse->getSrcNode() << endl;
+            //  NodeVector grandChildren;
             for (size_t i=0; i<childrenResponse->getChildrenArraySize(); ++i) {
-                EV << "adding a new child functionality missing" << endl;
-                grandChildren.add(childrenResponse->getChildren(i));
+                EV << "adding a new child functionality missing: " << childrenResponse->getChildren(i) << endl;
+                // grandChildren.add(childrenResponse->getChildren(i));
                 // TODO children[childrenResponse->getSrcNode().getKey()].addChild(childrenResponse->getChildren(i));
             }
-            children[childrenResponse->getSrcNode().getKey()].setNodeVector(grandChildren);*/
+            //children[childrenResponse->getSrcNode().getKey()].setNodeVector(grandChildren);
         }
     } else {
         EV << thisNode << ": setting NodesOneUp" << endl;
@@ -1367,11 +1366,11 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
                 EV << "Node failed is my child: " << children[destKey] << endl;
 
                 //  Notify the failure to the children
-                NodeVector nodeChildren = children[destKey].getNodeVector();
-                for (size_t i=0; i<nodeChildren.size(); ++i) {
+                set<NodeHandle> nodeChildren = children[destKey].getChildren();
+                for (set<NodeHandle>::iterator it=nodeChildren.begin(); it!=nodeChildren.end(); ++it) {
                     HSwitchToRescueModeCall *switchCall = new HSwitchToRescueModeCall();
                     switchCall->setBitLength(HSWITCHTORESCUEMODECALL_L(switchCall));
-                    sendRouteRpcCall (OVERLAY_COMP, nodeChildren[i], nodeChildren[i].getKey(), switchCall);
+                    sendRouteRpcCall (OVERLAY_COMP, (*it), (*it).getKey(), switchCall);
                 }
 
                 //  Select a replacement
@@ -1460,11 +1459,11 @@ void HTopology::getParametersForSelectionAlgo (const OverlayKey& key) {
         return;
     }
 
-    NodeVector nodeChildren = children[key].getNodeVector();
+    set<NodeHandle> nodeChildren = children[key].getChildren();
 
     leaveRequests[key].queryNodesSelectionAlgo.clear();        // clear this variable for storing the recent values
     leaveRequests[key].responseRequired=nodeChildren.size();   // Response required
-    for (NodeVector::iterator it=nodeChildren.begin(); it!=nodeChildren.end(); ++it) {
+    for (set<NodeHandle>::iterator it=nodeChildren.begin(); it!=nodeChildren.end(); ++it) {
         // Prepare the capacity message
         HCapacityCall *msg = new HCapacityCall();
         NodeHandle node = *it;
@@ -1490,7 +1489,7 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
         return;
     }
 
-    int noOfChildrenToAdd = children[key].getNodeVector().size();
+    int noOfChildrenToAdd = children[key].getChildren().size();
     bool replacementDone = false;
     std::map<OverlayKey, int>& queryNodesSelectionAlgo = leaveRequests[key].queryNodesSelectionAlgo;
     std::map<OverlayKey, int>::iterator it=leaveRequests[key].queryNodesSelectionAlgo.begin();
@@ -1521,8 +1520,9 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
         }
 
         // 2) Replace the child with this newly selected parent (children list)
-        NodeVector newChildren = children[key].getNodeVector();
-        NodeVector::iterator pos=newChildren.begin();
+        set<NodeHandle> newChildren = children[key].getChildren();
+
+        set<NodeHandle>::iterator pos=newChildren.begin();
         for (; pos!=newChildren.end(); ++pos) {
             if ((*pos).getKey() == (*it).first) break;
         }
@@ -1536,28 +1536,32 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
         NodeHandle oldNode = newNode.getHandle();
         // children.erase(key);
         newNode.setHandle(newHandle);
-        newNode.setNodeVector(newChildren);
+        newNode.setChildren(newChildren);
         children[newHandle.getKey()] = newNode;
 
 
         // 3) Inform the newParent about its children
         HResponsibilityAsParentCall *mrpc = new HResponsibilityAsParentCall();
         mrpc->setChildrenArraySize(newChildren.size());
-        for (size_t i=0; i<newChildren.size(); ++i) {
-            mrpc->setChildren(i, newChildren[i]);
+
+        int i=0;
+        for (set<NodeHandle>::iterator iter=newChildren.begin(); iter!=newChildren.end(); ++iter,++i) {
+            mrpc->setChildren(i, *iter);
         }
+
         mrpc->setParent(thisNode);
         mrpc->setBitLength(HRESPONSIBILITYASPARENTCALL_L(mrpc));
         sendRouteRpcCall(OVERLAY_COMP, oldNode, mrpc);
 
         // 4) Inform children about the new parent
         // TODO what about the successor & predecessor
-        for (size_t i=0; i<newChildren.size(); ++i) {
+        for (set<NodeHandle>::iterator iter=newChildren.begin(); iter!=newChildren.end(); ++iter) {
             HNewParentSelectedCall *msg = new HNewParentSelectedCall();
             msg->setParent(newNode.getHandle());
             msg->setBitLength(HNEWPARENTSELECTEDCALL_L (msg));
-            sendRouteRpcCall(OVERLAY_COMP, newChildren[i], msg);
+            sendRouteRpcCall(OVERLAY_COMP, *iter, msg);
         }
+
         // END BOOK-KEEPING
     } else {
         // Couldn't select a parent for the children,

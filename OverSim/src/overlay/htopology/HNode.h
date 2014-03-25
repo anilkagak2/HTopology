@@ -8,8 +8,10 @@
 #ifndef HNODE_H_
 #define HNODE_H_
 
+#include <algorithm>
 #include <NodeHandle.h>
 #include <NodeVector.h>
+using namespace std;
 
 // specify Node class on the lines of NodeHandle
 class HNode {
@@ -19,7 +21,8 @@ class HNode {
       // Why do we want to keep track of children of some node?
       // We can always go and ask them about their children, right?
       // In case the children fails, it won't be easy to find out all its children [right?]
-      NodeVector children;
+      //NodeVector children;
+      set<NodeHandle> children;
       // some more properties of a node should be kept here
 
   public://construction
@@ -141,10 +144,12 @@ class HNode {
        */
       const OverlayKey getKey() const;
       const NodeHandle getHandle() const;
-      const NodeVector getNodeVector () const;
+      const set<NodeHandle> getChildren () const;
+      //const NodeVector getNodeVector () const;
 
       void setHandle (NodeHandle handle);
-      void setNodeVector (NodeVector nvector);
+      void setChildren (set<NodeHandle> children);
+      //void setNodeVector (NodeVector nvector);
 
       void addChild(NodeHandle child);
 
