@@ -46,19 +46,31 @@ Define_Module(HTopology);
  *      control sync message from the source node to all the nodes in the overlay]
  *
  * 9) - Fix the rescue mode operations
-        - choose a rescue parent
+        - DONE choose a rescue parent
+        - DONE maintaining our grand-children
+        - DONE MeasurementTime parameter is added to the configuration file
+        - DONE Previous bug detected
+                - was due to randomChurn generator killing the source node
+                    & then failing the assertion in preKillNode [mobilityTimer]
+                     (oldTerminalCount-1 == terminalCount)
+                => we cannot use the randomChurn generator for now [until
+                    then bug is resolved]
+    TODO
         - schedule the deadline segments
+        - Don't accept the leave requests when they are from the leaf nodes
+            [Remove them from your children set]
+        - Plug in the rescue mode call at handleSwitchToRescueMode
+        - Think about the deadline segments & sequencing operation
         - what IF node replacement cann't be done?
         - associate flag with node denoting its failure so that
             parent node don't send unnecessary b/w consuming messages
         - maintaining the segments in the order of their segmentIDs
-        - maintaining our grand-children
         - when a node fails we send the switchToRescueMode & capacity
             calls[but only one should suffice, switchToRescueMode]
     - Start two simulations
         - NO FAILURE [N=1000]
         - RANDOM CHURN [N=1000]
- *
+
  *  STATS
  *      Startup Delay    : Delay between join request issuance & acceptance time
  *      Transfer Delay   : Delay between source & the end node [packet transfer operation]
@@ -923,7 +935,7 @@ void HTopology::selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mr
 
     getParametersForSelectionAlgo(node.getKey());
 
-    // TODO do we need to setup any other parameter?
+    // TODO do we need to setup any other parameter? Check for the #of times this function is called
 }
 
 
@@ -1142,13 +1154,13 @@ void HTopology::handleCapacityResponse (BaseResponseMessage *msg) {
 
     HCapacityResponse *mrpc = (HCapacityResponse*)msg;          // get Response message
     if (mrpc->getParentNode().isUnspecified()) {
-        EV << thisNode << "Got a capacity response but not valid parent handle"
+        cout << thisNode << "Got a capacity response but not valid parent handle"
                 << "from " << mrpc->getSrcNode() << endl;
         return;
     }
 
     if (mrpc->getParentNode().getKey().isUnspecified()) {
-        EV << thisNode << "Got a capacity response but not valid key for parent node"
+        cout << thisNode << "Got a capacity response but not valid key for parent node"
                 << "from " << mrpc->getSrcNode() << endl;
         return;
     }
@@ -1471,6 +1483,10 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
 void HTopology::getParametersForSelectionAlgo (const OverlayKey& key) {
     EV << "getParametersForSelectionAlgo : " << key << endl;
 
+    if (key.isUnspecified()) {
+        cout << "getParametersForSelectionAlgo --> key is unspecified" << endl;
+    }
+
     if (leaveRequests.find(key) == leaveRequests.end()) {
         EV << "some spurious call to getParametersForSelectionAlgo" << endl;
         return;
@@ -1501,6 +1517,10 @@ void HTopology::getParametersForSelectionAlgo (const OverlayKey& key) {
 // 2) Main procedure for deciding the replacement for keyParent
 void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
     EV << "Rest of the selection process for child replacement: " << key << endl;
+    if (key.isUnspecified()) {
+        cout << "goAheadWithRestSelectionProcess --> key is unspecified" << endl;
+    }
+
     if (leaveRequests.find(key) == leaveRequests.end()) {
         EV << "some spurious call to goAheadWithRestSelectionAlgo" << endl;
         return;
@@ -1621,7 +1641,7 @@ void HTopology::handleRescueJoinCall (BaseCallMessage *msg) {
     HRescueJoinCall *mrpc = (HRescueJoinCall *)msg;
     HRescueJoinResponse *rrpc = new HRescueJoinResponse();
     if (rescueCapacity() > 0) {
-        EV << thisNode << ": will be adding node: " << msg->getSrcNode() << ": as child" << endl;
+        EV << thisNode << ": will be adding node: " << mrpc->getSrcNode() << ": as child" << endl;
                 noOfChildren++;
 
         // TODO what happens when this rescue node fails when its in RESCUE_MODE
@@ -1671,6 +1691,7 @@ void HTopology::sendRescueCall() {
             HRescueJoinCall *rescueCall = new HRescueJoinCall();
             rescueCall->setBitLength(HRESCUEJOINCALL_L(rescueCall));
 
+            cout << thisNode << ": Possible rescue parent has rank: " << currentRescueNodes[i].getRank() << endl;
             EV << thisNode << ": Possible rescue parent has rank: " << currentRescueNodes[i].getRank() << endl;
             sendRouteRpcCall (OVERLAY_COMP, currentRescueNodes[i].getHandle(), rescueCall);
             gotARescuer = true;
@@ -1679,6 +1700,7 @@ void HTopology::sendRescueCall() {
     }
 
     if (!gotARescuer) {
+        cout << thisNode << ": Cannot find a rescue parent" << endl;
         EV << thisNode << ": Cannot find a rescue parent" << endl;
     }
 }
@@ -1702,6 +1724,7 @@ void HTopology::selectRescueParent () {
         return;
     }
 
+    cout << thisNode << ": selecting a rescue parent" << endl;
     currentRescueNodes = getRankedRescueNodes();
     sendRescueCall();
 }
@@ -1709,6 +1732,7 @@ void HTopology::selectRescueParent () {
 // returns the RescueNode structures for the ranked rescue nodes
 vector<RescueNode> HTopology::getRankedRescueNodes (){
     // TODO how do we make sure that the parameters are initialized?
+    cout << thisNode << "Getting ranked rescue nodes." << endl;
     vector<RescueNode> rescueNodes;
     for(RescueMapIterator it=ancestors.begin(); it!=ancestors.end(); ++it) {
         rescueNodes.push_back((*it).second);
