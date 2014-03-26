@@ -912,7 +912,8 @@ void HTopology::selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mr
     // Let the parent handle this situation, for now
 
     // NOTE mrpc is NULL in handleRpcTimeout event
-    EV << "Called the select replacement event, and we're back with the functionality." << endl;
+    EV << "Called the select replacement event, and we're back with the functionality."
+            << "Node is : " << node << endl;
 
     HNodeReplacement nreplacement;
     nreplacement.node = node;
@@ -962,6 +963,7 @@ void HTopology::handleRemoveRescueLinkCall (BaseCallMessage *msg) {
         // TODO we can give updates to our rescueLinks about this change [JUST MAKING COMPLICATED :P]
         rescueChildren.erase(mrpc->getSrcNode().getKey());
     }
+    delete msg;
 }
 
 // Your parent's replacement has been found out.
@@ -985,6 +987,7 @@ void HTopology::handleNewParentSelectedCall (BaseCallMessage *msg) {
         sendRouteRpcCall(OVERLAY_COMP, rescueParent.getHandle(), removeRescueLinkCall);
     }
 
+    delete msg;
     // TODO adjust our successor & predecessor ??
 }
 
@@ -1015,6 +1018,7 @@ void HTopology::handleResponsibilityAsParentCall (BaseCallMessage *msg) {
         sendRouteRpcCall(OVERLAY_COMP, mrpc->getChildren(i), getChildrenCall);
     }
 
+    delete msg;
     // do we update our parent about our new children? I Think NO. He already know about them
 }
 
@@ -1078,6 +1082,7 @@ void HTopology::handleSwitchToRescueModeCall (BaseCallMessage *msg) {
 
     // TODO we can send our capacity this way, in response to this message
     modeOfOperation = RESCUE_MODE;
+    delete msg;
 }
 
 void HTopology::handleRegisterInBootstrappingCall (BaseCallMessage *msg) {
@@ -1120,6 +1125,7 @@ void HTopology::handleCapacityCall (BaseCallMessage *msg) {
 
     HCapacityCall *mrpc = (HCapacityCall*)msg;          // get Call message
     HCapacityResponse *rrpc = new HCapacityResponse();  // create response
+    rrpc->setParentNode(parent.getHandle());
     rrpc->setRespondingNode(thisNode);
 
     // TODO the capacity can be decided dynamically, but for now lets use the static version
@@ -1135,6 +1141,18 @@ void HTopology::handleCapacityResponse (BaseResponseMessage *msg) {
     numRecvMessages[ECapacity]++;
 
     HCapacityResponse *mrpc = (HCapacityResponse*)msg;          // get Response message
+    if (mrpc->getParentNode().isUnspecified()) {
+        EV << thisNode << "Got a capacity response but not valid parent handle"
+                << "from " << mrpc->getSrcNode() << endl;
+        return;
+    }
+
+    if (mrpc->getParentNode().getKey().isUnspecified()) {
+        EV << thisNode << "Got a capacity response but not valid key for parent node"
+                << "from " << mrpc->getSrcNode() << endl;
+        return;
+    }
+
     OverlayKey key = mrpc->getParentNode().getKey();
     if (leaveRequests.find(key) == leaveRequests.end()) {
         // TODO NOT QUITE SURE WHAT SHOULD BE DONE?
@@ -1145,8 +1163,12 @@ void HTopology::handleCapacityResponse (BaseResponseMessage *msg) {
     std::map<OverlayKey, int>& queryNodesSelectionAlgo = leaveRequests[key].queryNodesSelectionAlgo;
     size_t responseRequired = leaveRequests[key].responseRequired;
 
-    queryNodesSelectionAlgo[key] = mrpc->getCapacity();
+    // SHOULD HAVE BEEN SOURCE NODE's Key
+    //queryNodesSelectionAlgo[key] = mrpc->getCapacity();
+    queryNodesSelectionAlgo[mrpc->getSrcNode().getKey()] = mrpc->getCapacity();
     if (queryNodesSelectionAlgo.size() == responseRequired) {
+        cout << thisNode << ": leaveReqeusts[key].node : " << leaveRequests[key].node << endl;
+        cout << "Key is " << key << endl;
         goAheadWithRestSelectionProcess (leaveRequests[key].node.getKey());
     }
 }
@@ -1370,7 +1392,7 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
                 for (set<NodeHandle>::iterator it=nodeChildren.begin(); it!=nodeChildren.end(); ++it) {
                     HSwitchToRescueModeCall *switchCall = new HSwitchToRescueModeCall();
                     switchCall->setBitLength(HSWITCHTORESCUEMODECALL_L(switchCall));
-                    sendRouteRpcCall (OVERLAY_COMP, (*it), (*it).getKey(), switchCall);
+                    sendRouteRpcCall (OVERLAY_COMP, (*it), switchCall);
                 }
 
                 //  Select a replacement
@@ -1472,7 +1494,7 @@ void HTopology::getParametersForSelectionAlgo (const OverlayKey& key) {
 
         // send it to the destination
         // TODO Not sure if this is the correct way to do it
-        sendRouteRpcCall (OVERLAY_COMP, node.getKey(), msg);
+        sendRouteRpcCall (OVERLAY_COMP, node, msg);
     }
 }
 
@@ -1494,6 +1516,7 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
     std::map<OverlayKey, int>& queryNodesSelectionAlgo = leaveRequests[key].queryNodesSelectionAlgo;
     std::map<OverlayKey, int>::iterator it=leaveRequests[key].queryNodesSelectionAlgo.begin();
 
+    cout << "Finding out replacement for the key " << key << endl;
     for (; it!=queryNodesSelectionAlgo.end(); ++it) {
         // What else is to be done?
         // Modify the existing next & prev pointers for the replacement's sibling
@@ -1502,6 +1525,7 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
         int capacity = (*it).second;
         // TODO actually one less -> leave itself
         if (capacity >= noOfChildrenToAdd) {
+            cout << "Replacement node's key is " << (*it).first << endl;
             replacementDone = true;
             break;
         }
@@ -1523,9 +1547,17 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
         set<NodeHandle> newChildren = children[key].getChildren();
 
         set<NodeHandle>::iterator pos=newChildren.begin();
+        cout << "Keys are " << endl;
+        for (; pos!=newChildren.end(); ++pos) {
+            cout << (*pos).getKey() << endl;
+        }
+
+        pos=newChildren.begin();
         for (; pos!=newChildren.end(); ++pos) {
             if ((*pos).getKey() == (*it).first) break;
         }
+
+        cout << "pos == newChildren.end() ??" << (pos==newChildren.end()) << endl;
 
         NodeHandle newHandle = *pos;
         if (pos != newChildren.end()) newChildren.erase(pos);
@@ -1566,12 +1598,12 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
     } else {
         // Couldn't select a parent for the children,
         // WHAT's THE FALL BACK OPTION?
+        noOfChildren--;
         EV << "Couldn't select a new node" << endl;
     }
 
     // TODO this we've to do in any case
     children.erase(key);
-    noOfChildren--;
     leaveRequests.erase (key);
     // 1) Get the node's children from the handle
     // 2) Job is to pick a node from this list & make it the new parent & let this propagate till the last level
