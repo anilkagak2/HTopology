@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scave:Analysis xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:scave="http://www.omnetpp.org/omnetpp/scave">
+  <inputs>
+    <inputs name="/OverSim/simulations/results/HStreamingResults/40N-Pareto-7200s/HStreamingChurn-0.sca"/>
+    <inputs name="/OverSim/simulations/results/HStreamingResults/40N-Pareto-7200s/HStreamingChurn-0.vci"/>
+    <inputs name="/OverSim/simulations/results/HStreamingResults/40N-Pareto-7200s/HStreamingChurn-0.vec"/>
+  </inputs>
+  <datasets/>
+  <chartSheets/>
+</scave:Analysis>
