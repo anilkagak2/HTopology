@@ -1,0 +1,68 @@
+file 2260 1393900561                                            
+version 2
+run ARPTest-0-20140304-08:05:52-6604
+attr configname ARPTest
+attr datetime 20140304-08:05:52
+attr experiment ARPTest
+attr inifile omnetpp.ini
+attr iterationvars ""
+attr iterationvars2 $repetition=0
+attr measurement ""
+attr network ARPTest
+attr processid 6604
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+
+vector 158  ARPTest.client.tcp  tcpRcvQueueBytes  ETV
+vector 146  ARPTest.client.tcp  "advertised window"  ETV
+vector 145  ARPTest.client.tcp  "receive window"  ETV
+vector 148  ARPTest.client.tcp  "sent ack"  ETV
+vector 4  ARPTest.client.eth[0].mac  framesSent  ETV
+vector 6  ARPTest.client.eth[0].mac  bytesSent  ETV
+vector 50  ARPTest.switch.mac[0]  framesReceivedOK  ETV
+vector 52  ARPTest.switch.mac[0]  bytesReceivedOK  ETV
+vector 56  ARPTest.switch.mac[0]  framesPassedToHL  ETV
+vector 48  ARPTest.switch.relayUnit  "buffer level"  ETV
+vector 61  ARPTest.switch.mac[1]  framesSent  ETV
+vector 63  ARPTest.switch.mac[1]  bytesSent  ETV
+vector 73  ARPTest.switch.mac[2]  framesSent  ETV
+vector 75  ARPTest.switch.mac[2]  bytesSent  ETV
+vector 85  ARPTest.switch.mac[3]  framesSent  ETV
+vector 87  ARPTest.switch.mac[3]  bytesSent  ETV
+vector 21  ARPTest.host1.eth[0].mac  framesReceivedOK  ETV
+vector 23  ARPTest.host1.eth[0].mac  bytesReceivedOK  ETV
+vector 27  ARPTest.host1.eth[0].mac  framesPassedToHL  ETV
+vector 37  ARPTest.host2.eth[0].mac  framesReceivedOK  ETV
+vector 39  ARPTest.host2.eth[0].mac  bytesReceivedOK  ETV
+vector 43  ARPTest.host2.eth[0].mac  framesPassedToHL  ETV
+vector 106  ARPTest.router.eth[0].mac  framesReceivedOK  ETV
+vector 108  ARPTest.router.eth[0].mac  bytesReceivedOK  ETV
+vector 112  ARPTest.router.eth[0].mac  framesPassedToHL  ETV
+4	1778 18 25 25 1.0000672 1.0000672 1 1 1 1 1
+6	1796 19 25 25 1.0000672 1.0000672 1 64 64 64 4096
+21	1815 19 41 41 1.0001364 1.0001364 1 1 1 1 1
+23	1834 20 41 41 1.0001364 1.0001364 1 64 64 64 4096
+27	1854 19 41 41 1.0001364 1.0001364 1 1 1 1 1
+37	1873 19 42 42 1.0001364 1.0001364 1 1 1 1 1
+39	1892 20 42 42 1.0001364 1.0001364 1 64 64 64 4096
+43	1912 19 42 42 1.0001364 1.0001364 1 1 1 1 1
+48	1931 39 27 28 1.0000672 1.0000692 2 0 64 64 4096
+50	1970 19 26 26 1.0000672 1.0000672 1 1 1 1 1
+52	1989 20 26 26 1.0000672 1.0000672 1 64 64 64 4096
+56	2009 19 26 26 1.0000672 1.0000672 1 1 1 1 1
+61	2028 19 38 38 1.0001364 1.0001364 1 1 1 1 1
+63	2047 20 38 38 1.0001364 1.0001364 1 64 64 64 4096
+73	2067 19 39 39 1.0001364 1.0001364 1 1 1 1 1
+75	2086 20 39 39 1.0001364 1.0001364 1 64 64 64 4096
+85	2106 19 40 40 1.0001364 1.0001364 1 1 1 1 1
+87	2125 20 40 40 1.0001364 1.0001364 1 64 64 64 4096
+106	2145 20 43 43 1.0001364 1.0001364 1 1 1 1 1
+108	2165 21 43 43 1.0001364 1.0001364 1 64 64 64 4096
+112	2186 20 43 43 1.0001364 1.0001364 1 1 1 1 1
+145	2206 15 16 16 1 1 1 7504 7504 7504 56310016
+146	2221 15 16 16 1 1 1 7504 7504 7504 56310016
+148	2236 12 16 16 1 1 1 0 0 0 0
+158	2248 12 16 16 1 1 1 0 0 0 0

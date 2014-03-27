@@ -1,0 +1,68 @@
+version 2
+run ARPTest-0-20140304-08:05:52-6604
+attr configname ARPTest
+attr datetime 20140304-08:05:52
+attr experiment ARPTest
+attr inifile omnetpp.ini
+attr iterationvars ""
+attr iterationvars2 $repetition=0
+attr measurement ""
+attr network ARPTest
+attr processid 6604
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+
+vector 158  ARPTest.client.tcp  tcpRcvQueueBytes  ETV
+vector 146  ARPTest.client.tcp  "advertised window"  ETV
+vector 145  ARPTest.client.tcp  "receive window"  ETV
+vector 148  ARPTest.client.tcp  "sent ack"  ETV
+vector 4  ARPTest.client.eth[0].mac  framesSent  ETV
+vector 6  ARPTest.client.eth[0].mac  bytesSent  ETV
+vector 50  ARPTest.switch.mac[0]  framesReceivedOK  ETV
+vector 52  ARPTest.switch.mac[0]  bytesReceivedOK  ETV
+vector 56  ARPTest.switch.mac[0]  framesPassedToHL  ETV
+vector 48  ARPTest.switch.relayUnit  "buffer level"  ETV
+vector 61  ARPTest.switch.mac[1]  framesSent  ETV
+vector 63  ARPTest.switch.mac[1]  bytesSent  ETV
+vector 73  ARPTest.switch.mac[2]  framesSent  ETV
+vector 75  ARPTest.switch.mac[2]  bytesSent  ETV
+vector 85  ARPTest.switch.mac[3]  framesSent  ETV
+vector 87  ARPTest.switch.mac[3]  bytesSent  ETV
+vector 21  ARPTest.host1.eth[0].mac  framesReceivedOK  ETV
+vector 23  ARPTest.host1.eth[0].mac  bytesReceivedOK  ETV
+vector 27  ARPTest.host1.eth[0].mac  framesPassedToHL  ETV
+vector 37  ARPTest.host2.eth[0].mac  framesReceivedOK  ETV
+vector 39  ARPTest.host2.eth[0].mac  bytesReceivedOK  ETV
+vector 43  ARPTest.host2.eth[0].mac  framesPassedToHL  ETV
+vector 106  ARPTest.router.eth[0].mac  framesReceivedOK  ETV
+vector 108  ARPTest.router.eth[0].mac  bytesReceivedOK  ETV
+vector 112  ARPTest.router.eth[0].mac  framesPassedToHL  ETV
+4	25	1.0000672	1
+6	25	1.0000672	64
+21	41	1.0001364	1
+23	41	1.0001364	64
+27	41	1.0001364	1
+37	42	1.0001364	1
+39	42	1.0001364	64
+43	42	1.0001364	1
+48	27	1.0000672	64
+48	28	1.0000692	0
+50	26	1.0000672	1
+52	26	1.0000672	64
+56	26	1.0000672	1
+61	38	1.0001364	1
+63	38	1.0001364	64
+73	39	1.0001364	1
+75	39	1.0001364	64
+85	40	1.0001364	1
+87	40	1.0001364	64
+106	43	1.0001364	1
+108	43	1.0001364	64
+112	43	1.0001364	1
+145	16	1	7504
+146	16	1	7504
+148	16	1	0
+158	16	1	0

@@ -1,0 +1,60 @@
+file 2770 1393899839                                            
+version 2
+run General-0-20140304-07:53:40-9288
+attr configname General
+attr datetime 20140304-07:53:40
+attr experiment General
+attr inifile basicHTTP.ini
+attr iterationvars ""
+attr iterationvars2 $repetition=0
+attr measurement ""
+attr network NClients
+attr processid 9288
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+
+vector 75  NClients.cli[3].tcp  tcpRcvQueueBytes  ETV
+vector 63  NClients.cli[3].tcp  "advertised window"  ETV
+vector 62  NClients.cli[3].tcp  "receive window"  ETV
+vector 65  NClients.cli[3].tcp  "sent ack"  ETV
+vector 43  NClients.srv.tcp  "rcvd seq"  ETV
+vector 44  NClients.srv.tcp  "rcvd ack"  ETV
+vector 40  NClients.srv.tcp  "advertised window"  ETV
+vector 38  NClients.srv.tcp  "send window"  ETV
+vector 52  NClients.srv.tcp  tcpRcvQueueBytes  ETV
+vector 39  NClients.srv.tcp  "receive window"  ETV
+vector 42  NClients.srv.tcp  "sent ack"  ETV
+vector 66  NClients.cli[3].tcp  "rcvd seq"  ETV
+vector 67  NClients.cli[3].tcp  "rcvd ack"  ETV
+vector 61  NClients.cli[3].tcp  "send window"  ETV
+vector 64  NClients.cli[3].tcp  "sent seq"  ETV
+vector 68  NClients.cli[3].tcp  "unacked bytes"  ETV
+vector 32  NClients.cli[3].ppp[0].queue  "queue length"  ETV
+vector 45  NClients.srv.tcp  "unacked bytes"  ETV
+vector 46  NClients.srv.tcp  "rcvd dupAcks"  ETV
+vector 41  NClients.srv.tcp  "sent seq"  ETV
+vector 36  NClients.srv.ppp[0].queue  "queue length"  ETV
+32	1467 48 70 71 3.936332899909 3.936370499909 2 0 1 1 1
+36	1515 50 129 130 3.937577299909 3.937614899909 2 0 1 1 1
+38	1565 54 31 94 3.936169299909 3.936483699909 2 7504 7504 15008 112620032
+39	1619 83 31 121 3.936169299909 3.937577299909 3 7504 7504 22512 168930048
+40	1702 118 31 121 3.936169299909 3.937577299909 4 991506 991836 3966684 3933645597864
+41	1820 30 121 121 3.937577299909 3.937577299909 1 984043 984043 984043 968340625849
+42	1850 89 31 121 3.936169299909 3.937577299909 3 984002 984332 2952666 2906078908452
+43	1939 88 31 118 3.936169299909 3.937577299909 3 984001 984002 2952005 2904777840009
+44	2027 83 31 118 3.936169299909 3.937577299909 3 0 984043 1968086 1936681251698
+45	2110 51 94 121 3.936483699909 3.937577299909 2 0 536 536 287296
+46	2161 25 118 118 3.937577299909 3.937577299909 1 0 0 0 0
+52	2186 99 31 121 3.936169299909 3.937577299909 4 0 0 0 0
+61	2285 27 59 59 3.936332899909 3.936332899909 1 7504 7504 7504 56310016
+62	2312 80 3 63 3.936005699909 3.936332899909 3 7504 7504 22512 168930048
+63	2392 113 3 63 3.936005699909 3.936332899909 4 7504 991547 2982145 2949552669643
+64	2505 29 63 63 3.936332899909 3.936332899909 1 984002 984002 984002 968259936004
+65	2534 81 3 63 3.936005699909 3.936332899909 3 0 984043 1968086 1936681251698
+66	2615 29 59 59 3.936332899909 3.936332899909 1 984042 984042 984042 968338657764
+67	2644 29 59 59 3.936332899909 3.936332899909 1 984002 984002 984002 968259936004
+68	2673 26 63 63 3.936332899909 3.936332899909 1 330 330 330 108900
+75	2699 71 3 63 3.936005699909 3.936332899909 3 0 0 0 0

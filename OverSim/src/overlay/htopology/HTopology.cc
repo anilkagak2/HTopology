@@ -55,10 +55,10 @@ Define_Module(HTopology);
                      (oldTerminalCount-1 == terminalCount)
                 => we cannot use the randomChurn generator for now [until
                     then bug is resolved]
+        - DONE Don't accept the leave requests when they are from the leaf nodes
+            [Remove them from your children set]
     TODO
         - schedule the deadline segments
-        - Don't accept the leave requests when they are from the leaf nodes
-            [Remove them from your children set]
         - Plug in the rescue mode call at handleSwitchToRescueMode
         - Think about the deadline segments & sequencing operation
         - what IF node replacement cann't be done?
@@ -332,6 +332,9 @@ void HTopology::initializeOverlay(int stage) {
    // self-messages
    packetGenTimer = NULL;
    rescueParametersTimer = NULL;
+
+   // Initialize the variables storing the statistics
+   initializeStats();
 
    EV << thisNode << ": initialized." << std::endl;
 }
@@ -627,7 +630,9 @@ void HTopology::saveStatistics () {
         globalStatistics->recordHistogram("HTopology: StartupTime=JoinAccepted - JoinRequested", (joinAcceptanceTime-joinRequestTime).dbl());
 
         // TODO STAT3 Streaming Startup time for the node
-        globalStatistics->recordHistogram("HTopology: StreamingStartupTime=FirstPacketRecved - JoinRequested", (firstPacketRecvingTime-joinRequestTime).dbl());
+        if (notReceivedPacket == false) {
+            globalStatistics->recordHistogram("HTopology: StreamingStartupTime=FirstPacketRecved - JoinRequested", (firstPacketRecvingTime-joinRequestTime).dbl());
+        }
 
         // TODO STAT4 Number of packets generated at the source node
         globalStatistics->addStdDev("PacketsGeneratedAtSource", numPackets);
@@ -927,6 +932,9 @@ void HTopology::selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mr
     EV << "Called the select replacement event, and we're back with the functionality."
             << "Node is : " << node << endl;
 
+    assert (children.find(node.getKey()) != children.end());        // MY CHILD
+    assert (children[node.getKey()].getChildren().size() > 0);      // NOT LEAF NODE
+
     HNodeReplacement nreplacement;
     nreplacement.node = node;
     nreplacement.mrpc = mrpc;           // NOTE this can be NULL
@@ -962,7 +970,13 @@ void HTopology::handleLeaveCall (BaseCallMessage *msg) {
     }
     else {
         assert(children.find(mrpc->getSrcNode().getKey()) != children.end());
-        selectReplacement(mrpc->getSrcNode(), mrpc);
+
+        // Only children who have children should be replaced => NO LEAF NODES
+        if (children[mrpc->getSrcNode().getKey()].getChildren().size() > 0) {
+            selectReplacement(mrpc->getSrcNode(), mrpc);
+        } else {
+            EV << thisNode << ": A leaf just left me" << mrpc->getSrcNode() << endl;
+        }
     }
 }
 
@@ -1401,14 +1415,18 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
 
                 //  Notify the failure to the children
                 set<NodeHandle> nodeChildren = children[destKey].getChildren();
-                for (set<NodeHandle>::iterator it=nodeChildren.begin(); it!=nodeChildren.end(); ++it) {
-                    HSwitchToRescueModeCall *switchCall = new HSwitchToRescueModeCall();
-                    switchCall->setBitLength(HSWITCHTORESCUEMODECALL_L(switchCall));
-                    sendRouteRpcCall (OVERLAY_COMP, (*it), switchCall);
-                }
+                if (nodeChildren.size() > 0) {
+                    for (set<NodeHandle>::iterator it=nodeChildren.begin(); it!=nodeChildren.end(); ++it) {
+                        HSwitchToRescueModeCall *switchCall = new HSwitchToRescueModeCall();
+                        switchCall->setBitLength(HSWITCHTORESCUEMODECALL_L(switchCall));
+                        sendRouteRpcCall (OVERLAY_COMP, (*it), switchCall);
+                    }
 
-                //  Select a replacement
-                selectReplacement(children[destKey].getHandle(), NULL);
+                    //  Select a replacement
+                    selectReplacement(children[destKey].getHandle(), NULL);
+                } else {
+                    EV << thisNode << ": A leaf just left me" << mrpc->getSrcNode() << endl;
+                }
             }
         }
 

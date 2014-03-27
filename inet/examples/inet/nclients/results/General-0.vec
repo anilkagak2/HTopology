@@ -1,0 +1,86 @@
+version 2
+run General-0-20140304-07:53:40-9288
+attr configname General
+attr datetime 20140304-07:53:40
+attr experiment General
+attr inifile basicHTTP.ini
+attr iterationvars ""
+attr iterationvars2 $repetition=0
+attr measurement ""
+attr network NClients
+attr processid 9288
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+
+vector 75  NClients.cli[3].tcp  tcpRcvQueueBytes  ETV
+vector 63  NClients.cli[3].tcp  "advertised window"  ETV
+vector 62  NClients.cli[3].tcp  "receive window"  ETV
+vector 65  NClients.cli[3].tcp  "sent ack"  ETV
+vector 43  NClients.srv.tcp  "rcvd seq"  ETV
+vector 44  NClients.srv.tcp  "rcvd ack"  ETV
+vector 40  NClients.srv.tcp  "advertised window"  ETV
+vector 38  NClients.srv.tcp  "send window"  ETV
+vector 52  NClients.srv.tcp  tcpRcvQueueBytes  ETV
+vector 39  NClients.srv.tcp  "receive window"  ETV
+vector 42  NClients.srv.tcp  "sent ack"  ETV
+vector 66  NClients.cli[3].tcp  "rcvd seq"  ETV
+vector 67  NClients.cli[3].tcp  "rcvd ack"  ETV
+vector 61  NClients.cli[3].tcp  "send window"  ETV
+vector 64  NClients.cli[3].tcp  "sent seq"  ETV
+vector 68  NClients.cli[3].tcp  "unacked bytes"  ETV
+vector 32  NClients.cli[3].ppp[0].queue  "queue length"  ETV
+vector 45  NClients.srv.tcp  "unacked bytes"  ETV
+vector 46  NClients.srv.tcp  "rcvd dupAcks"  ETV
+vector 41  NClients.srv.tcp  "sent seq"  ETV
+vector 36  NClients.srv.ppp[0].queue  "queue length"  ETV
+32	70	3.936332899909	1
+32	71	3.936370499909	0
+36	129	3.937577299909	1
+36	130	3.937614899909	0
+38	31	3.936169299909	7504
+38	94	3.936483699909	7504
+39	31	3.936169299909	7504
+39	118	3.937577299909	7504
+39	121	3.937577299909	7504
+40	31	3.936169299909	991506
+40	31	3.936169299909	991506
+40	118	3.937577299909	991836
+40	121	3.937577299909	991836
+41	121	3.937577299909	984043
+42	31	3.936169299909	984002
+42	118	3.937577299909	984332
+42	121	3.937577299909	984332
+43	31	3.936169299909	984001
+43	94	3.936483699909	984002
+43	118	3.937577299909	984002
+44	31	3.936169299909	0
+44	94	3.936483699909	984043
+44	118	3.937577299909	984043
+45	94	3.936483699909	0
+45	121	3.937577299909	536
+46	118	3.937577299909	0
+52	31	3.936169299909	0
+52	118	3.937577299909	0
+52	118	3.937577299909	0
+52	121	3.937577299909	0
+61	59	3.936332899909	7504
+62	3	3.936005699909	7504
+62	59	3.936332899909	7504
+62	63	3.936332899909	7504
+63	3	3.936005699909	7504
+63	59	3.936332899909	991547
+63	59	3.936332899909	991547
+63	63	3.936332899909	991547
+64	63	3.936332899909	984002
+65	3	3.936005699909	0
+65	59	3.936332899909	984043
+65	63	3.936332899909	984043
+66	59	3.936332899909	984042
+67	59	3.936332899909	984002
+68	63	3.936332899909	330
+75	3	3.936005699909	0
+75	59	3.936332899909	0
+75	63	3.936332899909	0
