@@ -27,7 +27,7 @@ Define_Module(HTopology);
  * 2) Registering children as bootstrapping nodes when my capacity()==0, fails. [RegisterAsBootstrapNode Call & Response]
  *      FIXED => But this will still not guarantee that tree is balanced.
  * 3) Cleaning up unnecessary code.
- * 4) No AddAsRescueChild request sent. [AddAsRescueChildCall & Response messages]
+ * 4) FIXED No AddAsRescueChild request sent. [AddAsRescueChildCall & Response messages]
  * 5) Record the statistics into user friendly figures.
  *      FIXED => but not quite sure which type of graph should be plotted
  * 6) Change the string size [generate packets with bit rate as that of 360p video or similar]
@@ -57,9 +57,13 @@ Define_Module(HTopology);
                     then bug is resolved]
         - DONE Don't accept the leave requests when they are from the leaf nodes
             [Remove them from your children set]
+        - DONE Plug in the rescue mode call at handleSwitchToRescueMode
+        - DONE Start two simulations
+            - NO FAILURE [N=1000]
+            - RANDOM CHURN [N=1000]
     TODO
+        - check if we fix the bootstrapping after our children fails & we are not in bootstrapping
         - schedule the deadline segments
-        - Plug in the rescue mode call at handleSwitchToRescueMode
         - Think about the deadline segments & sequencing operation
         - what IF node replacement cann't be done?
         - associate flag with node denoting its failure so that
@@ -67,9 +71,6 @@ Define_Module(HTopology);
         - maintaining the segments in the order of their segmentIDs
         - when a node fails we send the switchToRescueMode & capacity
             calls[but only one should suffice, switchToRescueMode]
-    - Start two simulations
-        - NO FAILURE [N=1000]
-        - RANDOM CHURN [N=1000]
 
  *  STATS
  *      Startup Delay    : Delay between join request issuance & acceptance time
@@ -211,7 +212,7 @@ Define_Module(HTopology);
  *               - should be carefully set to a bit higher value than the once currently set
  *      4) Do we need to refresh data in our children parameters, with the help of timers?
  *
- *  TODO enhancements
+ *  DONE enhancements
  *  1) Bootstrapping need to change a bit
  *  2) Remove a node from bootstrap list once it's full & add it's children in the list
  *      => reduces the number of messages exchanged in joining of a new node
@@ -225,7 +226,7 @@ Define_Module(HTopology);
  *             - May be use the SYNC signal sent by the root to all the nodes[so that they can figure out their status in the stream]
  *    DONE  total number of messages sent [divide into all the types we've defined in HMessage.msg file]
  *
- *      TODO parameter estimation shouldn't be done by the root node, anyways there are bugs associated with the current timer
+ *    DONE parameter estimation shouldn't be done by the root node, anyways there are bugs associated with the current timer
  *      number of times parameterEstimation was done.
  *      ranks calculated [average rank available at a node, maximum, minimum & median]
  *      load at a node -> #ofChildren && #ofRescueChildren
