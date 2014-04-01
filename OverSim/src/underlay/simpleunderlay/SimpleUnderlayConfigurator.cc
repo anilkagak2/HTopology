@@ -355,6 +355,7 @@ void SimpleUnderlayConfigurator::preKillNode(NodeType type, TransportAddress* ad
     }
 
     // remove node from bootstrap oracle
+    cout << "Killing " << IPAddressResolver().addressOf(node) << endl;
     globalNodeList->removePeer(IPAddressResolver().addressOf(node));
 
     // put node into the kill list and schedule a message for final removal

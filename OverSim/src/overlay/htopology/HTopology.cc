@@ -263,6 +263,10 @@ bool compareRescueNodes (const RescueNode& L, const RescueNode& R) { return L.ge
 
 
 HTopology::~HTopology(){
+    if (isSource) {
+        cout << "Source node is going out of control" << endl;
+    }
+
     // destroy self timer messages
     cancelAndDelete(packetGenTimer);
     cancelAndDelete(rescueParametersTimer);
@@ -585,7 +589,9 @@ void HTopology::sendSegmentToChildren(HVideoSegment segment) {
 
         sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), (*it).first, videoCall);
     }
-    for (it = rescueChildren.begin(); it != rescueChildren.end(); ++it) {
+    i=0;
+    for (it = rescueChildren.begin(); it != rescueChildren.end(); ++it, ++i) {
+        EV << "Got it : j" << i << endl;
         HVideoSegmentCall *videoCall = new HVideoSegmentCall();
         videoCall->setSegment(segment);
         videoCall->setBitLength(HVIDEOSEGMENTCALL_L(videoCall));
@@ -982,6 +988,10 @@ void HTopology::handleLeaveCall (BaseCallMessage *msg) {
 
 void HTopology::handleRemoveRescueLinkCall (BaseCallMessage *msg) {
     HRemoveRescueLinkCall *mrpc = (HRemoveRescueLinkCall *)msg;
+    if (mrpc->getSrcNode().getKey().isUnspecified()) {
+        cout << thisNode << ": remove rescue link call, unspecified key " << mrpc->getSrcNode() << endl;
+    }
+
     if (rescueChildren.find(mrpc->getSrcNode().getKey()) == rescueChildren.end()) {
         EV << thisNode <<  ": fake remove rescue link call from " << mrpc->getSrcNode() << endl;
     } else {
@@ -1011,6 +1021,9 @@ void HTopology::handleNewParentSelectedCall (BaseCallMessage *msg) {
         HRemoveRescueLinkCall *removeRescueLinkCall = new HRemoveRescueLinkCall();
         removeRescueLinkCall->setBitLength(HREMOVERESCUELINKCALL_L(removeRescueLinkCall));
         sendRouteRpcCall(OVERLAY_COMP, rescueParent.getHandle(), removeRescueLinkCall);
+
+        // Reset the rescue parent to unspecified node
+        rescueParent = HNode::unspecifiedNode;
     }
 
     delete msg;
@@ -1030,6 +1043,16 @@ void HTopology::handleResponsibilityAsParentCall (BaseCallMessage *msg) {
 
     parent.setHandle(mrpc->getParent());
     modeOfOperation = GENERAL_MODE;
+
+    // remove your rescue link from the rescue parent
+    if (!rescueParent.isUnspecified()) {
+        HRemoveRescueLinkCall *removeRescueLinkCall = new HRemoveRescueLinkCall();
+        removeRescueLinkCall->setBitLength(HREMOVERESCUELINKCALL_L(removeRescueLinkCall));
+        sendRouteRpcCall(OVERLAY_COMP, rescueParent.getHandle(), removeRescueLinkCall);
+
+        // Reset the rescue parent to unspecified node
+        rescueParent = HNode::unspecifiedNode;
+    }
 
     // add the children vector into our children set
     for (size_t i=0; i<mrpc->getChildrenArraySize(); ++i, ++noOfChildren) {
@@ -1106,8 +1129,16 @@ void HTopology::handleSwitchToRescueModeCall (BaseCallMessage *msg) {
         return;
     }
 
+    if (modeOfOperation == RESCUE_MODE) {
+        // cout <<thisNode <<": we are already in rescue mode" << endl;
+        EV <<thisNode <<": we are already in rescue mode" << endl;
+        delete msg;
+        return;
+    }
+
     // TODO we can send our capacity this way, in response to this message
     modeOfOperation = RESCUE_MODE;
+    selectRescueParent ();
     delete msg;
 }
 
@@ -1690,8 +1721,10 @@ void HTopology::handleRescueJoinResponse (BaseResponseMessage *msg) {
         rescueParent.setHandle(rescueResponse->getSrcNode());
     } else {
         // remove this node from the current rescue nodes & send the rescue call to a valid node
+        cout << thisNode << ": curr rescue size : " << currentRescueNodes.size() << endl;
         for(vector<RescueNode>::iterator it=currentRescueNodes.begin(); it!=currentRescueNodes.end(); ++it) {
             if ((*it).getHandle() == rescueResponse->getSrcNode()) {
+                cout << thisNode << ": trying to erase rescue possibility  ->" << rescueResponse->getSrcNode() << endl;
                 currentRescueNodes.erase(it);
                 break;
             }
@@ -1709,8 +1742,14 @@ void HTopology::sendRescueCall() {
             HRescueJoinCall *rescueCall = new HRescueJoinCall();
             rescueCall->setBitLength(HRESCUEJOINCALL_L(rescueCall));
 
-            cout << thisNode << ": Possible rescue parent has rank: " << currentRescueNodes[i].getRank() << endl;
+            cout << thisNode << ": Possible rescue parent has rank: " << currentRescueNodes[i].getRank() ;
+            cout << " ->" << currentRescueNodes[i].getHandle() << endl;
             EV << thisNode << ": Possible rescue parent has rank: " << currentRescueNodes[i].getRank() << endl;
+
+            if (currentRescueNodes[i].getHandle().isUnspecified()) {
+                cout << thisNode << ": node is unspecified -> " << currentRescueNodes[i].getHandle() << endl;
+            }
+
             sendRouteRpcCall (OVERLAY_COMP, currentRescueNodes[i].getHandle(), rescueCall);
             gotARescuer = true;
             break;
