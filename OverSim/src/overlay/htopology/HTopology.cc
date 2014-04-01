@@ -280,7 +280,7 @@ void HTopology::initializeStats () {
     memset(numSentMessages, 0, sizeof numSentMessages);
     memset(numRecvMessages, 0, sizeof numRecvMessages);
 
-    notReceivedPacket=true;
+    notReceivedPacket=notJoinedOverlay=true;
     parameterEstimationRounds=numPackets=0;
 }
 
@@ -633,7 +633,9 @@ void HTopology::saveStatistics () {
     // Stats from non-source nodes only makes sense, right?
     if (!isSource) {
         // TODO STAT2 Startup Time for the node
-        globalStatistics->recordHistogram("HTopology: StartupTime=JoinAccepted - JoinRequested", (joinAcceptanceTime-joinRequestTime).dbl());
+        if (notJoinedOverlay == false) {
+            globalStatistics->recordHistogram("HTopology: StartupTime=JoinAccepted - JoinRequested", (joinAcceptanceTime-joinRequestTime).dbl());
+        }
 
         // TODO STAT3 Streaming Startup time for the node
         if (notReceivedPacket == false) {
@@ -887,6 +889,7 @@ void HTopology::handleJoinResponse (BaseResponseMessage *msg) {
 
     HJoinResponse* mrpc = (HJoinResponse*)msg;          // get Response message
     if (mrpc->getJoined() == true) {
+        notJoinedOverlay=false;
         joinAcceptanceTime = simTime();                 // FILL IN THE JOIN ACCEPTANCE TIME
 
         EV << "We got a response from " << mrpc->getSrcNode() << endl;
@@ -1224,8 +1227,10 @@ void HTopology::handleCapacityResponse (BaseResponseMessage *msg) {
     //queryNodesSelectionAlgo[key] = mrpc->getCapacity();
     queryNodesSelectionAlgo[mrpc->getSrcNode().getKey()] = mrpc->getCapacity();
     if (queryNodesSelectionAlgo.size() == responseRequired) {
+#if _HDEBUG_
         cout << thisNode << ": leaveReqeusts[key].node : " << leaveRequests[key].node << endl;
         cout << "Key is " << key << endl;
+#endif
         goAheadWithRestSelectionProcess (leaveRequests[key].node.getKey());
     }
 }
@@ -1585,7 +1590,9 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
     std::map<OverlayKey, int>& queryNodesSelectionAlgo = leaveRequests[key].queryNodesSelectionAlgo;
     std::map<OverlayKey, int>::iterator it=leaveRequests[key].queryNodesSelectionAlgo.begin();
 
+#if _HDEBUG_
     cout << "Finding out replacement for the key " << key << endl;
+#endif
     for (; it!=queryNodesSelectionAlgo.end(); ++it) {
         // What else is to be done?
         // Modify the existing next & prev pointers for the replacement's sibling
@@ -1594,7 +1601,9 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
         int capacity = (*it).second;
         // TODO actually one less -> leave itself
         if (capacity >= noOfChildrenToAdd) {
+#if _HDEBUG_
             cout << "Replacement node's key is " << (*it).first << endl;
+#endif
             replacementDone = true;
             break;
         }
@@ -1616,17 +1625,21 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
         set<NodeHandle> newChildren = children[key].getChildren();
 
         set<NodeHandle>::iterator pos=newChildren.begin();
+#if _HDEBUG_
         cout << "Keys are " << endl;
         for (; pos!=newChildren.end(); ++pos) {
             cout << (*pos).getKey() << endl;
         }
+#endif
 
         pos=newChildren.begin();
         for (; pos!=newChildren.end(); ++pos) {
             if ((*pos).getKey() == (*it).first) break;
         }
 
+#if _HDEBUG_
         cout << "pos == newChildren.end() ??" << (pos==newChildren.end()) << endl;
+#endif
 
         NodeHandle newHandle = *pos;
         if (pos != newChildren.end()) newChildren.erase(pos);
@@ -1721,10 +1734,14 @@ void HTopology::handleRescueJoinResponse (BaseResponseMessage *msg) {
         rescueParent.setHandle(rescueResponse->getSrcNode());
     } else {
         // remove this node from the current rescue nodes & send the rescue call to a valid node
+#if _HDEBUG_
         cout << thisNode << ": curr rescue size : " << currentRescueNodes.size() << endl;
+#endif
         for(vector<RescueNode>::iterator it=currentRescueNodes.begin(); it!=currentRescueNodes.end(); ++it) {
             if ((*it).getHandle() == rescueResponse->getSrcNode()) {
+#if _HDEBUG_
                 cout << thisNode << ": trying to erase rescue possibility  ->" << rescueResponse->getSrcNode() << endl;
+#endif
                 currentRescueNodes.erase(it);
                 break;
             }
@@ -1742,8 +1759,10 @@ void HTopology::sendRescueCall() {
             HRescueJoinCall *rescueCall = new HRescueJoinCall();
             rescueCall->setBitLength(HRESCUEJOINCALL_L(rescueCall));
 
+#if _HDEBUG_
             cout << thisNode << ": Possible rescue parent has rank: " << currentRescueNodes[i].getRank() ;
             cout << " ->" << currentRescueNodes[i].getHandle() << endl;
+#endif
             EV << thisNode << ": Possible rescue parent has rank: " << currentRescueNodes[i].getRank() << endl;
 
             if (currentRescueNodes[i].getHandle().isUnspecified()) {
@@ -1757,7 +1776,9 @@ void HTopology::sendRescueCall() {
     }
 
     if (!gotARescuer) {
+#if _HDEBUG_
         cout << thisNode << ": Cannot find a rescue parent" << endl;
+#endif
         EV << thisNode << ": Cannot find a rescue parent" << endl;
     }
 }
@@ -1781,7 +1802,9 @@ void HTopology::selectRescueParent () {
         return;
     }
 
+#if _HDEBUG_
     cout << thisNode << ": selecting a rescue parent" << endl;
+#endif
     currentRescueNodes = getRankedRescueNodes();
     sendRescueCall();
 }
@@ -1789,7 +1812,9 @@ void HTopology::selectRescueParent () {
 // returns the RescueNode structures for the ranked rescue nodes
 vector<RescueNode> HTopology::getRankedRescueNodes (){
     // TODO how do we make sure that the parameters are initialized?
+#if _HDEBUG_
     cout << thisNode << "Getting ranked rescue nodes." << endl;
+#endif
     vector<RescueNode> rescueNodes;
     for(RescueMapIterator it=ancestors.begin(); it!=ancestors.end(); ++it) {
         rescueNodes.push_back((*it).second);

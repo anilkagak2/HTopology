@@ -1,0 +1,24 @@
+=================================== Target =====================================================
+           Low Startup delay <= 2s
+           Low End-To-End delay
+           Low Control Overhead??
+============================== End  Target =====================================================
+
+
+Comparison between different overlays:
+       Topology        Startup Delay       Transfer Delay  ControlOverhead     HeightOfTree    ContinuityIndex     HopCount[Transfer]
+       Coolstreaming   60s                                 1.6%
+       Anysee          20s                 200ms           1.0%                7[at max]
+       Anysee2
+
+Comparison between different configurations of HTopology
+=================================== Results ====================================================
+       values = (mean, deviation, min, max)
+       
+Configuration	Startup							StreamStartup					TransferDelay						ContinuityIndex
+100N-Pareto		(0.182, 0.168, 0.008, 0.775)	(1.021, 0.348, 0.294, 1.925)	(1.1486, 0.4175, 0.1786, 2.5218)
+100N-NoChurn
+1000N-Pareto
+1000N-NoChurn
+       
+=================================== End Results ================================================

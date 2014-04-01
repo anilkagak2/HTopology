@@ -37,6 +37,8 @@ using std::string;
 #define GENERAL_MODE 0
 #define RESCUE_MODE 1
 
+#define _HDEBUG_ 0
+
 #define PARAMETERS_RESPONSE_BUFFER 4
 
 typedef std::map<OverlayKey, HNode> KeyToNodeMap;
@@ -147,7 +149,7 @@ class HTopology : public BaseOverlay {
     long long numSentMessages[MESSAGE_TYPES];
     long long numRecvMessages[MESSAGE_TYPES];
     simtime_t joinRequestTime, joinAcceptanceTime;  // time taken in the joining process
-    bool notReceivedPacket;
+    bool notReceivedPacket, notJoinedOverlay;
     simtime_t firstPacketRecvingTime;               // this - joinRequestTime should give you the startup time for a node
     simtime_t leaveRequestTime, leaveGrantedTime;   // time take in a graceful leave of a node
     long long numPackets;                           // If source => generated, else received
