@@ -18,7 +18,11 @@ Comparison between different configurations of HTopology
 Configuration	Startup							StreamStartup					TransferDelay						ContinuityIndex
 100N-Pareto		(0.182, 0.168, 0.008, 0.775)	(1.021, 0.348, 0.294, 1.925)	(1.1486, 0.4175, 0.1786, 2.5218)
 100N-NoChurn	(0.249, 0.198, 0.006, 1.026)	(1.089, 0.428, 0.252, 1.943)	(1.1577, 0.3583, 0.2151, 2.4378)
-1000N-Pareto
+1000N-Pareto	(0.243, 0.226, 0.002, 2.104)	(5.542, 90.410, 0.193, 2396)	(1.7359, 0.4695, 0.2243, 3.7470)
 1000N-NoChurn	(0.272, 0.262, 0.002, 1.899)	(1.110, 0.443, 0.236, 3.187)	(1.8336, 0.4550, 0.2151, 3.4379)
        
+** There's a certain anamoly in 1000N-Pareto simulation for stream startup time.
+	A possible explanation could be that a node joined the overlay & before receiving any packet its parent went dead.
+	Leaving this guy to search for rescue parent's (& it couldn't find the rescue nodes on time to get the streaming started
+	==> YOUR DEADLINE SEGMENT SCHEDULING SHOULD REMOVE THIS DEFECT, IF NOT SOMETHING's seriously faulty here)
 =================================== End Results ================================================
