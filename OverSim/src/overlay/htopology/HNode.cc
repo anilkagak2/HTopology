@@ -172,6 +172,10 @@ void HNode::addChild(NodeHandle child) {
     //children.add(child);
 }
 
+void HNode::removeChild(NodeHandle child) {
+    children.erase(child);
+}
+
 TransportAddress* HNode::dup() const {
     return new NodeHandle(handle);
 }

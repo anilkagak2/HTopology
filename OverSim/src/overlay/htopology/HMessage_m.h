@@ -30,6 +30,7 @@
         
 #define HREMOVERESCUELINKCALL_L(msg)		BASECALL_L(msg)
 #define HCHILDADDEDCALL_L(msg)				( BASECALL_L(msg) + NODEHANDLE_L )
+#define HCHILDREMOVEDCALL_L(msg)			( BASECALL_L(msg) + NODEHANDLE_L )
         
 #define HGETCHILDRENCALL_L(msg)				( BASECALL_L(msg) + TYPE_L)
 #define HGETCHILDRENRESPONSE_L(msg) 		( BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L) + TYPE_L)
@@ -566,6 +567,44 @@ class HChildAddedCall : public ::BaseCallMessage
 
 inline void doPacking(cCommBuffer *b, HChildAddedCall& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, HChildAddedCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HChildRemovedCall extends BaseCallMessage {
+ *     NodeHandle child;
+ * }
+ * </pre>
+ */
+class HChildRemovedCall : public ::BaseCallMessage
+{
+  protected:
+    NodeHandle child_var;
+
+  private:
+    void copy(const HChildRemovedCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HChildRemovedCall&);
+
+  public:
+    HChildRemovedCall(const char *name=NULL, int kind=0);
+    HChildRemovedCall(const HChildRemovedCall& other);
+    virtual ~HChildRemovedCall();
+    HChildRemovedCall& operator=(const HChildRemovedCall& other);
+    virtual HChildRemovedCall *dup() const {return new HChildRemovedCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual NodeHandle& getChild();
+    virtual const NodeHandle& getChild() const {return const_cast<HChildRemovedCall*>(this)->getChild();}
+    virtual void setChild(const NodeHandle& child);
+};
+
+inline void doPacking(cCommBuffer *b, HChildRemovedCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HChildRemovedCall& obj) {obj.parsimUnpack(b);}
 
 /**
  * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.

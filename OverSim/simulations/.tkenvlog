@@ -26,3 +26,17 @@ Tcl error: modinsp.cc#756: ptr07A0C5F8 not found
 "graphmodwin_draw_nexteventmarker .ptr05AB7128-2.c ptr07A0C5F8 2"
 
 
+----------------------------------------------------------------------
+
+
+Tcl error: modinsp.cc#237: syntax error in expression "-": premature end of expression
+    while executing
+"expr [lindex $bb 2]-[lindex $bb 0]"
+    (procedure "graphmodwin_adjust_windowsize_and_zoom" line 13)
+    invoked from within
+"graphmodwin_adjust_windowsize_and_zoom $w"
+    (procedure "create_graphicalmodwindow" line 104)
+    invoked from within
+"create_graphicalmodwindow .ptr07A470B0-2 "650x342+104+104:normal""
+
+

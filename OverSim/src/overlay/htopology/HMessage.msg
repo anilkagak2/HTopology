@@ -34,6 +34,7 @@ cplusplus {{
         
 #define HREMOVERESCUELINKCALL_L(msg)		BASECALL_L(msg)
 #define HCHILDADDEDCALL_L(msg)				( BASECALL_L(msg) + NODEHANDLE_L )
+#define HCHILDREMOVEDCALL_L(msg)			( BASECALL_L(msg) + NODEHANDLE_L )
         
 #define HGETCHILDRENCALL_L(msg)				( BASECALL_L(msg) + TYPE_L)
 #define HGETCHILDRENRESPONSE_L(msg) 		( BASERESPONSE_L(msg) + (msg->getChildrenArraySize() * NODEHANDLE_L) + TYPE_L)
@@ -159,6 +160,13 @@ packet HRemoveRescueLinkCall extends BaseCallMessage {
 // Inform our parent that we've added a new node as our child
 //
 packet HChildAddedCall extends BaseCallMessage {
+    NodeHandle child;
+}
+
+//
+// Inform our parent that we've removed a child
+//
+packet HChildRemovedCall extends BaseCallMessage {
     NodeHandle child;
 }
 

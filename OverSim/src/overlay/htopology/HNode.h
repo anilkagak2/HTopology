@@ -157,6 +157,7 @@ class HNode {
       void setIsDead (bool isDead);
 
       void addChild(NodeHandle child);
+      void removeChild(NodeHandle child);
 
       /**
        * indicates if this NodeHandle is specified

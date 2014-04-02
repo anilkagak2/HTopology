@@ -2955,6 +2955,241 @@ void *HChildAddedCallDescriptor::getFieldStructPointer(void *object, int field, 
     }
 }
 
+Register_Class(HChildRemovedCall);
+
+HChildRemovedCall::HChildRemovedCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+}
+
+HChildRemovedCall::HChildRemovedCall(const HChildRemovedCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+HChildRemovedCall::~HChildRemovedCall()
+{
+}
+
+HChildRemovedCall& HChildRemovedCall::operator=(const HChildRemovedCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HChildRemovedCall::copy(const HChildRemovedCall& other)
+{
+    this->child_var = other.child_var;
+}
+
+void HChildRemovedCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+    doPacking(b,this->child_var);
+}
+
+void HChildRemovedCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+    doUnpacking(b,this->child_var);
+}
+
+NodeHandle& HChildRemovedCall::getChild()
+{
+    return child_var;
+}
+
+void HChildRemovedCall::setChild(const NodeHandle& child)
+{
+    this->child_var = child;
+}
+
+class HChildRemovedCallDescriptor : public cClassDescriptor
+{
+  public:
+    HChildRemovedCallDescriptor();
+    virtual ~HChildRemovedCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HChildRemovedCallDescriptor);
+
+HChildRemovedCallDescriptor::HChildRemovedCallDescriptor() : cClassDescriptor("HChildRemovedCall", "BaseCallMessage")
+{
+}
+
+HChildRemovedCallDescriptor::~HChildRemovedCallDescriptor()
+{
+}
+
+bool HChildRemovedCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HChildRemovedCall *>(obj)!=NULL;
+}
+
+const char *HChildRemovedCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HChildRemovedCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+}
+
+unsigned int HChildRemovedCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISCOMPOUND,
+    };
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+}
+
+const char *HChildRemovedCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "child",
+    };
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+}
+
+int HChildRemovedCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='c' && strcmp(fieldName, "child")==0) return base+0;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HChildRemovedCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "NodeHandle",
+    };
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *HChildRemovedCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HChildRemovedCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HChildRemovedCall *pp = (HChildRemovedCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HChildRemovedCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HChildRemovedCall *pp = (HChildRemovedCall *)object; (void)pp;
+    switch (field) {
+        case 0: {std::stringstream out; out << pp->getChild(); return out.str();}
+        default: return "";
+    }
+}
+
+bool HChildRemovedCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HChildRemovedCall *pp = (HChildRemovedCall *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *HChildRemovedCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        "NodeHandle",
+    };
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+}
+
+void *HChildRemovedCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HChildRemovedCall *pp = (HChildRemovedCall *)object; (void)pp;
+    switch (field) {
+        case 0: return (void *)(&pp->getChild()); break;
+        default: return NULL;
+    }
+}
+
 Register_Class(HVideoSegmentCall);
 
 HVideoSegmentCall::HVideoSegmentCall(const char *name, int kind) : BaseCallMessage(name,kind)

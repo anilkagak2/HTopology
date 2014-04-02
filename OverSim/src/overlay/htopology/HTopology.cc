@@ -583,7 +583,7 @@ void HTopology::sendSegmentToChildren(HVideoSegment segment) {
     MapIterator it; int i=0;
     for (it = children.begin(); it != children.end(); ++it, ++i) {
         if ((*it).second.getIsDead() == true) {
-#ifdef _HDEBUG_
+#if _HDEBUG_
             cout << thisNode << ": child dead -> " << (*it).second.getHandle() << endl;
 #endif
             EV << thisNode << ": child dead -> " << (*it).second.getHandle() << endl;
@@ -862,7 +862,7 @@ void HTopology::handleJoinCall (BaseCallMessage *msg) {
             // && care to check if your children are there in the bootstrapping list
             for (MapIterator it=children.begin(); it !=children.end(); ++it) {
                 if ((*it).second.getIsDead() == true) {
-#ifdef _HDEBUG_
+#if _HDEBUG_
                     cout << thisNode << ": child dead in bootstrapping registration -> " << (*it).second.getHandle() << endl;
 #endif
                     EV << thisNode << ": child dead in bootstrapping registration -> " << (*it).second.getHandle() << endl;
@@ -993,13 +993,25 @@ void HTopology::handleLeaveCall (BaseCallMessage *msg) {
          * 3) TODO Choose a rescue parent.
          * */
         modeOfOperation = RESCUE_MODE;
+        // TODO can we do something?
     }
     else {
         assert(children.find(mrpc->getSrcNode().getKey()) != children.end());
 
+        if (parent.isUnspecified() == false) {
+#if _HDEBUG_
+            cout << thisNode << ": sending child removed call to our parent" << children[mrpc->getSrcNode().getKey()].getHandle() << endl;
+#endif
+
+            HChildRemovedCall *childRemoveCall = new HChildRemovedCall();
+            childRemoveCall->setChild(mrpc->getSrcNode());
+            childRemoveCall->setBitLength(HCHILDREMOVEDCALL_L(childRemoveCall));
+            sendRouteRpcCall(OVERLAY_COMP, parent.getHandle(), childRemoveCall);
+        }
+
         // Only children who have children should be replaced => NO LEAF NODES
         if (children[mrpc->getSrcNode().getKey()].getChildren().size() > 0) {
-#ifdef _HDEBUG_
+#if _HDEBUG_
             cout << thisNode << ": setting dead ->" << children[mrpc->getSrcNode().getKey()].getHandle() << endl;
 #endif
             children[mrpc->getSrcNode().getKey()].setIsDead(true);      // This node is dead
@@ -1025,7 +1037,7 @@ void HTopology::handleRemoveRescueLinkCall (BaseCallMessage *msg) {
     } else {
         // Remove this rescue child from our list
         // TODO we can give updates to our rescueLinks about this change [JUST MAKING COMPLICATED :P]
-#ifdef _HDEBUG_
+#if _HDEBUG_
         cout << thisNode << ": removing rescue link from rescue child" << mrpc->getSrcNode() << endl;
 #endif
         rescueChildren.erase(mrpc->getSrcNode().getKey());
@@ -1325,6 +1337,20 @@ void HTopology::handleChildAddedCall (BaseCallMessage *msg) {
     delete msg;
 }
 
+void HTopology::handleChildRemovedCall(BaseCallMessage *msg) {
+    HChildAddedCall *mrpc = (HChildAddedCall *)msg;
+    if (children.find(mrpc->getSrcNode().getKey()) == children.end()) {
+        EV << thisNode << ": fake childRemoved call from " << mrpc->getSrcNode() << endl;
+    } else {
+#if _HDEBUG_
+        cout << thisNode << ": remove our grandChild in the set for " << mrpc->getSrcNode() << "->" << mrpc->getChild() << endl;
+#endif
+        EV << thisNode << ": remove our grandChild in the set for " << mrpc->getSrcNode() << "->" << mrpc->getChild() << endl;
+        children[mrpc->getSrcNode().getKey()].removeChild(mrpc->getChild());
+    }
+    delete msg;
+}
+
 void HTopology::handleGetChildrenResponse (BaseResponseMessage *msg) {
     HGetChildrenResponse *childrenResponse = (HGetChildrenResponse*)msg;
     if (childrenResponse->getForGrandChildrenAccumulation()) {
@@ -1447,6 +1473,12 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
         break;
     }
 
+    RPC_ON_CALL(HChildRemoved) {
+        handleChildRemovedCall(msg);
+        RPC_HANDLED = true;
+        break;
+    }
+
     // end the switch
     RPC_SWITCH_END();
 
@@ -1477,6 +1509,18 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
             else {
                 EV << "Node failed is my child: " << children[destKey] << endl;
 
+                // Notify our parent that we've removed a child from our children set
+                if (parent.isUnspecified() == false) {
+#if _HDEBUG_
+                    cout << thisNode << ": sending child removed call to our parent " << children[destKey] << endl;
+#endif
+
+                    HChildRemovedCall *childRemoveCall = new HChildRemovedCall();
+                    childRemoveCall->setChild(mrpc->getSrcNode());
+                    childRemoveCall->setBitLength(HCHILDREMOVEDCALL_L(childRemoveCall));
+                    sendRouteRpcCall(OVERLAY_COMP, parent.getHandle(), childRemoveCall);
+                }
+
                 //  Notify the failure to the children
                 set<NodeHandle> nodeChildren = children[destKey].getChildren();
                 if (nodeChildren.size() > 0) {
@@ -1490,6 +1534,10 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
                     selectReplacement(children[destKey].getHandle(), NULL);
                 } else {
                     EV << thisNode << ": A leaf just left me" << mrpc->getSrcNode() << endl;
+
+                    // TODO may be we can adopt the our grand children
+                    // Remove this leaf node from the children set
+                    children.erase(mrpc->getSrcNode().getKey());
                 }
             }
         }
@@ -1740,7 +1788,7 @@ void HTopology::handleRescueJoinCall (BaseCallMessage *msg) {
         rescueChild.setHandle(mrpc->getSrcNode());
 
         // there shouldn't already be any node with this key
-#ifdef _HDEBUG_
+#if _HDEBUG_
         if (rescueChildren.find(rescueChild.getHandle().getKey()) != rescueChildren.end()) {
             cout << thisNode << ": node already in rescue children set "<<
                     rescueChild.getHandle() << endl;
@@ -1765,7 +1813,7 @@ void HTopology::handleRescueJoinCall (BaseCallMessage *msg) {
 void HTopology::handleRescueJoinResponse (BaseResponseMessage *msg) {
     HRescueJoinResponse *rescueResponse = (HRescueJoinResponse *)msg;
     if (rescueResponse->getJoined() == true) {
-#ifdef _HDEBUG_
+#if _HDEBUG_
         cout << thisNode << ": rescue parent set to " << rescueResponse->getSrcNode() << endl;
 #endif
         rescueParent.setHandle(rescueResponse->getSrcNode());

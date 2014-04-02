@@ -37,7 +37,7 @@ using std::string;
 #define GENERAL_MODE 0
 #define RESCUE_MODE 1
 
-#define _HDEBUG_ 1
+#define _HDEBUG_ 0
 
 #define PARAMETERS_RESPONSE_BUFFER 4
 
@@ -126,6 +126,7 @@ class HTopology : public BaseOverlay {
     void handleRemoveRescueLinkCall (BaseCallMessage *msg);
 
     void handleChildAddedCall (BaseCallMessage *msg);
+    void handleChildRemovedCall(BaseCallMessage *msg);
     void handleGetChildrenResponse (BaseResponseMessage *msg);
 
     /* NodesOneUP */
