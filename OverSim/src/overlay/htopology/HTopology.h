@@ -37,7 +37,7 @@ using std::string;
 #define GENERAL_MODE 0
 #define RESCUE_MODE 1
 
-#define _HDEBUG_ 0
+#define _HDEBUG_ 1
 
 #define PARAMETERS_RESPONSE_BUFFER 4
 

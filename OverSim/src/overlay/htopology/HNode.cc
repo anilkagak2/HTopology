@@ -29,6 +29,7 @@ std::ostream& operator<<(std::ostream& os, const HNode& node) {
 //default-constructor
 HNode::HNode() {
     handle = NodeHandle();
+    isDead = false;
     //children = NodeVector();
 }
 
@@ -36,10 +37,12 @@ HNode::HNode() {
 HNode::HNode ( const HNode& node) {
     handle = node.handle;
     children = node.children;
+    isDead = node.isDead;
 }
 
 HNode::HNode ( const TransportAddress& ta ) {
     handle = NodeHandle (ta);
+    isDead = false;
     //children = NodeVector();
 }
 
@@ -48,10 +51,12 @@ HNode::HNode ( const TransportAddress& ta ) {
 HNode::HNode ( const OverlayKey& key,
               const IPvXAddress& ip, int port ) {
     handle = NodeHandle (key, ip, port);
+    isDead = false;
 }
 
 HNode::HNode( const OverlayKey& key, const TransportAddress& ta ) {
     handle = NodeHandle (key, ta);
+    isDead = false;
 }
 
 
@@ -117,6 +122,10 @@ const set<NodeHandle> HNode::getChildren() const {
     return children;
 }
 
+const bool HNode::getIsDead() const {
+    return isDead;
+}
+
 void HNode::setChildren (set<NodeHandle> children) {
     this->children = children;
 }
@@ -132,6 +141,10 @@ void HNode::setHandle(NodeHandle handle) {
 /*void HNode::setNodeVector (NodeVector nvector) {
     this->children = nvector;
 }*/
+
+void HNode::setIsDead(bool isDead) {
+    this->isDead = isDead;
+}
 
 //private
 inline void HNode::assertUnspecified( const HNode& node) const {

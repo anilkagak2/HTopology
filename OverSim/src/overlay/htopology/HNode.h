@@ -25,6 +25,9 @@ class HNode {
       set<NodeHandle> children;
       // some more properties of a node should be kept here
 
+      // To remove some of the message passing overheads
+      bool isDead;
+
   public://construction
 
       /**
@@ -146,10 +149,12 @@ class HNode {
       const NodeHandle getHandle() const;
       const set<NodeHandle> getChildren () const;
       //const NodeVector getNodeVector () const;
+      const bool getIsDead () const;
 
       void setHandle (NodeHandle handle);
       void setChildren (set<NodeHandle> children);
       //void setNodeVector (NodeVector nvector);
+      void setIsDead (bool isDead);
 
       void addChild(NodeHandle child);
 
