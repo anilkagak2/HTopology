@@ -41,6 +41,9 @@ using std::string;
 
 #define PARAMETERS_RESPONSE_BUFFER 4
 
+// time to buffer after receiving the first video segment
+#define PLAYBACK_BUFFER_TIME 10
+
 typedef std::map<OverlayKey, HNode> KeyToNodeMap;
 typedef KeyToNodeMap::iterator MapIterator;
 
@@ -77,10 +80,16 @@ class HTopology : public BaseOverlay {
     int maxRescueChildren;      // Maximum no. of rescue children to be supported
     double bandwidth;           // Bandwidth present at this node
 
+    int segmentsMissingDeadline;
     // TODO Queue for storing the packets -> source need infinite queue, others need fixed size
-    vector<HVideoSegment> cache;   // video cache
+    vector<HVideoSegment> cache;                // video cache
+    vector<HBufferStatus> cacheStatus;          // Status of the individual buffer elements
+    int playBackSegmentID;                      // Denotes the start of the buffer
+
+    // denotes the end of the buffer
     int cachePointer;       // pointer to the cache
-    int segmentID;          // segmentID to start with
+
+    int segmentID;          // segmentID to start with [for source -> starts assigning the segments with this id]
     int bufferMapSize;      // size of the local buffer
     int joinRetry;          // Maximum no. of tries in joining the overlay
 
@@ -94,8 +103,11 @@ class HTopology : public BaseOverlay {
     // store the segment in your cache & distribute
     void handleVideoSegment (BaseCallMessage *msg);
     void sendSegmentToChildren(HVideoSegment segment);
+
+    // Timer Handlers
     void handlePacketGenerationTimer (cMessage *msg);
     void handleRescueParametersEstimationTimer (cMessage *msg);
+    void handlePlayBackTimer (cMessage *msg);
 
     void handleJoinCall (BaseCallMessage *msg);
     void handleJoinResponse (BaseResponseMessage *msg);
@@ -139,8 +151,10 @@ class HTopology : public BaseOverlay {
     // timer messages
     cMessage *packetGenTimer;
     cMessage *rescueParametersTimer;
+    cMessage *playBackTimer, *deadlineSegmentsScheduleTimer;
+
+
     //cMessage *childrenParametersTimer;
-    //cMessage *deadlineTimer;
     double joinDelay;
     int videoBitRate;
     double packetGenRate;

@@ -13,6 +13,13 @@ using std::string;
 // # of messages supported by HTopology
 #define MESSAGE_TYPES 11
 
+struct HBufferStatus {
+    bool isScheduled;
+    bool occupied;
+};
+
+const HBufferStatus statusZero = {false, false};
+
 /*
  * Below given type are for Call messages
  * Response are of the following type

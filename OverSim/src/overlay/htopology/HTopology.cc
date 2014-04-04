@@ -72,6 +72,23 @@ Define_Module(HTopology);
         - when a node fails we send the switchToRescueMode & capacity
             calls[but only one should suffice, switchToRescueMode]
 
+        - Declare DEADLINE_SEGMENTS_SCHEDULE_TIMER, PLAY_BACK_TIMER
+        - Initialize both of them when you receive the first video segment. This denotes the start index of the packets will begin streaming from
+            & will consider the segments after this time only.
+        - PLAY_BACK_TIMER is supposed to run at 1s boundary after you've received first 10 packets
+            - It'll check if the required packet is available in buffer -> remove it
+            - If it's not present => increment the #ofPacketsMissingDeadline
+            - Reschedule it after 1s
+        - DEADLINE_SEGMENTS_SCHEDULE_TIMER will run every Xs to ensure that deadline segments are scheduled properly [better continuity index]
+            - Will schedule Y #ofSegments approaching deadline [not the ones expected to be delivered by TREE] from different sources
+                [if we ask a single node => we increase the load on one node && if that node fails we increase the chances of not delivering the
+                deadline segments]
+            - This should be running in RESCUE_MODE
+            - Source node will definitely deliver the packets to all these nodes
+            - Our source will keep all the packets starting from the time [But that may exceed the space available to us]
+                - Lets remove packets which are definitely not required by anybody. [current-100th packet]
+        - MESH-TREE SEGMENT POINTERS [do they overlap more often than not?]
+
  *  STATS
  *      Startup Delay    : Delay between join request issuance & acceptance time
  *      Transfer Delay   : Delay between source & the end node [packet transfer operation]
@@ -321,6 +338,11 @@ void HTopology::initializeOverlay(int stage) {
    initializedRescueRanks = false;
 
    cache.resize(bufferMapSize);            // Resize the buffer map to fit the given requirement
+   cacheStatus.resize(bufferMapSize, statusZero);
+
+   // segment id to watch out for
+   playBackSegmentID=0;
+
    cachePointer = 0;
    segmentID = 0;
 
@@ -337,6 +359,8 @@ void HTopology::initializeOverlay(int stage) {
    // self-messages
    packetGenTimer = NULL;
    rescueParametersTimer = NULL;
+   playBackTimer = deadlineSegmentsScheduleTimer = NULL;
+   segmentsMissingDeadline=0;
 
    // Initialize the variables storing the statistics
    initializeStats();
@@ -505,6 +529,11 @@ void HTopology::handleTimerEvent(cMessage* msg) {
         EV << "rescue parameters estimation timer" << endl;
         handleRescueParametersEstimationTimer (msg);
     }
+    // Play the stream :P
+    else if (msg == playBackTimer) {
+        EV << thisNode << ": play back timer" << endl;
+        handlePlayBackTimer (msg);
+    }
     // unknown self message
     else {
         EV << "Unknown Message is: " << msg->getClassName() << endl;
@@ -559,8 +588,53 @@ void HTopology::handlePacketGenerationTimer(cMessage* msg) {
     sendSegmentToChildren(segment);
 }
 
+void HTopology::handlePlayBackTimer (cMessage *msg) {
+    // schedule at the same rate as the packet generation rate
+    scheduleTimer(playBackTimer, packetGenRate);
+
+    /* PLAYBACK FUNCTION */
+    if (!cacheStatus[playBackSegmentID].occupied) {
+        // This segment's deadline is over & we've not received the packet
+        segmentsMissingDeadline++;
+    } else {
+        EV << thisNode << ": playing the segment with id -> " << cache[playBackSegmentID].segmentID << endl;
+    }
+    // reset the cacheStatus
+    cacheStatus[playBackSegmentID] = statusZero;
+    /* END PLAYBACK FUNCTION */
+
+
+    /* DEADLINE SEGMENT SCHEDULING */
+
+
+    /* INCREMENT THE PLAYBACK COUNTER */
+    playBackSegmentID++;
+    playBackSegmentID %= bufferMapSize;
+
+    // TODO
+    /*
+     * -- PLAYBACK FUNCTION
+     * -> buffer search for startSegmentID
+     * -> if not found -> increment the count of segments missing deadline
+     * -> if found -> remove it from the buffer
+     * -> startSegmentID++
+     *
+     * -- DEADLINE SEGMENT SCHEDULING
+     * -> startSegmentID = next one to be scheduled [if this is not in the array, we cann't bring this in without missing the deadline]
+     * -> highest id delivered by the tree => endSegmentID
+     * --- Find out all the missing ids between the two & if not already scheduled, schedule them
+     * --- If the difference between cachePointer & playBackPointer is not >= 5 --> we should consider scheduling 5 segments now [different
+     *          nodes]
+     *
+     * TODO only after the basic model is working
+     * -- For source node --> after it delivers 100th packet, remove a packet from the beginning each time a new packet is delivered
+     *      Source should keep more packets than others
+     * */
+}
+
 // NOTE you might want to check the amount of time this function takes to execute
 HVideoSegment HTopology::generateVideoSegment () {
+    assert (isSource == true);          // Only source should generate the packet
     EV << "Generating a new video segment" << endl;
     string msg(SEGMENT_SIZE-100,'M');
 
@@ -612,12 +686,16 @@ void HTopology::sendSegmentToChildren(HVideoSegment segment) {
 // store the segment in your cache & distribute
 void HTopology::handleVideoSegment (BaseCallMessage *msg) {
     numSentMessages[EVideoSegment]++;
+    HVideoSegmentCall *mrpc = (HVideoSegmentCall *)msg;
     if (notReceivedPacket) {
         firstPacketRecvingTime = simTime();
         notReceivedPacket = false;
-    }
 
-    HVideoSegmentCall *mrpc = (HVideoSegmentCall *)msg;
+        // Set the play back timer
+        // playBackSegmentID = mrpc->getSegment().segmentID;   // Will start the video with this segment TODO not required anymore
+        playBackTimer = new cMessage("play_back_timer");
+        scheduleTimer(playBackTimer, PLAYBACK_BUFFER_TIME);
+    }
 
     EV << thisNode << ": received " << mrpc->getSegment().videoSegment
             << ": from -> " << mrpc->getSrcNode() << endl;
@@ -1150,6 +1228,7 @@ void HTopology::addSegmentToCache (HVideoSegment& videoSegment) {
                 << ": cacheFull and setting the cachePointer back to 0" << endl;
     }
 
+    cacheStatus[cachePointer].occupied=true;    // fix the slot for this video packet
     cache[cachePointer++] = videoSegment;
 }
 
