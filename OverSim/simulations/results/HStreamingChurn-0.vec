@@ -1,14 +1,14 @@
 version 2
-run HStreamingChurn-0-20140404-23:09:00-8256
+run HStreamingChurn-0-20140405-01:24:14-5348
 attr configname HStreamingChurn
-attr datetime 20140404-23:09:00
+attr datetime 20140405-01:24:14
 attr experiment HStreamingChurn
 attr inifile htopology.ini
 attr iterationvars ""
 attr iterationvars2 $repetition=0
 attr measurement ""
 attr network oversim.underlay.simpleunderlay.SimpleUnderlayNetwork
-attr processid 8256
+attr processid 5348
 attr repetition 0
 attr replication #0
 attr resultdir results

@@ -337,13 +337,9 @@ void HTopology::initializeOverlay(int stage) {
 
    initializedRescueRanks = false;
 
-   cache.resize(bufferMapSize);            // Resize the buffer map to fit the given requirement
-   cacheStatus.resize(bufferMapSize, statusZero);
-
    // segment id to watch out for
    playBackSegmentID=0;
 
-   cachePointer = 0;
    segmentID = 0;
 
    EV << "max children is " << maxChildren << endl;
@@ -354,7 +350,6 @@ void HTopology::initializeOverlay(int stage) {
    WATCH(thisNode);
    WATCH(joinRetry);
    WATCH(bootstrapNode);
-   WATCH(cachePointer);
 
    // self-messages
    packetGenTimer = NULL;
@@ -593,23 +588,33 @@ void HTopology::handlePlayBackTimer (cMessage *msg) {
     scheduleTimer(playBackTimer, packetGenRate);
 
     /* PLAYBACK FUNCTION */
-    if (!cacheStatus[playBackSegmentID].occupied) {
+    if (cache.find(playBackSegmentID) == cache.end()) {
         // This segment's deadline is over & we've not received the packet
         segmentsMissingDeadline++;
+
+        // If the packet was in the scheduleCache & we got it from rescue links => we'll put it in the cache => it should not be in scheduleCache
+        if (scheduledCache.find(playBackSegmentID) != scheduledCache.end()) {
+            EV << thisNode << ": had scheduled packet " << playBackSegmentID << endl;
+            scheduledCache.erase(playBackSegmentID);
+        }
     } else {
-        EV << thisNode << ": playing the segment with id -> " << cache[playBackSegmentID].segmentID << endl;
+        EV << thisNode << ": playing the segment with id -> " << cache[playBackSegmentID].segment.segmentID << endl;
+        cache.erase(playBackSegmentID);
     }
-    // reset the cacheStatus
-    cacheStatus[playBackSegmentID] = statusZero;
     /* END PLAYBACK FUNCTION */
 
-
     /* DEADLINE SEGMENT SCHEDULING */
-
+    for (map<int, HCacheElem>::iterator it=scheduledCache.begin(); it!=scheduledCache.end(); ++it) {
+        if ((*it).second.scheduled == false) {
+            EV << thisNode << ": will schedule packet -> " << (*it).first << endl;
+            // TODO schedule this packet
+        } else {
+            EV << thisNode << ": already scheduled the packet " << (*it).first << endl;
+        }
+    }
 
     /* INCREMENT THE PLAYBACK COUNTER */
     playBackSegmentID++;
-    playBackSegmentID %= bufferMapSize;
 
     // TODO
     /*
@@ -692,7 +697,7 @@ void HTopology::handleVideoSegment (BaseCallMessage *msg) {
         notReceivedPacket = false;
 
         // Set the play back timer
-        // playBackSegmentID = mrpc->getSegment().segmentID;   // Will start the video with this segment TODO not required anymore
+        playBackSegmentID = endSegmentID = mrpc->getSegment().segmentID;   // Will start the video with this segment
         playBackTimer = new cMessage("play_back_timer");
         scheduleTimer(playBackTimer, PLAYBACK_BUFFER_TIME);
     }
@@ -1203,10 +1208,8 @@ void HTopology::handleScheduleSegmentsCall (BaseCallMessage *msg) {
     // TODO you can maintain the cache in the form of a heap [stl<map> will be a good thing as it stores in increasing order of keys]
     // TODO optimize this thing
     for (int cnt=0; cnt<count; ++cnt) {
-        for (size_t i=0; i<cache.size(); ++i) {
-            if (cache[i].segmentID == startSegmentID+cnt) {
-                foundSegments.push_back(cache[i]);
-            }
+        if (cache.find(startSegmentID+cnt) != cache.end()) {
+            foundSegments.push_back(cache[startSegmentID+cnt].segment);
         }
     }
 
@@ -1222,14 +1225,28 @@ void HTopology::handleScheduleSegmentsCall (BaseCallMessage *msg) {
 void HTopology::addSegmentToCache (HVideoSegment& videoSegment) {
     // TODO check the buffer functionalities
     // TODO need to maintain the segments in the order of their deadlines [precisely the order of their segmentIDs]
-    if (cachePointer == bufferMapSize-1) {
-        cachePointer=0;    // set pointer to zeroth location
-        EV << thisNode
-                << ": cacheFull and setting the cachePointer back to 0" << endl;
+    HCacheElem cacheElem(videoSegment);
+
+    if (scheduledCache.find(videoSegment.segmentID) != scheduledCache.end()) {
+        EV << thisNode << ": a segment in schedule cache is received " << videoSegment.segmentID << endl;
+        scheduledCache.erase(videoSegment.segmentID);   // Remove from the scheduledCache
+    } else {
+        int newLastSegmentID = videoSegment.segmentID;
+        if (newLastSegmentID > endSegmentID) {
+            EV << thisNode << ": will put segments between " << endSegmentID+1 << " --> " << newLastSegmentID
+                    << " in scheduleCache " << endl;
+            HCacheElem elem;
+            for (int i=endSegmentID+1; i!=newLastSegmentID; ++i) {
+                scheduledCache[i] = elem;
+            }
+
+            // Change the last segment's id to this one
+            endSegmentID = newLastSegmentID;
+        }
     }
 
-    cacheStatus[cachePointer].occupied=true;    // fix the slot for this video packet
-    cache[cachePointer++] = videoSegment;
+    cache[videoSegment.segmentID] = cacheElem;      // Add to the cache
+    // TODO you can use this function as trigger for the deadline segment scheduling
 }
 
 void HTopology::handleScheduleSegmentsResponse (BaseResponseMessage *msg) {

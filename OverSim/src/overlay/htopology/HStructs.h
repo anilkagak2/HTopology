@@ -13,13 +13,6 @@ using std::string;
 // # of messages supported by HTopology
 #define MESSAGE_TYPES 11
 
-struct HBufferStatus {
-    bool isScheduled;
-    bool occupied;
-};
-
-const HBufferStatus statusZero = {false, false};
-
 /*
  * Below given type are for Call messages
  * Response are of the following type
@@ -47,6 +40,8 @@ enum HMessageType {
 
 class HLeaveOverlayCall;
 
+const char _video[SEGMENT_SIZE] = "NO-VIDEO";
+
 struct HVideoSegment {
     char videoSegment[SEGMENT_SIZE];
     int segmentID;
@@ -56,6 +51,26 @@ struct HVideoSegment {
      *      Here it should work, as the simulation environment has the same clock simTime()
      * */
     simtime_t issuanceTime;
+};
+
+struct HCacheElem {
+    HVideoSegment segment;
+    bool scheduled;
+
+    HCacheElem () {
+        strncpy(this->segment.videoSegment, _video, 20);
+        this->scheduled=false;
+    }
+
+    HCacheElem (const HVideoSegment& segment) {
+        this->segment = segment;
+        this->scheduled = false;
+    }
+
+    HCacheElem (const HVideoSegment& segment, bool scheduled) {
+        this->segment = segment;
+        this->scheduled = scheduled;
+    }
 };
 
 // Used to store the parameters required in selecting the node's replacement
