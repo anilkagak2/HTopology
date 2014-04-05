@@ -40,7 +40,7 @@ using std::string;
 
 /*** DEBUG Settings ***/
 #define _HDEBUG_ 0
-#define _CURDEBUG_ 0
+#define _CURDEBUG_ 1
 /*** END DEBUG Settings ***/
 
 #define PARAMETERS_RESPONSE_BUFFER 4
@@ -147,6 +147,7 @@ class HTopology : public BaseOverlay {
     void initializeNodesOneUp ();                   // use the ancestors array to figure out these nodes
     void setNodesOneUp (BaseResponseMessage* msg);  // Set these nodes from the response
 
+    void printProfile ();                           // Prints the profile (state) of the node
     void saveStatistics ();                         // Save the stats recorded in the simulation
 
     // timer messages

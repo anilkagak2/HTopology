@@ -1,15 +1,15 @@
-file 11222 1396702573                                           
+file 11222 1396722778                                           
 version 2
-run HStreamingChurn-0-20140405-18:22:07-7860
+run HStreamingChurn-0-20140405-23:58:45-8716
 attr configname HStreamingChurn
-attr datetime 20140405-18:22:07
+attr datetime 20140405-23:58:45
 attr experiment HStreamingChurn
 attr inifile htopology.ini
 attr iterationvars ""
 attr iterationvars2 $repetition=0
 attr measurement ""
 attr network oversim.underlay.simpleunderlay.SimpleUnderlayNetwork
-attr processid 7860
+attr processid 8716
 attr repetition 0
 attr replication #0
 attr resultdir results

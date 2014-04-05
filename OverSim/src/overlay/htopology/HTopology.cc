@@ -61,35 +61,52 @@ Define_Module(HTopology);
         - DONE Start two simulations
             - NO FAILURE [N=1000]
             - RANDOM CHURN [N=1000]
+        - DONE schedule the deadline segments
+        - DONE Think about the deadline segments & sequencing operation
+        - DONE maintaining the segments in the order of their segmentIDs
+        - DONE associate flag with node denoting its failure so that
+                parent node don't send unnecessary b/w consuming messages
+
     TODO
         - check if we fix the bootstrapping after our children fails & we are not in bootstrapping
-        - schedule the deadline segments
-        - Think about the deadline segments & sequencing operation
         - what IF node replacement cann't be done?
-        - associate flag with node denoting its failure so that
-            parent node don't send unnecessary b/w consuming messages
-        - maintaining the segments in the order of their segmentIDs
+        - what happens when a node fails while selecting replacement for its child?
+        - what happens when rescue parent fails?
+        - Tree height is also not optimal right now (concerned with bootstrapping & treeHeightOptimization)
+            - height adjustment like in AVL tree [height balancing] or Red-Black trees?
+        - Improve the ranking factors
+            - Ranking (for the time being, assume to be a linear function of these parameters with some weights
+                 which need to derived (experimentally or heuristically))
+        - How can we keep updated info. on rescue nodes [Need some kind of updation]
+            - Parent changed
+            - grand parent
+            - Rescue node [we've had good relation with some node, previously it granted me access]
+            - Children updated
+            - Do we need random pointers in the tree?
+        - Node got a parent & then parent fails ==> Rescue set is empty ==> ??
         - when a node fails we send the switchToRescueMode & capacity
             calls[but only one should suffice, switchToRescueMode]
 
-        - Declare DEADLINE_SEGMENTS_SCHEDULE_TIMER, PLAY_BACK_TIMER
-        - Initialize both of them when you receive the first video segment. This denotes the start index of the packets will begin streaming from
+    ** PlayBack && Deadline scheduling **
+        - DONE Declare PLAY_BACK_TIMER
+        - DONE Initialize both of them when you receive the first video segment. This denotes the start index of the packets will begin streaming from
             & will consider the segments after this time only.
-        - PLAY_BACK_TIMER is supposed to run at 1s boundary after you've received first 10 packets
+        - DONE Both playback & deadline sequencing is done at the same point of contact PlayBackTimer handler
+        - DONE PLAY_BACK_TIMER is supposed to run at 1s boundary after you've received first 10 packets
             - It'll check if the required packet is available in buffer -> remove it
             - If it's not present => increment the #ofPacketsMissingDeadline
             - Reschedule it after 1s
-        - DEADLINE_SEGMENTS_SCHEDULE_TIMER will run every Xs to ensure that deadline segments are scheduled properly [better continuity index]
+        -DONE DEADLINE_SEGMENTS_SCHEDULE_TIMER will run every Xs to ensure that deadline segments are scheduled properly [better continuity index]
             - Will schedule Y #ofSegments approaching deadline [not the ones expected to be delivered by TREE] from different sources
                 [if we ask a single node => we increase the load on one node && if that node fails we increase the chances of not delivering the
                 deadline segments]
             - This should be running in RESCUE_MODE
-            - Source node will definitely deliver the packets to all these nodes
-            - Our source will keep all the packets starting from the time [But that may exceed the space available to us]
+           TODO - Source node will definitely deliver the packets to all these nodes
+           TODO - Our source will keep all the packets starting from the time [But that may exceed the space available to us]
                 - Lets remove packets which are definitely not required by anybody. [current-100th packet]
         - MESH-TREE SEGMENT POINTERS [do they overlap more often than not?]
 
- *  STATS
+     ** STATS **
  *      Startup Delay    : Delay between join request issuance & acceptance time
  *      Transfer Delay   : Delay between source & the end node [packet transfer operation]
  *      Control Overhead : Control traffic volume / Video traffic volume at each node
@@ -154,11 +171,7 @@ Define_Module(HTopology);
  *
  *          Periodically gather information about these parameters from the potentially rescue nodes
  *
- *  TODO Improve the ranking factors
- *          Ranking (for the time being, assume to be a linear function of these parameters with some weights
- *              which need to derived (experimentally or heuristically))
  *
- *  TODO Tree height is also not optimal right now (concerned with bootstrapping & treeHeightOptimization)
  *
  * 1) DONE Generate Packets
  * 2) DONE Schedule them, transfer them to children & rescue nodes
@@ -609,6 +622,9 @@ void HTopology::handlePlayBackTimer (cMessage *msg) {
         if (rankedNodes.size() > 0) {
             for (map<int, HCacheElem>::iterator it=scheduledCache.begin(); it!=scheduledCache.end(); ++it) {
                 if ((*it).second.scheduled == false) {
+#if _HDEBUG_
+                    cout << thisNode << ": will schedule packet -> " << (*it).first << endl;
+#endif
                     EV << thisNode << ": will schedule packet -> " << (*it).first << endl;
 
                     // Prepare the function call
@@ -740,6 +756,17 @@ void HTopology::handleVideoSegment (BaseCallMessage *msg) {
     sendRpcResponse(mrpc, rrpc);
 }
 
+void HTopology::printProfile () {
+#if _CURDEBUG_
+    cout << thisNode << ": profile " << endl;
+    cout << "\t SegmentsMissing deadline = " << segmentsMissingDeadline << endl;
+    cout << "\t TimeInOverlay = " << (simTime() - joinRequestTime).dbl() << endl;
+    cout << "\t Parent = " << parent.getHandle() << endl;
+    cout << "\t #Of Children = " << children.size() << endl;
+    cout << "\t Size of rescue set = " << rescueChildren.size() << endl;
+#endif
+}
+
 // Save the statistics recorded in the simulation
 void HTopology::saveStatistics () {
     // Stats from non-source nodes only makes sense, right?
@@ -749,21 +776,29 @@ void HTopology::saveStatistics () {
             globalStatistics->recordHistogram("HTopology: StartupTime=JoinAccepted - JoinRequested", (joinAcceptanceTime-joinRequestTime).dbl());
         }
 
-        // TODO STAT3 Streaming Startup time for the node
         if (notReceivedPacket == false) {
+            // TODO STAT3 Streaming Startup time for the node
             globalStatistics->recordHistogram("HTopology: StreamingStartupTime=FirstPacketRecved - JoinRequested", (firstPacketRecvingTime-joinRequestTime).dbl());
+
+            // TODO STAT4 Segments missing their deadline [For Continuity Index]
+            globalStatistics->recordHistogram("HTopology: SegmentsMissingDeadline", segmentsMissingDeadline);
         }
 
-        // TODO STAT4 Number of packets generated at the source node
+        // TODO STAT5 Number of packets generated at the source node
         globalStatistics->addStdDev("PacketsGeneratedAtSource", numPackets);
 
-        // TODO STAT5 Number of parameter estimation rounds
+        // TODO STAT6 Number of parameter estimation rounds
         globalStatistics->addStdDev("ParametersEstimationRounds", parameterEstimationRounds);
 
         // TODO # Of VideoSegment Sent & Received
         globalStatistics->recordHistogram("VideoSegmentSent", numSentMessages[EVideoSegment]);
         globalStatistics->recordHistogram("VideoSegmentReceived", numRecvMessages[EVideoSegment]);
+    } else {
+        // TODO STAT7 Total #of packets generated the source node
+        globalStatistics->recordHistogram("Packets Generated at source", segmentID+1);
     }
+
+    printProfile();
 }
 
 // Called when the module is about to be destroyed
@@ -1064,7 +1099,7 @@ void HTopology::selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mr
     assert (children.find(node.getKey()) != children.end());        // MY CHILD
     assert (children[node.getKey()].getChildren().size() > 0);      // NOT LEAF NODE
 
-#if _CURDEBUG_
+#if _HDEBUG_
     cout << thisNode << ": selecting replacement for " << node << endl;
 #endif
 
@@ -1191,7 +1226,7 @@ void HTopology::handleResponsibilityAsParentCall (BaseCallMessage *msg) {
 
     // Ideally this node should also be acting in rescue mode
     // TODO may change when we change repair strategy
-#if _CURDEBUG_
+#if _HDEBUG_
     cout << thisNode << ": being selected as replacement for my parent " << parent.getHandle() << endl;
     if (modeOfOperation == GENERAL_MODE) {
         cout << " I'm in general mode of operation." << endl;
@@ -1290,6 +1325,21 @@ void HTopology::handleScheduleSegmentsResponse (BaseResponseMessage *msg) {
 
     HScheduleSegmentsResponse *scheduleResponse = (HScheduleSegmentsResponse *)msg;
     int N=scheduleResponse->getSegmentsArraySize();
+    if (N>0) {
+        if (notReceivedPacket) {
+#if _CURDEBUG_
+            cout << thisNode << ": receiving the first packet via schedule call packetNo -> " << scheduleResponse->getSegments(0).segmentID << endl;
+#endif
+            firstPacketRecvingTime = simTime();
+            notReceivedPacket = false;
+
+            // Set the play back timer
+            playBackSegmentID = endSegmentID = scheduleResponse->getSegments(0).segmentID;   // Will start the video with this segment
+            playBackTimer = new cMessage("play_back_timer");
+            scheduleTimer(playBackTimer, PLAYBACK_BUFFER_TIME);
+        }
+    }
+
     for (int i=0; i<N; ++i) {
         addSegmentToCache(scheduleResponse->getSegments(i));
     }
@@ -1667,7 +1717,7 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
                         sendRouteRpcCall (OVERLAY_COMP, (*it), switchCall);
                     }
 
-#if _CURDEBUG_
+#if _HDEBUG_
                     cout << thisNode << ": selecting replacement for " << children[destKey].getHandle() << endl;
                     cout << "from the following nodes " << endl;
                     for (set<NodeHandle>::iterator it=nodeChildren.begin(); it!=nodeChildren.end(); ++it) {
