@@ -604,12 +604,32 @@ void HTopology::handlePlayBackTimer (cMessage *msg) {
     /* END PLAYBACK FUNCTION */
 
     /* DEADLINE SEGMENT SCHEDULING */
-    for (map<int, HCacheElem>::iterator it=scheduledCache.begin(); it!=scheduledCache.end(); ++it) {
-        if ((*it).second.scheduled == false) {
-            EV << thisNode << ": will schedule packet -> " << (*it).first << endl;
-            // TODO schedule this packet
-        } else {
-            EV << thisNode << ": already scheduled the packet " << (*it).first << endl;
+    if (scheduledCache.size() > 0) {
+        vector<NodeHandle> rankedNodes = getRankedRescueNodeHandles();
+        if (rankedNodes.size() > 0) {
+            for (map<int, HCacheElem>::iterator it=scheduledCache.begin(); it!=scheduledCache.end(); ++it) {
+                if ((*it).second.scheduled == false) {
+                    EV << thisNode << ": will schedule packet -> " << (*it).first << endl;
+
+                    // Prepare the function call
+                    HScheduleSegmentsCall *scheduleCall = new HScheduleSegmentsCall();
+                    scheduleCall->setStartSegmentID((*it).first);
+                    scheduleCall->setCount(1);
+                    scheduleCall->setBitLength(HSCHEDULESEGMENTSCALL_L(scheduleCall));
+
+                    // TODO send to the node in the order of priority
+                    // 1) should the bandwidth be of concern too?
+                    // 2) what about the timeRemaining to deadline?
+                    int nodeNo = intuniform(0, rankedNodes.size()-1);
+                    EV << thisNode << ": asked packet " << (*it).first << " from " << rankedNodes[nodeNo] << endl;
+                    sendRouteRpcCall(OVERLAY_COMP, rankedNodes[nodeNo], scheduleCall);
+
+                    // Set the packet to be scheduled
+                    (*it).second.scheduled = true;
+                } else {
+                    EV << thisNode << ": already scheduled the packet " << (*it).first << endl;
+                }
+            }
         }
     }
 
@@ -761,7 +781,7 @@ void HTopology::finishOverlay() {
         for (MapIterator it=children.begin(); it!=children.end(); ++it) {
             HLeaveOverlayCall *leaveCall = new HLeaveOverlayCall();
             leaveCall->setBitLength(HLEAVEOVERLAYCALL_L(leaveCall));
-            sendRouteRpcCall(OVERLAY_COMP, (*it).second.getHandle(), (*it).first, leaveCall);
+            sendRouteRpcCall(OVERLAY_COMP, (*it).second.getHandle(), leaveCall);
         }
 
         // NOTE ideally you should wait till you receive response from your parent
@@ -1044,6 +1064,10 @@ void HTopology::selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mr
     assert (children.find(node.getKey()) != children.end());        // MY CHILD
     assert (children[node.getKey()].getChildren().size() > 0);      // NOT LEAF NODE
 
+#if _CURDEBUG_
+    cout << thisNode << ": selecting replacement for " << node << endl;
+#endif
+
     HNodeReplacement nreplacement;
     nreplacement.node = node;
     nreplacement.mrpc = mrpc;           // NOTE this can be NULL
@@ -1057,6 +1081,7 @@ void HTopology::selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mr
 
 
 void HTopology::handleLeaveCall (BaseCallMessage *msg) {
+    // TODO can there be multiple leave calls from the same node?
     numSentMessages[ELeaveOverlay]++;
     /*
      * If you are the parent of the caller -> find a replacement of the node
@@ -1068,6 +1093,9 @@ void HTopology::handleLeaveCall (BaseCallMessage *msg) {
 
     if (parent.getHandle() == mrpc->getSrcNode()) {
         EV << " My parent is leaving the overlay " << endl;
+#if _HDEBUG_
+        cout << " My parent is leaving the overlay " << endl;
+#endif
 
         /*
          * 1) Go in rescue mode
@@ -1083,7 +1111,7 @@ void HTopology::handleLeaveCall (BaseCallMessage *msg) {
 
         if (parent.isUnspecified() == false) {
 #if _HDEBUG_
-            cout << thisNode << ": sending child removed call to our parent" << children[mrpc->getSrcNode().getKey()].getHandle() << endl;
+            cout << thisNode << ": sending child removed call to our parent " << children[mrpc->getSrcNode().getKey()].getHandle() << endl;
 #endif
 
             HChildRemovedCall *childRemoveCall = new HChildRemovedCall();
@@ -1139,7 +1167,6 @@ void HTopology::handleNewParentSelectedCall (BaseCallMessage *msg) {
     assert (!(mrpc->getParent().isUnspecified()));
 
     parent.setHandle(mrpc->getParent());
-    // TODO get the children of our parent
     modeOfOperation = GENERAL_MODE;
 
     // remove your rescue link from the rescue parent
@@ -1164,6 +1191,15 @@ void HTopology::handleResponsibilityAsParentCall (BaseCallMessage *msg) {
 
     // Ideally this node should also be acting in rescue mode
     // TODO may change when we change repair strategy
+#if _CURDEBUG_
+    cout << thisNode << ": being selected as replacement for my parent " << parent.getHandle() << endl;
+    if (modeOfOperation == GENERAL_MODE) {
+        cout << " I'm in general mode of operation." << endl;
+    } else {
+        cout << " I'm operating in rescue mode" << endl;
+    }
+#endif
+
     assert (modeOfOperation == RESCUE_MODE);
     assert (!(mrpc->getParent().isUnspecified()));
 
@@ -1605,6 +1641,10 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
             else {
                 EV << "Node failed is my child: " << children[destKey] << endl;
 
+#if _HDEBUG_
+                cout << thisNode << ": Node failed is my child: " << children[destKey] << endl;
+#endif
+
                 // Notify our parent that we've removed a child from our children set
                 if (parent.isUnspecified() == false) {
 #if _HDEBUG_
@@ -1612,7 +1652,8 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
 #endif
 
                     HChildRemovedCall *childRemoveCall = new HChildRemovedCall();
-                    childRemoveCall->setChild(mrpc->getSrcNode());
+                    //childRemoveCall->setChild(mrpc->getSrcNode());
+                    childRemoveCall->setChild(children[destKey].getHandle());
                     childRemoveCall->setBitLength(HCHILDREMOVEDCALL_L(childRemoveCall));
                     sendRouteRpcCall(OVERLAY_COMP, parent.getHandle(), childRemoveCall);
                 }
@@ -1626,6 +1667,13 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
                         sendRouteRpcCall (OVERLAY_COMP, (*it), switchCall);
                     }
 
+#if _CURDEBUG_
+                    cout << thisNode << ": selecting replacement for " << children[destKey].getHandle() << endl;
+                    cout << "from the following nodes " << endl;
+                    for (set<NodeHandle>::iterator it=nodeChildren.begin(); it!=nodeChildren.end(); ++it) {
+                         cout << "- " << *it << endl;
+                    }
+#endif
                     //  Select a replacement
                     selectReplacement(children[destKey].getHandle(), NULL);
                 } else {
@@ -1837,7 +1885,8 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
 
         mrpc->setParent(thisNode);
         mrpc->setBitLength(HRESPONSIBILITYASPARENTCALL_L(mrpc));
-        sendRouteRpcCall(OVERLAY_COMP, oldNode, mrpc);
+        // sendRouteRpcCall(OVERLAY_COMP, oldNode, mrpc);  // Definite bug creeping in since no one knows
+        sendRouteRpcCall(OVERLAY_COMP, newHandle, mrpc);
 
         // 4) Inform children about the new parent
         // TODO what about the successor & predecessor

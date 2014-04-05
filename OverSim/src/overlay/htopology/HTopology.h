@@ -38,7 +38,10 @@ using std::string;
 #define GENERAL_MODE 0
 #define RESCUE_MODE 1
 
+/*** DEBUG Settings ***/
 #define _HDEBUG_ 0
+#define _CURDEBUG_ 0
+/*** END DEBUG Settings ***/
 
 #define PARAMETERS_RESPONSE_BUFFER 4
 
