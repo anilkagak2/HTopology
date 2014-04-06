@@ -5333,6 +5333,212 @@ void *HSwitchToRescueModeCallDescriptor::getFieldStructPointer(void *object, int
     }
 }
 
+Register_Class(HDeathAcknowledgementCall);
+
+HDeathAcknowledgementCall::HDeathAcknowledgementCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+}
+
+HDeathAcknowledgementCall::HDeathAcknowledgementCall(const HDeathAcknowledgementCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+HDeathAcknowledgementCall::~HDeathAcknowledgementCall()
+{
+}
+
+HDeathAcknowledgementCall& HDeathAcknowledgementCall::operator=(const HDeathAcknowledgementCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void HDeathAcknowledgementCall::copy(const HDeathAcknowledgementCall& other)
+{
+}
+
+void HDeathAcknowledgementCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+}
+
+void HDeathAcknowledgementCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+}
+
+class HDeathAcknowledgementCallDescriptor : public cClassDescriptor
+{
+  public:
+    HDeathAcknowledgementCallDescriptor();
+    virtual ~HDeathAcknowledgementCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(HDeathAcknowledgementCallDescriptor);
+
+HDeathAcknowledgementCallDescriptor::HDeathAcknowledgementCallDescriptor() : cClassDescriptor("HDeathAcknowledgementCall", "BaseCallMessage")
+{
+}
+
+HDeathAcknowledgementCallDescriptor::~HDeathAcknowledgementCallDescriptor()
+{
+}
+
+bool HDeathAcknowledgementCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<HDeathAcknowledgementCall *>(obj)!=NULL;
+}
+
+const char *HDeathAcknowledgementCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int HDeathAcknowledgementCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
+}
+
+unsigned int HDeathAcknowledgementCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return 0;
+}
+
+const char *HDeathAcknowledgementCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+int HDeathAcknowledgementCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *HDeathAcknowledgementCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+const char *HDeathAcknowledgementCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int HDeathAcknowledgementCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    HDeathAcknowledgementCall *pp = (HDeathAcknowledgementCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string HDeathAcknowledgementCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HDeathAcknowledgementCall *pp = (HDeathAcknowledgementCall *)object; (void)pp;
+    switch (field) {
+        default: return "";
+    }
+}
+
+bool HDeathAcknowledgementCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    HDeathAcknowledgementCall *pp = (HDeathAcknowledgementCall *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *HDeathAcknowledgementCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+void *HDeathAcknowledgementCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    HDeathAcknowledgementCall *pp = (HDeathAcknowledgementCall *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
 Register_Class(HGetChildrenCall);
 
 HGetChildrenCall::HGetChildrenCall(const char *name, int kind) : BaseCallMessage(name,kind)

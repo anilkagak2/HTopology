@@ -301,6 +301,7 @@ HTopology::~HTopology(){
     // destroy self timer messages
     cancelAndDelete(packetGenTimer);
     cancelAndDelete(rescueParametersTimer);
+    cancelAndDelete(playBackTimer);
 }
 
 void HTopology::initialize() {}
@@ -367,7 +368,7 @@ void HTopology::initializeOverlay(int stage) {
    // self-messages
    packetGenTimer = NULL;
    rescueParametersTimer = NULL;
-   playBackTimer = deadlineSegmentsScheduleTimer = NULL;
+   playBackTimer = NULL;
    segmentsMissingDeadline=0;
 
    // Initialize the variables storing the statistics
@@ -460,6 +461,7 @@ void HTopology::changeState (int STATE) {
             scheduleTimer(packetGenTimer, packetGenRate);
         } else {
             joinRequestTime = simTime();            // FILL IN THE JOIN REQUEST TIME
+            deathTime = joinRequestTime;            // Set deathTime equal to joinRequestTime so that we can compare & check if deathTime was modified later
 
             EV << thisNode << ": is going to join the overlay rooted at" << bootstrapNode << endl;
             HJoinCall *msg = new HJoinCall();
@@ -538,9 +540,16 @@ void HTopology::handleTimerEvent(cMessage* msg) {
         handleRescueParametersEstimationTimer (msg);
     }
     // Play the stream :P
+    // But in case you are dead [deathTimer != joinRequestTimer] => no playback
     else if (msg == playBackTimer) {
         EV << thisNode << ": play back timer" << endl;
-        handlePlayBackTimer (msg);
+        //handlePlayBackTimer (msg);
+        if (deathTime == joinRequestTime) {
+            handlePlayBackTimer (msg);
+        } else {
+            cache.clear();
+            scheduledCache.clear();
+        }
     }
     // unknown self message
     else {
@@ -761,9 +770,11 @@ void HTopology::printProfile () {
     cout << thisNode << ": profile " << endl;
     cout << "\t SegmentsMissing deadline = " << segmentsMissingDeadline << endl;
     cout << "\t TimeInOverlay = " << (simTime() - joinRequestTime).dbl() << endl;
+    cout << "\t deathTime - joinRequestTime = " << (deathTime - joinRequestTime).dbl() << endl;
     cout << "\t Parent = " << parent.getHandle() << endl;
     cout << "\t #Of Children = " << children.size() << endl;
-    cout << "\t Size of rescue set = " << rescueChildren.size() << endl;
+    cout << "\t Ancestors set size = " << ancestors.size() << endl;
+    cout << "\t NodesOneUp set size = " << nodesOneUp.size() << endl;
 #endif
 }
 
@@ -1114,6 +1125,21 @@ void HTopology::selectReplacement (const NodeHandle& node, HLeaveOverlayCall *mr
     // TODO do we need to setup any other parameter? Check for the #of times this function is called
 }
 
+void HTopology::handleDeathAcknowledgementCall (BaseCallMessage *msg) {
+    HDeathAcknowledgementCall *deathAck = (HDeathAcknowledgementCall *)msg;
+    if (parent.isUnspecified() == false) {
+        if( (deathTime == joinRequestTime) &&
+                (parent.getHandle() == deathAck->getSrcNode()) ){
+#if _CURDEBUG_
+            cout << thisNode << ": parent has acknowledged my death." << endl;
+#endif
+            deathTime = simTime();
+        }
+    }
+
+    delete deathAck;
+}
+
 
 void HTopology::handleLeaveCall (BaseCallMessage *msg) {
     // TODO can there be multiple leave calls from the same node?
@@ -1154,6 +1180,16 @@ void HTopology::handleLeaveCall (BaseCallMessage *msg) {
             childRemoveCall->setBitLength(HCHILDREMOVEDCALL_L(childRemoveCall));
             sendRouteRpcCall(OVERLAY_COMP, parent.getHandle(), childRemoveCall);
         }
+
+        // TODO solve this issue
+        /*// Send deadthAck to the child
+        HDeathAcknowledgementCall *deathAckCall = new HDeathAcknowledgementCall();
+        deathAckCall->setBitLength(HDEATHACKNOWLEDGEMENTCALL_L(deathAckCall));
+        sendRouteRpcCall(OVERLAY_COMP, mrpc->getSrcNode(), deathAckCall);*/
+
+#if _CURDEBUG_
+        cout << thisNode << ": ack'd death of child at leaveCall -> " << mrpc->getSrcNode() << endl;
+#endif
 
         // Only children who have children should be replaced => NO LEAF NODES
         if (children[mrpc->getSrcNode().getKey()].getChildren().size() > 0) {
@@ -1296,6 +1332,14 @@ void HTopology::handleScheduleSegmentsCall (BaseCallMessage *msg) {
 void HTopology::addSegmentToCache (HVideoSegment& videoSegment) {
     // TODO check the buffer functionalities
     // TODO need to maintain the segments in the order of their deadlines [precisely the order of their segmentIDs]
+    if ( (isSource == false) && (deathTime != joinRequestTime)) {
+#if _HDEBUG_
+        cout << thisNode << ": node is dead & someone asked to put segment into the cache" << endl;
+#endif
+        EV << thisNode << ": node is dead & someone asked to put segment into the cache" << endl;
+        return;
+    }
+
     HCacheElem cacheElem(videoSegment);
 
     if (scheduledCache.find(videoSegment.segmentID) != scheduledCache.end()) {
@@ -1595,6 +1639,12 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
        break;
     }
 
+    RPC_ON_CALL(HDeathAcknowledgement) {
+       handleDeathAcknowledgementCall(msg);
+       RPC_HANDLED = true;
+       break;
+    }
+
     RPC_ON_CALL(HResponsibilityAsParent) {
        handleResponsibilityAsParentCall(msg);
        RPC_HANDLED = true;
@@ -1707,6 +1757,15 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
                     childRemoveCall->setBitLength(HCHILDREMOVEDCALL_L(childRemoveCall));
                     sendRouteRpcCall(OVERLAY_COMP, parent.getHandle(), childRemoveCall);
                 }
+
+                // TODO solve this
+                // Send deadthAck to the child
+                HDeathAcknowledgementCall *deathAckCall = new HDeathAcknowledgementCall();
+                deathAckCall->setBitLength(HDEATHACKNOWLEDGEMENTCALL_L(deathAckCall));
+                sendRouteRpcCall(OVERLAY_COMP, children[destKey].getHandle(), deathAckCall);
+#if _HDEBUG_
+                cout << thisNode << ": ack'd the child's death " << children[destKey].getHandle() << endl;
+#endif
 
                 //  Notify the failure to the children
                 set<NodeHandle> nodeChildren = children[destKey].getChildren();

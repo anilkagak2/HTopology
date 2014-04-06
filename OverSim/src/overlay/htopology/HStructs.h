@@ -94,6 +94,9 @@ struct RankingParameters {
 // These are the factors, multiplied to the rankingParameters in order to calculate the metric defining the ranking
 const RankingParameters RankingFactors = {1, 25, 25, 1};
 
+// Zero ranking element for uninitialized rescue node
+const RankingParameters ZeroRank = {0,0,0,0};
+
 class RescueNode {
 private:
     RankingParameters parameters;
@@ -108,6 +111,7 @@ private:
         // std::cout << "Rank is " << rank << endl;
     }
 public:
+    RescueNode() { setRankingParameters(ZeroRank); }
     void setHandle(NodeHandle& node) { this->node = node; }
     NodeHandle& getHandle () { return this->node; }
 

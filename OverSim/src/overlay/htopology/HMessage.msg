@@ -51,6 +51,7 @@ cplusplus {{
 #define HVIDEOSEGMENTCALL_L(msg)			(BASECALL_L(msg) + HVIDEOSEGMENT_L)
 #define HVIDEOSEGMENTRESPONSE_L(msg) 		BASERESPONSE_L(msg)
 
+#define HDEATHACKNOWLEDGEMENTCALL_L(msg)	BASECALL_L(msg)
 #define HLEAVEOVERLAYCALL_L(msg)			BASECALL_L(msg)
 #define HLEAVEOVERLAYRESPONSE_L(msg) 		BASERESPONSE_L(msg) + TYPE_L
 
@@ -212,6 +213,10 @@ packet HScheduleSegmentsResponse extends BaseResponseMessage {
 
 // signal the failure of the node, to the node's children
 packet HSwitchToRescueModeCall extends BaseCallMessage {
+}
+
+// signal the child that he's dead as per the (parent)node
+packet HDeathAcknowledgementCall extends BaseCallMessage {
 }
 
 // call to get children from node

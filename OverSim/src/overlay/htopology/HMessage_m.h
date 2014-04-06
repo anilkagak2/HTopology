@@ -47,6 +47,7 @@
 #define HVIDEOSEGMENTCALL_L(msg)			(BASECALL_L(msg) + HVIDEOSEGMENT_L)
 #define HVIDEOSEGMENTRESPONSE_L(msg) 		BASERESPONSE_L(msg)
 
+#define HDEATHACKNOWLEDGEMENTCALL_L(msg)	BASECALL_L(msg)
 #define HLEAVEOVERLAYCALL_L(msg)			BASECALL_L(msg)
 #define HLEAVEOVERLAYRESPONSE_L(msg) 		BASERESPONSE_L(msg) + TYPE_L
 
@@ -945,6 +946,39 @@ class HSwitchToRescueModeCall : public ::BaseCallMessage
 
 inline void doPacking(cCommBuffer *b, HSwitchToRescueModeCall& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, HSwitchToRescueModeCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * packet HDeathAcknowledgementCall extends BaseCallMessage {
+ * }
+ * </pre>
+ */
+class HDeathAcknowledgementCall : public ::BaseCallMessage
+{
+  protected:
+
+  private:
+    void copy(const HDeathAcknowledgementCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const HDeathAcknowledgementCall&);
+
+  public:
+    HDeathAcknowledgementCall(const char *name=NULL, int kind=0);
+    HDeathAcknowledgementCall(const HDeathAcknowledgementCall& other);
+    virtual ~HDeathAcknowledgementCall();
+    HDeathAcknowledgementCall& operator=(const HDeathAcknowledgementCall& other);
+    virtual HDeathAcknowledgementCall *dup() const {return new HDeathAcknowledgementCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+};
+
+inline void doPacking(cCommBuffer *b, HDeathAcknowledgementCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, HDeathAcknowledgementCall& obj) {obj.parsimUnpack(b);}
 
 /**
  * Class generated from <tt>overlay/htopology/HMessage.msg</tt> by opp_msgc.

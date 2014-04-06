@@ -113,6 +113,7 @@ class HTopology : public BaseOverlay {
     void handleJoinCall (BaseCallMessage *msg);
     void handleJoinResponse (BaseResponseMessage *msg);
     void handleLeaveCall (BaseCallMessage *msg);
+    void handleDeathAcknowledgementCall (BaseCallMessage *msg);
 
     void handleNewParentSelectedCall (BaseCallMessage *msg);
     void handleResponsibilityAsParentCall (BaseCallMessage *msg);
@@ -153,7 +154,7 @@ class HTopology : public BaseOverlay {
     // timer messages
     cMessage *packetGenTimer;
     cMessage *rescueParametersTimer;
-    cMessage *playBackTimer, *deadlineSegmentsScheduleTimer;
+    cMessage *playBackTimer;
 
 
     //cMessage *childrenParametersTimer;
@@ -166,6 +167,7 @@ class HTopology : public BaseOverlay {
     long long numSentMessages[MESSAGE_TYPES];
     long long numRecvMessages[MESSAGE_TYPES];
     simtime_t joinRequestTime, joinAcceptanceTime;  // time taken in the joining process
+    simtime_t deathTime;                            // when've parent accepted my death?
     bool notReceivedPacket, notJoinedOverlay;
     simtime_t firstPacketRecvingTime;               // this - joinRequestTime should give you the startup time for a node
     simtime_t leaveRequestTime, leaveGrantedTime;   // time take in a graceful leave of a node
