@@ -1,25 +1,25 @@
-file 11126 1396358221                                           
+file 12233 1396892744                                           
 version 2
-run HStreamingChurn-0-20140401-18:28:46-6264
+run HStreamingChurn-0-20140407-23:09:50-8808
 attr configname HStreamingChurn
-attr datetime 20140401-18:28:46
+attr datetime 20140407-23:09:50
 attr experiment HStreamingChurn
 attr inifile htopology.ini
 attr iterationvars ""
 attr iterationvars2 $repetition=0
 attr measurement ""
 attr network oversim.underlay.simpleunderlay.SimpleUnderlayNetwork
-attr processid 6264
+attr processid 8808
 attr repetition 0
 attr replication #0
 attr resultdir results
 attr runnumber 0
 attr seedset 0
 vector 1  SimpleUnderlayNetwork.globalObserver.globalStatistics  "ParetoChurn: Session Time"  ETV
-1	870 2484 60381 4363618 144.074201019 7223.030632665 60 6.0637786800093 47306.653128966 398870.84475578 8510723801.7553
+1	870 2911 68781 5771826 144.074201019 7295.859182166 70 6.0637786800093 111655.96590692 648270.12391056 29251638254.58
 vector 2  SimpleUnderlayNetwork.globalObserver.globalStatistics  "ParetoChurn: Time between creates"  ETV
-2	3354 2326 60381 4363618 144.074201019 7223.030632665 60 2.524555933 445.910177268 7124.226357622 1480384.9571609
+2	3781 2724 68781 5771826 144.074201019 7295.859182166 70 2.97831917 426.592183496 7197.054907123 1342070.094074
 vector 3  SimpleUnderlayNetwork.globalObserver.globalStatistics  "GlobalNodeList: Number of nodes"  ETV
-3	5680 2669 64194 4382536 150 7250 143 85 102 13348 1247978
+3	6505 2677 73189 5731350 150 7250 143 85 102 13515 1278429
 vector 4  SimpleUnderlayNetwork.globalObserver.globalStatistics  "ParetoChurn: Time between deletes"  ETV
-4	8349 2777 127880 4177180 252.340131552 6953.028638751 72 0.652689854 371.777839487 6953.028638751 1342281.5521506
+4	9182 3051 147199 5632867 252.340131552 7137.495989055 79 0.13489404 595.017900734 7137.495989055 1464822.2175999

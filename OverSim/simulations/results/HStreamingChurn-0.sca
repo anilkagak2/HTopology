@@ -1,14 +1,14 @@
 version 2
-run HStreamingChurn-0-20140406-11:07:05-9432
+run HStreamingChurn-0-20140407-23:09:50-8808
 attr configname HStreamingChurn
-attr datetime 20140406-11:07:05
+attr datetime 20140407-23:09:50
 attr experiment HStreamingChurn
 attr inifile htopology.ini
 attr iterationvars ""
 attr iterationvars2 $repetition=0
 attr measurement ""
 attr network oversim.underlay.simpleunderlay.SimpleUnderlayNetwork
-attr processid 9432
+attr processid 8808
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -74,9 +74,9 @@ scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Rece
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received App Data Messages/s.mean" 	0
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received App Lookup Bytes/s.mean" 	0
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received App Lookup Messages/s.mean" 	0
-scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received Maintenance Bytes/s.mean" 	90400.860877297
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received Maintenance Bytes/s.mean" 	90400.865477835
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received Maintenance Messages/s.mean" 	1.756103069621
-scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received Total Bytes/s.mean" 	90400.860877297
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received Total Bytes/s.mean" 	90400.865477835
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received Total Messages/s.mean" 	1.756103069621
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent App Data Bytes/s.mean" 	0
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent App Data Messages/s.mean" 	0
@@ -90,13 +90,13 @@ scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent FindNode Messages/s.mean" 	0
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent FindNodeResponse Bytes/s.mean" 	0
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent FindNodeResponse Messages/s.mean" 	0
-scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Maintenance Bytes/s.mean" 	26083.021480073
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Maintenance Bytes/s.mean" 	26083.021560749
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Maintenance Messages/s.mean" 	2.0320139450693
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Ping Bytes/s.mean" 	0
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Ping Messages/s.mean" 	0
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Ping Response Bytes/s.mean" 	0
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Ping Response Messages/s.mean" 	0
-scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Total Bytes/s.mean" 	26083.021480073
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Total Bytes/s.mean" 	26083.021560749
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Total Messages/s.mean" 	2.0320139450693
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	PacketsGeneratedAtSource.mean 	0
 scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	ParametersEstimationRounds.mean 	59.611764705882
@@ -210,44 +210,44 @@ bin	65	0
 bin	66	0
 statistic SimpleUnderlayNetwork.finisherModule 	"HTopology: StartupTime=JoinAccepted - JoinRequested"
 field count 164
-field mean 0.20721659221951
-field stddev 0.19923251512157
-field sum 33.983521124
-field sqrsum 13.512005437247
-field min 0.007894807
-field max 1.142471206
+field mean 0.20721844234146
+field stddev 0.19923267958139
+field sum 33.983824544
+field sqrsum 13.512141866762
+field min 0.007896793
+field max 1.142472779
 bin	-INF	0
-bin	-0.4635137125	0
-bin	-0.4005649283	0
-bin	-0.3376161441	0
-bin	-0.2746673599	0
-bin	-0.2117185757	0
-bin	-0.1487697915	0
-bin	-0.0858210073	0
-bin	-0.0228722231	20
-bin	0.0400765611	39
-bin	0.1030253453	31
-bin	0.1659741295	24
-bin	0.2289229137	15
-bin	0.2918716979	11
-bin	0.3548204821	5
-bin	0.4177692663	4
-bin	0.4807180505	5
-bin	0.5436668347	1
-bin	0.6066156189	1
-bin	0.6695644031	2
-bin	0.7325131873	2
-bin	0.7954619715	0
-bin	0.8584107557	1
-bin	0.9213595399	2
-bin	0.9843083241	0
-bin	1.0472571083	0
-bin	1.1102058925	1
-bin	1.1731546767	0
-bin	1.2361034609	0
-bin	1.2990522451	0
-bin	1.3620010293	0
-bin	1.4249498135	0
+bin	-0.463512837	0
+bin	-0.40056394153333	0
+bin	-0.33761504606667	0
+bin	-0.2746661506	0
+bin	-0.21171725513333	0
+bin	-0.14876835966667	0
+bin	-0.0858194642	0
+bin	-0.022870568733333	20
+bin	0.040078326733333	39
+bin	0.1030272222	31
+bin	0.16597611766667	24
+bin	0.22892501313333	15
+bin	0.2918739086	11
+bin	0.35482280406667	5
+bin	0.41777169953333	4
+bin	0.480720595	5
+bin	0.54366949046667	1
+bin	0.60661838593333	1
+bin	0.6695672814	2
+bin	0.73251617686667	2
+bin	0.79546507233333	0
+bin	0.8584139678	1
+bin	0.92136286326667	2
+bin	0.98431175873333	0
+bin	1.0472606542	0
+bin	1.1102095496667	1
+bin	1.1731584451333	0
+bin	1.2361073406	0
+bin	1.2990562360667	0
+bin	1.3620051315333	0
+bin	1.424954027	0
 statistic SimpleUnderlayNetwork.finisherModule 	"HTopology: StreamingStartupTime=FirstPacketRecved - JoinRequested"
 field count 154
 field mean 1.0667132403052
@@ -328,6 +328,25 @@ bin	2.9210734158	45
 bin	3.0608418635333	28
 bin	3.2006103112667	5
 bin	3.340378759	0
+statistic SimpleUnderlayNetwork.finisherModule 	"Height of a tree node"
+field count 164
+field mean 2.5731707317073
+field stddev 0.86557173282148
+field sum 422
+field sqrsum 1208
+field min 1
+field max 5
+attr type  int
+bin	-INF	0
+bin	-1	0
+bin	0	0
+bin	1	12
+bin	2	73
+bin	3	54
+bin	4	23
+bin	5	2
+bin	6	0
+bin	7	0
 statistic SimpleUnderlayNetwork.finisherModule 	"Packets Generated at source"
 field count 1
 field mean 7300

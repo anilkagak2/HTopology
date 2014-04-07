@@ -1747,6 +1747,7 @@ HJoinResponse::HJoinResponse(const char *name, int kind) : BaseResponseMessage(n
     ancestors_arraysize = 0;
     this->ancestors_var = 0;
     this->joined_var = 0;
+    this->heightParent_var = 0;
 }
 
 HJoinResponse::HJoinResponse(const HJoinResponse& other) : BaseResponseMessage(other)
@@ -1779,6 +1780,7 @@ void HJoinResponse::copy(const HJoinResponse& other)
     this->successorNode_var = other.successorNode_var;
     this->predecessorNode_var = other.predecessorNode_var;
     this->joined_var = other.joined_var;
+    this->heightParent_var = other.heightParent_var;
 }
 
 void HJoinResponse::parsimPack(cCommBuffer *b)
@@ -1789,6 +1791,7 @@ void HJoinResponse::parsimPack(cCommBuffer *b)
     doPacking(b,this->successorNode_var);
     doPacking(b,this->predecessorNode_var);
     doPacking(b,this->joined_var);
+    doPacking(b,this->heightParent_var);
 }
 
 void HJoinResponse::parsimUnpack(cCommBuffer *b)
@@ -1805,6 +1808,7 @@ void HJoinResponse::parsimUnpack(cCommBuffer *b)
     doUnpacking(b,this->successorNode_var);
     doUnpacking(b,this->predecessorNode_var);
     doUnpacking(b,this->joined_var);
+    doUnpacking(b,this->heightParent_var);
 }
 
 void HJoinResponse::setAncestorsArraySize(unsigned int size)
@@ -1865,6 +1869,16 @@ void HJoinResponse::setJoined(int joined)
     this->joined_var = joined;
 }
 
+int HJoinResponse::getHeightParent() const
+{
+    return heightParent_var;
+}
+
+void HJoinResponse::setHeightParent(int heightParent)
+{
+    this->heightParent_var = heightParent;
+}
+
 class HJoinResponseDescriptor : public cClassDescriptor
 {
   public:
@@ -1912,7 +1926,7 @@ const char *HJoinResponseDescriptor::getProperty(const char *propertyname) const
 int HJoinResponseDescriptor::getFieldCount(void *object) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 4+basedesc->getFieldCount(object) : 4;
+    return basedesc ? 5+basedesc->getFieldCount(object) : 5;
 }
 
 unsigned int HJoinResponseDescriptor::getFieldTypeFlags(void *object, int field) const
@@ -1928,8 +1942,9 @@ unsigned int HJoinResponseDescriptor::getFieldTypeFlags(void *object, int field)
         FD_ISCOMPOUND,
         FD_ISCOMPOUND,
         FD_ISEDITABLE,
+        FD_ISEDITABLE,
     };
-    return (field>=0 && field<4) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<5) ? fieldTypeFlags[field] : 0;
 }
 
 const char *HJoinResponseDescriptor::getFieldName(void *object, int field) const
@@ -1945,8 +1960,9 @@ const char *HJoinResponseDescriptor::getFieldName(void *object, int field) const
         "successorNode",
         "predecessorNode",
         "joined",
+        "heightParent",
     };
-    return (field>=0 && field<4) ? fieldNames[field] : NULL;
+    return (field>=0 && field<5) ? fieldNames[field] : NULL;
 }
 
 int HJoinResponseDescriptor::findField(void *object, const char *fieldName) const
@@ -1957,6 +1973,7 @@ int HJoinResponseDescriptor::findField(void *object, const char *fieldName) cons
     if (fieldName[0]=='s' && strcmp(fieldName, "successorNode")==0) return base+1;
     if (fieldName[0]=='p' && strcmp(fieldName, "predecessorNode")==0) return base+2;
     if (fieldName[0]=='j' && strcmp(fieldName, "joined")==0) return base+3;
+    if (fieldName[0]=='h' && strcmp(fieldName, "heightParent")==0) return base+4;
     return basedesc ? basedesc->findField(object, fieldName) : -1;
 }
 
@@ -1973,8 +1990,9 @@ const char *HJoinResponseDescriptor::getFieldTypeString(void *object, int field)
         "NodeHandle",
         "NodeHandle",
         "int",
+        "int",
     };
-    return (field>=0 && field<4) ? fieldTypeStrings[field] : NULL;
+    return (field>=0 && field<5) ? fieldTypeStrings[field] : NULL;
 }
 
 const char *HJoinResponseDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
@@ -2019,6 +2037,7 @@ std::string HJoinResponseDescriptor::getFieldAsString(void *object, int field, i
         case 1: {std::stringstream out; out << pp->getSuccessorNode(); return out.str();}
         case 2: {std::stringstream out; out << pp->getPredecessorNode(); return out.str();}
         case 3: return long2string(pp->getJoined());
+        case 4: return long2string(pp->getHeightParent());
         default: return "";
     }
 }
@@ -2034,6 +2053,7 @@ bool HJoinResponseDescriptor::setFieldAsString(void *object, int field, int i, c
     HJoinResponse *pp = (HJoinResponse *)object; (void)pp;
     switch (field) {
         case 3: pp->setJoined(string2long(value)); return true;
+        case 4: pp->setHeightParent(string2long(value)); return true;
         default: return false;
     }
 }
@@ -2051,8 +2071,9 @@ const char *HJoinResponseDescriptor::getFieldStructName(void *object, int field)
         "NodeHandle",
         "NodeHandle",
         NULL,
+        NULL,
     };
-    return (field>=0 && field<4) ? fieldStructNames[field] : NULL;
+    return (field>=0 && field<5) ? fieldStructNames[field] : NULL;
 }
 
 void *HJoinResponseDescriptor::getFieldStructPointer(void *object, int field, int i) const

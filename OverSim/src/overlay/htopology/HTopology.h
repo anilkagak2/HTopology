@@ -79,6 +79,7 @@ class HTopology : public BaseOverlay {
     int parametersResponseRequired;
     bool initializedRescueRanks;
 
+    int height;                 // height in the tree at which this node is situated
     int noOfChildren;           // current count of the children; TODO same as children.size()
     int maxChildren;            // Maximum no. of children to be supported
     int maxRescueChildren;      // Maximum no. of rescue children to be supported

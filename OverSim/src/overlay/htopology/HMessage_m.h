@@ -23,7 +23,7 @@
 
 #define JOINCALL_L(msg) 					BASECALL_L(msg)
 #define HJOINRESPONSE_L(msg) 				(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
-                             					(msg->getAncestorsArraySize() * NODEHANDLE_L) + TYPE_L)
+                             					(msg->getAncestorsArraySize() * NODEHANDLE_L) + 2*TYPE_L)
                              					
 #define HRESCUEJOINCALL_L(msg)				BASECALL_L(msg)
 #define HRESCUEJOINRESPONSE_L(msg)			(BASERESPONSE_L(msg) + TYPE_L)
@@ -381,6 +381,7 @@ inline void doUnpacking(cCommBuffer *b, HJoinCall& obj) {obj.parsimUnpack(b);}
  *     NodeHandle successorNode;
  *     NodeHandle predecessorNode;
  *     int joined;
+ *     int heightParent;			
  * }
  * </pre>
  */
@@ -392,6 +393,7 @@ class HJoinResponse : public ::BaseResponseMessage
     NodeHandle successorNode_var;
     NodeHandle predecessorNode_var;
     int joined_var;
+    int heightParent_var;
 
   private:
     void copy(const HJoinResponse& other);
@@ -423,6 +425,8 @@ class HJoinResponse : public ::BaseResponseMessage
     virtual void setPredecessorNode(const NodeHandle& predecessorNode);
     virtual int getJoined() const;
     virtual void setJoined(int joined);
+    virtual int getHeightParent() const;
+    virtual void setHeightParent(int heightParent);
 };
 
 inline void doPacking(cCommBuffer *b, HJoinResponse& obj) {obj.parsimPack(b);}

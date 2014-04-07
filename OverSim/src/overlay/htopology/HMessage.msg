@@ -27,7 +27,7 @@ cplusplus {{
 
 #define JOINCALL_L(msg) 					BASECALL_L(msg)
 #define HJOINRESPONSE_L(msg) 				(BASERESPONSE_L(msg) + 2* NODEHANDLE_L +\
-                             					(msg->getAncestorsArraySize() * NODEHANDLE_L) + TYPE_L)
+                             					(msg->getAncestorsArraySize() * NODEHANDLE_L) + 2*TYPE_L)
                              					
 #define HRESCUEJOINCALL_L(msg)				BASECALL_L(msg)
 #define HRESCUEJOINRESPONSE_L(msg)			(BASERESPONSE_L(msg) + TYPE_L)
@@ -136,6 +136,7 @@ packet HJoinResponse extends BaseResponseMessage {
     NodeHandle successorNode;
     NodeHandle predecessorNode;
     int joined;
+    int heightParent;			// height of the parent node
 }
 
 //

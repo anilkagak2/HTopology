@@ -83,6 +83,10 @@ Define_Module(HTopology);
             - Rescue node [we've had good relation with some node, previously it granted me access]
             - Children updated
             - Do we need random pointers in the tree?
+
+            When parent fails & you're selected as replacement -> change grandparent & remove current parent from ancestors
+            Height measurement in the htopology
+
         - Node got a parent & then parent fails ==> Rescue set is empty ==> ??
         - when a node fails we send the switchToRescueMode & capacity
             calls[but only one should suffice, switchToRescueMode]
@@ -327,6 +331,9 @@ void HTopology::initializeOverlay(int stage) {
    // set the operation mode
    modeOfOperation = GENERAL_MODE;
 
+   // set the height to be -1
+   height = -1;
+
    // TODO Do we really have to set the key[will this not be generated for us?]
    EV << thisNode << ": key just before assigning is " << endl;
    thisNode.setKey(OverlayKey(nodeID));     // set its key
@@ -455,6 +462,7 @@ void HTopology::changeState (int STATE) {
             // Initialize this Node as the source node
             EV << "Source node started the overlay." << endl;
             isSource = true;
+            height = 0;     // Root node
 
             // Start the packet generation module
             packetGenTimer = new cMessage("Packet Generation Timer");
@@ -775,6 +783,7 @@ void HTopology::printProfile () {
     cout << "\t #Of Children = " << children.size() << endl;
     cout << "\t Ancestors set size = " << ancestors.size() << endl;
     cout << "\t NodesOneUp set size = " << nodesOneUp.size() << endl;
+    cout << "\t Height = " << height << endl;
 #endif
 }
 
@@ -807,6 +816,11 @@ void HTopology::saveStatistics () {
     } else {
         // TODO STAT7 Total #of packets generated the source node
         globalStatistics->recordHistogram("Packets Generated at source", segmentID+1);
+    }
+
+    // TODO STAT8 Height of a tree node
+    if (height > 0) {
+        globalStatistics->recordHistogram("Height of a tree node", height);
     }
 
     printProfile();
@@ -1004,6 +1018,7 @@ void HTopology::handleJoinCall (BaseCallMessage *msg) {
         rrpc->setSuccessorNode(getNodeHandle(it++, children.end()));
         rrpc->setPredecessorNode(getNodeHandle(it--, children.end()));
         rrpc->setJoined(true);
+        rrpc->setHeightParent(this->height);
 
         // Remove yourself from the bootstrapping in case your capacity==0
         if (capacity()==0) {
@@ -1060,6 +1075,7 @@ void HTopology::handleJoinResponse (BaseResponseMessage *msg) {
 
         EV << "We got a response from " << mrpc->getSrcNode() << endl;
         parent.setHandle(mrpc->getSrcNode());
+        this->height = mrpc->getHeightParent() + 1;
 
         if (mrpc->getAncestorsArraySize() > 0)
             grandParent.setHandle(mrpc->getAncestors(mrpc->getAncestorsArraySize()-1));
@@ -1275,6 +1291,7 @@ void HTopology::handleResponsibilityAsParentCall (BaseCallMessage *msg) {
     assert (!(mrpc->getParent().isUnspecified()));
 
     parent.setHandle(mrpc->getParent());
+    height--;       // Reduce the height
     modeOfOperation = GENERAL_MODE;
 
     // remove your rescue link from the rescue parent
@@ -1330,8 +1347,8 @@ void HTopology::handleScheduleSegmentsCall (BaseCallMessage *msg) {
 }
 
 void HTopology::addSegmentToCache (HVideoSegment& videoSegment) {
-    // TODO check the buffer functionalities
-    // TODO need to maintain the segments in the order of their deadlines [precisely the order of their segmentIDs]
+    // DONE check the buffer functionalities
+    // DONE need to maintain the segments in the order of their deadlines [precisely the order of their segmentIDs]
     if ( (isSource == false) && (deathTime != joinRequestTime)) {
 #if _HDEBUG_
         cout << thisNode << ": node is dead & someone asked to put segment into the cache" << endl;
