@@ -57,6 +57,13 @@ cplusplus {{
 
 #define HNEWPARENTSELECTEDCALL_L(msg)		(BASECALL_L(msg) + NODEHANDLE_L)
 #define HRESPONSIBILITYASPARENTCALL_L(msg)  (BASECALL_L(msg) + (msg->getChildrenArraySize()+1) * NODEHANDLE_L)
+#define HNOREPLACEMENTFOUNDCALL_L(msg)		BASECALL_L(msg)
+
+#define HCONVERTRESCUELINKCALL_L(msg)		BASECALL_L(msg)
+#define HCONVERTRESCUELINKRESPONSE_L(msg)	HJOINRESPONSE_L(msg)
+
+#define HREJOINCALL_L(msg)					BASECALL_L(msg)
+#define HREJOINRESPONSE_L(msg)				HJOINRESPONSE_L(msg)
 		
 // SEGMENTS SHOULD BE OF FIXED SIZE
 // No.of chars + 1
@@ -156,6 +163,36 @@ packet HRescueJoinResponse extends BaseResponseMessage {
 // Message used to remove the rescue link between rescueParent & ourself
 //
 packet HRemoveRescueLinkCall extends BaseCallMessage {
+}
+
+//
+// Message used to convert rescueLink to parent-child link
+//
+packet HConvertRescueLinkCall extends BaseCallMessage {
+}
+
+//
+// Response for the question ConvertRescueLinkCall?
+//
+packet HConvertRescueLinkResponse extends HJoinResponse {
+}
+
+//
+// ReJoin the overlay
+//
+packet HReJoinCall extends BaseCallMessage {
+}
+
+//
+// Response ReJoinCall
+//
+packet HReJoinResponse extends HJoinResponse {
+}
+
+//
+// Message used to say that parent's replacement not found for the node
+//
+packet HNoReplacementFoundCall extends BaseCallMessage {
 }
 
 //

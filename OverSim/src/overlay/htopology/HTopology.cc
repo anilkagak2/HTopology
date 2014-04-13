@@ -68,15 +68,50 @@ Define_Module(HTopology);
                 parent node don't send unnecessary b/w consuming messages
 
     TODO
-        - check if we fix the bootstrapping after our children fails & we are not in bootstrapping
+        CHECKS
+        - if we fix the bootstrapping after our children fails & we are not in bootstrapping
+        - When parent fails & you're selected as replacement -> change grandparent & remove current parent from ancestors
+
+        WHAT-IFs
         - what IF node replacement cann't be done?
+        - what if replacement found but it failed afterwards [current bug]
         - what happens when a node fails while selecting replacement for its child?
         - what happens when rescue parent fails?
+        - Node got a parent & then parent fails ==> Rescue set is empty ==> ??
+
+        ****** SOLUTION WhatIfs *******
+        TIMER_TO_REJOIN -> go into rescue mode[parent replacement] && gparent couldn't find a replacement && TIMER occurs => rejoin the network
+        TIMER_CHECK_PARENT_HEALTH -> between certain time if no packet arrived from parent or rescue parent => rejoin the network
+
+        GParent tries for replacement
+            -> If replacementDone but replacementChild no more in children set => try just once again [if found then STATUS=Found]
+            -> Otherwise pick the child with maximum capacity & add this as your child [put others as children of this node]
+                & others see for themselves [STATUS=NotFound]
+
+            -> STATUS=Found     => will tell you the accepted roles
+            -> STATUS=NotFound  => some will be added in his tree but some node will have to search for new parent themselves
+                [Rescue_link conversion OR ReJoinCall]
+
+        HRejoinCall
+            -> De-register yourself from the bootstrapping
+            -> Keep your rescue link intact [otherwise your subtree won't be able to receive the packets]
+            -> send this call to anyone of our ancestors & he'll put ourselves in the overlay
+            -> OR send this call to anyone of bootstrapping node [this node shouldn't be there in bootstrapping]
+        CONVERSION of rescue_link to parent_child_link [??] if the rescue parent has space for one child => add me
+        But this cannot satisfy all these rescue children => we still need the rejoin mechanism
+        ****** SOLUTION *******
+
+        TREE-HEIGHT
+        - Height measurement in the htopology
         - Tree height is also not optimal right now (concerned with bootstrapping & treeHeightOptimization)
             - height adjustment like in AVL tree [height balancing] or Red-Black trees?
+
+        RANKING-FACTORS
         - Improve the ranking factors
             - Ranking (for the time being, assume to be a linear function of these parameters with some weights
                  which need to derived (experimentally or heuristically))
+
+        UPDATED OVERLAY INFORMATION
         - How can we keep updated info. on rescue nodes [Need some kind of updation]
             - Parent changed
             - grand parent
@@ -84,10 +119,7 @@ Define_Module(HTopology);
             - Children updated
             - Do we need random pointers in the tree?
 
-            When parent fails & you're selected as replacement -> change grandparent & remove current parent from ancestors
-            Height measurement in the htopology
-
-        - Node got a parent & then parent fails ==> Rescue set is empty ==> ??
+        OVERHEAD-REMOVAL
         - when a node fails we send the switchToRescueMode & capacity
             calls[but only one should suffice, switchToRescueMode]
 
@@ -633,6 +665,17 @@ void HTopology::handlePlayBackTimer (cMessage *msg) {
     }
     /* END PLAYBACK FUNCTION */
 
+    /* DELETE SCHEDULED PACKETS WITH deadline < playBackSegmentID */
+    for (map<int, HCacheElem>::iterator it=scheduledCache.begin(); it!=scheduledCache.end(); ) {
+        if ((*it).first <= playBackSegmentID) {
+            cout << thisNode << ": removing from scheduledCache" << (*it).first << endl;
+            scheduledCache.erase (it++);
+        } else {
+            break;
+        }
+    }
+    /* END DELETE SCHEDULED PACKETS WITH deadline < playBackSegmentID */
+
     /* DEADLINE SEGMENT SCHEDULING */
     if (scheduledCache.size() > 0) {
         vector<NodeHandle> rankedNodes = getRankedRescueNodeHandles();
@@ -774,7 +817,7 @@ void HTopology::handleVideoSegment (BaseCallMessage *msg) {
 }
 
 void HTopology::printProfile () {
-#if _CURDEBUG_
+#if _PROFILE_DEBUG_
     cout << thisNode << ": profile " << endl;
     cout << "\t SegmentsMissing deadline = " << segmentsMissingDeadline << endl;
     cout << "\t TimeInOverlay = " << (simTime() - joinRequestTime).dbl() << endl;
@@ -843,6 +886,9 @@ void HTopology::finishOverlay() {
             leaveCall->setBitLength(HLEAVEOVERLAYCALL_L(leaveCall));
             sendRouteRpcCall(OVERLAY_COMP, (*it).second.getHandle(), leaveCall);
         }
+
+        // rescue parent
+        removeRescueLink();
 
         // NOTE ideally you should wait till you receive response from your parent
         // But then its forcing the node to stay put & no guarantee till what time I should wait
@@ -966,6 +1012,88 @@ void HTopology::setNodesOneUp (BaseResponseMessage* msg) {
     }
 }
 
+void HTopology::prepareAndSendJoinAcceptance(BaseCallMessage* msg,
+        HJoinResponse* rrpc) {
+    EV<< thisNode << ": will be adding node: " << msg->getSrcNode() << ": as child" << endl;
+    noOfChildren++;
+
+    // we assume that node is a new comer => everything empty
+    HNode child;
+    child.setHandle(msg->getSrcNode());
+    // there shouldn't already be any node with this key
+    assert(children.find(child.getHandle().getKey()) == children.end());
+    children[child.getHandle().getKey()] = child;
+    MapIterator it = children.find(child.getHandle().getKey());
+
+    // Do we need to tell our parent, regarding we adopting a new child?
+    if (!parent.isUnspecified()) {
+        HChildAddedCall *childAdded = new HChildAddedCall();
+        childAdded->setChild(msg->getSrcNode());
+        childAdded->setBitLength(HCHILDADDEDCALL_L(childAdded));
+
+        sendRouteRpcCall(OVERLAY_COMP, parent.getHandle(), childAdded);
+    }
+
+    // What is required by a new node?
+    // Children & rescueChildren will be empty.
+    // nodesOneUp?? (Let the child figure out this parameter)
+    // ancestors = thisNode->ancestors + thisNode
+    // set the ancestors array
+    if (!parent.isUnspecified())
+    rrpc->setAncestorsArraySize(ancestors.size() + 1);// parent of this node will be added as well
+    else
+    rrpc->setAncestorsArraySize(ancestors.size());// this node has no parent (it's the source node)
+
+    int k = 0;
+    for (RescueMapIterator it = ancestors.begin();it != ancestors.end();++it, ++k) {
+        RescueNode node = (*it).second;
+        rrpc->setAncestors(k, node.getHandle());
+    }
+
+    if (!parent.isUnspecified())
+    rrpc->setAncestors(k, parent.getHandle());
+
+    rrpc->setSuccessorNode(getNodeHandle(it++, children.end()));
+    rrpc->setPredecessorNode(getNodeHandle(it--, children.end()));
+    rrpc->setJoined(true);
+    rrpc->setHeightParent(this->height);
+
+    // Remove yourself from the bootstrapping in case your capacity==0
+    if (capacity()==0) {
+        // remove yourself from the bootstrapping thing
+        // && care to check if your children are there in the bootstrapping list
+        for (MapIterator it=children.begin(); it !=children.end(); ++it) {
+            if ((*it).second.getIsDead() == true) {
+#if _HDEBUG_
+    cout << thisNode << ": child dead in bootstrapping registration -> " << (*it).second.getHandle() << endl;
+#endif
+                EV << thisNode << ": child dead in bootstrapping registration -> " << (*it).second.getHandle() << endl;
+                continue;
+            }
+
+            // Insert our children into the bootstrap list
+            HRegisterInBootstrappingCall *registerCall = new HRegisterInBootstrappingCall();
+            registerCall->setBitLength(HREGISTERINBOOTSTRAPPINGCALL_L(registerCall));
+
+            sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), (*it).first, registerCall);
+            // bootstrapList->registerBootstrapNode((*it).second.getHandle(), overlayId);
+        }
+        // bootstrapList->removeBootstrapNode(thisNode, overlayId);
+    }
+}
+
+void HTopology::prepareAlternativeToJoin(HJoinResponse* rrpc) {
+    size_t size = children.size();
+    int redirection = intuniform(0, size - 1);
+    MapIterator iter = children.begin();
+    for (int i = 0; i < redirection; ++i, iter++)
+        ;
+
+    HNode redirectionChild = (*iter).second;
+    rrpc->setSuccessorNode(redirectionChild.getHandle());
+    rrpc->setJoined(false);
+}
+
 void HTopology::handleJoinCall (BaseCallMessage *msg) {
     numSentMessages[EJoin]++;
 
@@ -975,92 +1103,40 @@ void HTopology::handleJoinCall (BaseCallMessage *msg) {
 
     // TODO capacity()>0 && modeOfOperation==GENERAL_MODE
     if (capacity()>0) {
-        EV << thisNode << ": will be adding node: " << msg->getSrcNode() << ": as child" << endl;
-        noOfChildren++;
-
-        // we assume that node is a new comer => everything empty
-        HNode child;
-        child.setHandle(msg->getSrcNode());
-
-        // there shouldn't already be any node with this key
-        assert(children.find(child.getHandle().getKey()) == children.end());
-        children[child.getHandle().getKey()] = child;
-
-        MapIterator it = children.find(child.getHandle().getKey());
-
-        // Do we need to tell our parent, regarding we adopting a new child?
-        if (!parent.isUnspecified()) {
-            HChildAddedCall *childAdded = new HChildAddedCall();
-            childAdded->setChild(msg->getSrcNode());
-            childAdded->setBitLength(HCHILDADDEDCALL_L(childAdded));
-
-            sendRouteRpcCall(OVERLAY_COMP, parent.getHandle(), childAdded);
-        }
-
-        // What is required by a new node?
-        // Children & rescueChildren will be empty.
-        // nodesOneUp?? (Let the child figure out this parameter)
-        // ancestors = thisNode->ancestors + thisNode
-        // set the ancestors array
-        if (!parent.isUnspecified())
-            rrpc->setAncestorsArraySize(ancestors.size() + 1);  // parent of this node will be added as well
-        else
-            rrpc->setAncestorsArraySize(ancestors.size());      // this node has no parent (it's the source node)
-
-        int k=0;
-        for (RescueMapIterator it=ancestors.begin(); it!=ancestors.end(); ++it, ++k) {
-            RescueNode node = (*it).second;
-            rrpc->setAncestors(k, node.getHandle());
-        }
-
-        if (!parent.isUnspecified()) rrpc->setAncestors (k, parent.getHandle());
-
-        rrpc->setSuccessorNode(getNodeHandle(it++, children.end()));
-        rrpc->setPredecessorNode(getNodeHandle(it--, children.end()));
-        rrpc->setJoined(true);
-        rrpc->setHeightParent(this->height);
-
-        // Remove yourself from the bootstrapping in case your capacity==0
-        if (capacity()==0) {
-            // remove yourself from the bootstrapping thing
-            // && care to check if your children are there in the bootstrapping list
-            for (MapIterator it=children.begin(); it !=children.end(); ++it) {
-                if ((*it).second.getIsDead() == true) {
-#if _HDEBUG_
-                    cout << thisNode << ": child dead in bootstrapping registration -> " << (*it).second.getHandle() << endl;
-#endif
-                    EV << thisNode << ": child dead in bootstrapping registration -> " << (*it).second.getHandle() << endl;
-                    continue;
-                }
-
-                // Insert our children into the bootstrap list
-                HRegisterInBootstrappingCall *registerCall = new HRegisterInBootstrappingCall();
-                registerCall->setBitLength(HREGISTERINBOOTSTRAPPINGCALL_L(registerCall));
-
-                sendRouteRpcCall (OVERLAY_COMP, (*it).second.getHandle(), (*it).first, registerCall);
-                // bootstrapList->registerBootstrapNode((*it).second.getHandle(), overlayId);
-            }
-            // bootstrapList->removeBootstrapNode(thisNode, overlayId);
-        }
+        prepareAndSendJoinAcceptance(msg, rrpc);
     } else {
         // TODO may be check if anyone of them can support the children
         // Try to keep the height of the tree as low as possible
         EV << "redirecting to one of my children: " << endl;
-
-        size_t size = children.size();
-        int redirection = intuniform(0, size-1);
-        MapIterator iter = children.begin();
-        for (int i=0; i<redirection; ++i, iter++);
-
-        HNode redirectionChild = (*iter).second;
-        rrpc->setSuccessorNode(redirectionChild.getHandle());
-        rrpc->setJoined(false);
+        prepareAlternativeToJoin(rrpc);
     }
 
     rrpc->setBitLength(HJOINRESPONSE_L(rrpc));
     sendRpcResponse(mrpc, rrpc);
 }
 
+void HTopology::setOverlayLinksFromJoinResponse(HJoinResponse* mrpc) {
+    ancestors.clear();
+    nodesOneUp.clear();
+
+    parent.setHandle(mrpc->getSrcNode());
+    this->height = mrpc->getHeightParent() + 1;
+    if (mrpc->getAncestorsArraySize() > 0)
+        grandParent.setHandle(
+                mrpc->getAncestors(mrpc->getAncestorsArraySize() - 1));
+
+    successorNode.setHandle(mrpc->getSuccessorNode());
+    predecessorNode.setHandle(mrpc->getPredecessorNode());
+    for (size_t i = 0; i < mrpc->getAncestorsArraySize(); ++i) {
+        NodeHandle node = mrpc->getAncestors(i);
+        RescueNode hnode;
+        hnode.setHandle(node);
+        ancestors[node.getKey()] = hnode;
+    }
+
+    modeOfOperation = GENERAL_MODE;         // Change the mode to general
+    initializeNodesOneUp();                 // initialize the nodes one up
+}
 
 // TODO add Timeout for the JoinCall, because it might happen that there is
 //      no response from the bootstrap node we requested to join, in which case
@@ -1074,22 +1150,7 @@ void HTopology::handleJoinResponse (BaseResponseMessage *msg) {
         joinAcceptanceTime = simTime();                 // FILL IN THE JOIN ACCEPTANCE TIME
 
         EV << "We got a response from " << mrpc->getSrcNode() << endl;
-        parent.setHandle(mrpc->getSrcNode());
-        this->height = mrpc->getHeightParent() + 1;
-
-        if (mrpc->getAncestorsArraySize() > 0)
-            grandParent.setHandle(mrpc->getAncestors(mrpc->getAncestorsArraySize()-1));
-
-        successorNode.setHandle(mrpc->getSuccessorNode());
-        predecessorNode.setHandle(mrpc->getPredecessorNode());
-
-        for (size_t i=0; i<mrpc->getAncestorsArraySize(); ++i) {
-            NodeHandle node = mrpc->getAncestors(i);
-            RescueNode hnode;
-            hnode.setHandle(node);
-            ancestors[node.getKey()] = hnode;
-        }
-
+        setOverlayLinksFromJoinResponse(mrpc);
         EV << "joined overlay :" ;
         updateTooltip();
     } else {
@@ -1098,14 +1159,15 @@ void HTopology::handleJoinResponse (BaseResponseMessage *msg) {
         mcall->setBitLength(JOINCALL_L (mcall));
 
         // go on & call the given node
-        if (mrpc->getSuccessorNode().isUnspecified()) {
+        assert (mrpc->getSuccessorNode().isUnspecified() == false);
+        /*if (mrpc->getSuccessorNode().isUnspecified()) {
             EV << "Incorrect response->" ;
             EV << "NEED HELP" << endl;
-        } else {
+        } else {*/
             // go ahead & add yourself to the child
             EV << "joining at " << mrpc->getSuccessorNode() <<  endl;
             sendRouteRpcCall (OVERLAY_COMP, mrpc->getSuccessorNode(), mcall);
-        }
+        //}
     }
 }
 
@@ -1251,19 +1313,16 @@ void HTopology::handleNewParentSelectedCall (BaseCallMessage *msg) {
 
     // Ideally this node should also be acting in rescue mode
     assert (modeOfOperation == RESCUE_MODE);
-    assert (!(mrpc->getParent().isUnspecified()));
+    if (mrpc->getParent().isUnspecified() == false) {
+        // Got a replacement for the node
+        parent.setHandle(mrpc->getParent());
+        modeOfOperation = GENERAL_MODE;
 
-    parent.setHandle(mrpc->getParent());
-    modeOfOperation = GENERAL_MODE;
-
-    // remove your rescue link from the rescue parent
-    if (!rescueParent.isUnspecified()) {
-        HRemoveRescueLinkCall *removeRescueLinkCall = new HRemoveRescueLinkCall();
-        removeRescueLinkCall->setBitLength(HREMOVERESCUELINKCALL_L(removeRescueLinkCall));
-        sendRouteRpcCall(OVERLAY_COMP, rescueParent.getHandle(), removeRescueLinkCall);
-
-        // Reset the rescue parent to unspecified node
-        rescueParent = HNode::unspecifiedNode;
+        // remove your rescue link from the rescue parent
+        removeRescueLink();
+    } else {
+        // Lets choose our alternate parent
+        getAlternateParent();
     }
 
     delete msg;
@@ -1295,14 +1354,7 @@ void HTopology::handleResponsibilityAsParentCall (BaseCallMessage *msg) {
     modeOfOperation = GENERAL_MODE;
 
     // remove your rescue link from the rescue parent
-    if (!rescueParent.isUnspecified()) {
-        HRemoveRescueLinkCall *removeRescueLinkCall = new HRemoveRescueLinkCall();
-        removeRescueLinkCall->setBitLength(HREMOVERESCUELINKCALL_L(removeRescueLinkCall));
-        sendRouteRpcCall(OVERLAY_COMP, rescueParent.getHandle(), removeRescueLinkCall);
-
-        // Reset the rescue parent to unspecified node
-        rescueParent = HNode::unspecifiedNode;
-    }
+    removeRescueLink();
 
     // add the children vector into our children set
     for (size_t i=0; i<mrpc->getChildrenArraySize(); ++i, ++noOfChildren) {
@@ -1337,13 +1389,19 @@ void HTopology::handleScheduleSegmentsCall (BaseCallMessage *msg) {
         }
     }
 
-    // prepare the response
-    HScheduleSegmentsResponse *scheduleResponse = new HScheduleSegmentsResponse();
-    scheduleResponse->setSegmentsArraySize(foundSegments.size());
-    scheduleResponse->setBitLength(HSCHEDULESEGMENTSRESPONSE_L(scheduleResponse));
-    for (size_t k=0; k<foundSegments.size(); ++k)
-        scheduleResponse->setSegments(k, foundSegments[k]);
-    sendRpcResponse(scheduleCall, scheduleResponse);
+    // NOTE If we've no packets to be sent for this call -> simply skip sending the response
+    // Unnecessary overhead of sending a blank response
+    if (foundSegments.size() > 0) {
+        // prepare the response
+        HScheduleSegmentsResponse *scheduleResponse = new HScheduleSegmentsResponse();
+        scheduleResponse->setSegmentsArraySize(foundSegments.size());
+        scheduleResponse->setBitLength(HSCHEDULESEGMENTSRESPONSE_L(scheduleResponse));
+        for (size_t k=0; k<foundSegments.size(); ++k)
+            scheduleResponse->setSegments(k, foundSegments[k]);
+        sendRpcResponse(scheduleCall, scheduleResponse);
+    } else {
+        delete msg;
+    }
 }
 
 void HTopology::addSegmentToCache (HVideoSegment& videoSegment) {
@@ -1358,6 +1416,12 @@ void HTopology::addSegmentToCache (HVideoSegment& videoSegment) {
     }
 
     HCacheElem cacheElem(videoSegment);
+
+    // Don't accept packets missing the deadline
+    if (videoSegment.segmentID < playBackSegmentID) {
+        cout << thisNode << ": recvd segment (deadline gone) " << videoSegment.segmentID << endl;
+        return;
+    }
 
     if (scheduledCache.find(videoSegment.segmentID) != scheduledCache.end()) {
         EV << thisNode << ": a segment in schedule cache is received " << videoSegment.segmentID << endl;
@@ -1514,7 +1578,8 @@ void HTopology::handleCapacityResponse (BaseResponseMessage *msg) {
         cout << thisNode << ": leaveReqeusts[key].node : " << leaveRequests[key].node << endl;
         cout << "Key is " << key << endl;
 #endif
-        goAheadWithRestSelectionProcess (leaveRequests[key].node.getKey());
+        //goAheadWithRestSelectionProcess (leaveRequests[key].node.getKey());
+        alternateArrangementForYourGrandChildren(leaveRequests[key].node.getKey());
     }
 }
 
@@ -1716,6 +1781,18 @@ bool HTopology::handleRpcCall(BaseCallMessage *msg) {
         break;
     }
 
+    RPC_ON_CALL(HConvertRescueLink) {
+        handleConvertRescueLinkCall(msg);
+        RPC_HANDLED = true;
+        break;
+    }
+
+    RPC_ON_CALL(HReJoin) {
+       handleReJoinCall(msg);
+       RPC_HANDLED = true;
+       break;
+   }
+
     RPC_ON_CALL(HChildAdded) {
         handleChildAddedCall(msg);
         RPC_HANDLED = true;
@@ -1752,6 +1829,7 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
         // I think you should change the timeout period associated with this call, otherwise it'll assume the node is DEAD
         RPC_ON_CALL(HVideoSegment) {
             HVideoSegmentCall *mrpc = (HVideoSegmentCall *)msg;
+            // TODO failure detection by rescue parent
             if (children.find(destKey) == children.end()) {
                 EV << "not my child, why Am i sending it a video segment?" << endl;
             }
@@ -1815,10 +1893,14 @@ void HTopology::handleRpcTimeout(BaseCallMessage* msg,
         RPC_ON_CALL(HGetParameters) {
             EV << "TIMEOUT HGETPARAMETERS: couldn't send to " << dest << endl;
         }
+
+        RPC_ON_CALL(HScheduleSegments) {
+            EV << "Schedule segments: couldn't send to " << dest << endl;
+        }
+
     // end the switch
     RPC_SWITCH_END();
 }
-
 
 // Called when we receive an RPC response from another node.
 // Don't delete msg here!
@@ -1872,6 +1954,14 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
             handleRescueJoinResponse(msg);
         }
 
+        RPC_ON_RESPONSE(HConvertRescueLink) {
+            handleConvertRescueLinkResponse(msg);
+        }
+
+        RPC_ON_RESPONSE(HReJoin) {
+            handleReJoinResponse(msg);
+        }
+
     // end the switch
     RPC_SWITCH_END();
 }
@@ -1914,6 +2004,40 @@ void HTopology::getParametersForSelectionAlgo (const OverlayKey& key) {
     }
 }
 
+bool HTopology::pickReplacement(int noOfChildrenToAdd, bool replacementDone,
+        std::map<OverlayKey, int>::iterator& it,
+        std::map<OverlayKey, int>& queryNodesSelectionAlgo) {
+    for (; it != queryNodesSelectionAlgo.end(); ++it) {
+        // What else is to be done?
+        // Modify the existing next & prev pointers for the replacement's sibling
+        // Modify the pointers for the siblings in the current overlay
+        // And add nodeChildren as parent to the replacement node
+        int capacity = (*it).second;
+        // TODO actually one less -> leave itself
+        if (capacity >= noOfChildrenToAdd) {
+#if _HDEBUG_
+            cout << "Replacement node's key is " << (*it).first << endl;
+#endif
+            replacementDone = true;
+            break;
+        }
+    }
+    return replacementDone;
+}
+
+void HTopology::sendLeaveResponse(const OverlayKey& key) {
+    // 1) Notify the node about the result
+    // Send the HLeaveOverlayResponse to the node, whose replacement has been found
+    // May be some node can serve till a viable solution is found
+    if (leaveRequests[key].mrpc != NULL) {
+        // TODO this won't be handled right?
+        HLeaveOverlayResponse *rrpc = new HLeaveOverlayResponse();
+        rrpc->setPermissionGranted(true);
+        rrpc->setBitLength(HLEAVEOVERLAYRESPONSE_L(rrpc));
+        sendRpcResponse(leaveRequests[key].mrpc, rrpc);
+    }
+}
+
 // 2) Main procedure for deciding the replacement for keyParent
 void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
     EV << "Rest of the selection process for child replacement: " << key << endl;
@@ -1939,33 +2063,13 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
 #if _HDEBUG_
     cout << "Finding out replacement for the key " << key << endl;
 #endif
-    for (; it!=queryNodesSelectionAlgo.end(); ++it) {
-        // What else is to be done?
-        // Modify the existing next & prev pointers for the replacement's sibling
-        // Modify the pointers for the siblings in the current overlay
-        // And add nodeChildren as parent to the replacement node
-        int capacity = (*it).second;
-        // TODO actually one less -> leave itself
-        if (capacity >= noOfChildrenToAdd) {
-#if _HDEBUG_
-            cout << "Replacement node's key is " << (*it).first << endl;
-#endif
-            replacementDone = true;
-            break;
-        }
-    }
+    replacementDone = pickReplacement(noOfChildrenToAdd, replacementDone, it, queryNodesSelectionAlgo);
 
     if (replacementDone) {
         // 1) Notify the node about the result
         // Send the HLeaveOverlayResponse to the node, whose replacement has been found
         // May be some node can serve till a viable solution is found
-        if (leaveRequests[key].mrpc != NULL) {
-            // TODO this won't be handled right?
-            HLeaveOverlayResponse *rrpc = new HLeaveOverlayResponse();
-            rrpc->setPermissionGranted(true);
-            rrpc->setBitLength(HLEAVEOVERLAYRESPONSE_L(rrpc));
-            sendRpcResponse(leaveRequests[key].mrpc, rrpc);
-        }
+        sendLeaveResponse(key);
 
         // 2) Replace the child with this newly selected parent (children list)
         set<NodeHandle> newChildren = children[key].getChildren();
@@ -1991,6 +2095,10 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
         if (pos != newChildren.end()) newChildren.erase(pos);
         else {
             EV << "Is this even possible that the replacement node is not in the children set?" << endl;
+#if _CURDEBUG_
+            cout << "Is this even possible that the replacement node is not in the children set?"
+                    << (*it).first << endl;
+#endif
         }
         HNode newNode = children[key];
         NodeHandle oldNode = newNode.getHandle();
@@ -2044,6 +2152,346 @@ void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
 
     // Once done with "deciding the new parent", inform the children about their new parent
     // Also inform the new parent for the same
+}
+
+void HTopology::sendReJoinCall () {
+    // TODO pick your choice of node to be added in the tree
+    // find a new bootstrap node and enroll to the bootstrap list
+    bootstrapNode = bootstrapList->getBootstrapNode(0);
+
+    EV << "bootstrap is " << bootstrapNode << endl ;
+    cout << thisNode << ": going to send rejoin call " << bootstrapNode << endl;
+
+    // Should not be the first node in the list
+    assert (bootstrapNode.isUnspecified() == false);
+
+    EV << thisNode << ": is going to Re-Join the overlay rooted at " << bootstrapNode << endl;
+    HReJoinCall *msg = new HReJoinCall();
+    msg->setBitLength(HREJOINCALL_L(msg));
+
+    // send it to the destination
+    sendRouteRpcCall (OVERLAY_COMP, bootstrapNode, msg);
+}
+
+// Getting a parent alternative [GParent couldn't find one]
+void HTopology::getAlternateParent() {
+    if (modeOfOperation == RESCUE_MODE) {
+        cout << thisNode << ": getAlternateParent -> rescue mode" << endl;
+
+        if (rescueParent.isUnspecified() == false) {
+            cout << thisNode << ": getAlternateParent -> converting rescue link to parent-child" << endl;
+
+            // Try to convert the rescue link to parent-child link
+            HConvertRescueLinkCall *msg = new HConvertRescueLinkCall();
+            msg->setBitLength(HCONVERTRESCUELINKCALL_L(msg));
+            sendRouteRpcCall(OVERLAY_COMP, rescueParent.getHandle(), msg);
+        } else {
+            cout << thisNode << ": getAlternateParent -> converting rescue link to parent-child" << endl;
+
+            // No Rescue parent for the help [rejoin the overlay network]
+            sendReJoinCall();
+        }
+    } else {
+        cout << thisNode << ": getAlternateParent -> general mode" << endl;
+        assert(modeOfOperation == GENERAL_MODE);
+        // Simple rejoin the network [WHAT ABOUT THE PACKET SCHEDULING]
+        sendReJoinCall();
+    }
+}
+
+HNode HTopology::grandChildWithThisKey (set<NodeHandle>& newChildren, OverlayKey key) {
+    set<NodeHandle>::iterator pos=newChildren.begin();
+#if _HDEBUG_
+        cout << "Keys are " << endl;
+        for (; pos!=newChildren.end(); ++pos) {
+            cout << (*pos).getKey() << endl;
+        }
+#endif
+
+    pos=newChildren.begin();
+    for (; pos!=newChildren.end(); ++pos) {
+        if ((*pos).getKey() == key) break;
+    }
+
+#if _HDEBUG_
+        cout << "pos == newChildren.end() ??" << (pos==newChildren.end()) << endl;
+#endif
+
+    NodeHandle newHandle;
+    if (pos != newChildren.end()) { newHandle = *pos; newChildren.erase(pos); }
+    else {
+        EV << "Is this even possible that the replacement node is not in the children set?" << endl;
+#if _CURDEBUG_
+        cout << "Is this even possible that the replacement node is not in the children set?"
+                << key << endl;
+        cout << "size of newChildren: " << newChildren.size() << endl;
+#endif
+
+        pos = newChildren.begin();
+        newHandle = *pos;
+        newChildren.erase(pos);
+    }
+
+    HNode newNode;
+    newNode.setHandle(newHandle);
+    newNode.setChildren(newChildren);
+
+    return newNode;
+}
+
+void HTopology::sendReplacementMessages(
+        const set<NodeHandle>& childrenToAddToThatBranch,
+        const set<NodeHandle>& noHelpAssistedChildren, const HNode& newNode) {
+
+    // 4a) Inform the newParent about its children
+    HResponsibilityAsParentCall* mrpc = new HResponsibilityAsParentCall();
+    mrpc->setChildrenArraySize(childrenToAddToThatBranch.size());
+    int i = 0;
+    for (set<NodeHandle>::iterator iter = childrenToAddToThatBranch.begin();
+            iter != childrenToAddToThatBranch.end(); ++iter, ++i) {
+        mrpc->setChildren(i, *iter);
+    }
+    mrpc->setParent(thisNode);
+    mrpc->setBitLength(HRESPONSIBILITYASPARENTCALL_L(mrpc));
+    // Definite bug creeping in since no one knows
+    sendRouteRpcCall(OVERLAY_COMP, newNode.getHandle(), mrpc);
+
+
+    // 4b) Inform children about the new parent
+    // TODO what about the successor & predecessor
+    for (set<NodeHandle>::iterator iter = childrenToAddToThatBranch.begin();
+            iter != childrenToAddToThatBranch.end(); ++iter) {
+        HNewParentSelectedCall *msg = new HNewParentSelectedCall();
+        msg->setParent(newNode.getHandle());
+        msg->setBitLength(HNEWPARENTSELECTEDCALL_L (msg));
+        sendRouteRpcCall(OVERLAY_COMP, *iter, msg);
+    }
+
+
+    // 4c) Inform the unlucky grandChildren to seek the shelter somewhere else in the overlay
+    for (set<NodeHandle>::iterator iter = noHelpAssistedChildren.begin();
+            iter != noHelpAssistedChildren.end(); ++iter) {
+        HNoReplacementFoundCall *msg = new HNoReplacementFoundCall();
+        msg->setBitLength(HNOREPLACEMENTFOUNDCALL_L(msg));
+        sendRouteRpcCall(OVERLAY_COMP, *iter, msg);
+    }
+}
+
+std::ostream& operator<<(std::ostream& s, const pair<OverlayKey, int>& p)
+{
+    return s << '(' << p.first << ',' << p.second << ')';
+}
+
+// Do alternate arrangement for your grand children
+void HTopology::alternateArrangementForYourGrandChildren(const OverlayKey& key) {
+    // Pick the maximum capacity grandChild & add others to it [as much as possible]
+    // others need to see for themselves
+    EV << "V2 - Rest of the selection process for child replacement: " << key << endl;
+    if (key.isUnspecified()) {
+        cout << "AlternateArrangement --> key is unspecified" << endl;
+    }
+    if (leaveRequests.find(key) == leaveRequests.end()) {
+        EV << "some spurious call to alternateArrangement" << endl;
+        return;
+    }
+    if (children.find(key) == children.end()) {
+        EV << "replacement of the given node is not a responsibility of this node " << endl;
+        return;
+    }
+
+    // TODO if only leaving node has only one child??
+    std::map<OverlayKey, int>& queryNodesSelectionAlgo = leaveRequests[key].queryNodesSelectionAlgo;
+    std::map<OverlayKey, int>::iterator replacementNode;
+
+    // 0)
+    // Find out the maximum element node among the grandChildren [children of children[key]]
+    replacementNode = std::max_element(queryNodesSelectionAlgo.begin(), queryNodesSelectionAlgo.end());
+
+    // verify that this gives correct output
+    /*std::copy(queryNodesSelectionAlgo.begin(), queryNodesSelectionAlgo.end(), std::ostream_iterator<pair<OverlayKey,int> >(cout, "-- \n"));
+    cout << "replacement node " << (*replacementNode).second << endl;*/
+
+    // 1)
+    // Notify the node about the result
+    // Send the HLeaveOverlayResponse to the node, whose replacement has been found
+    // May be some node can serve till a viable solution is found
+    sendLeaveResponse(key);
+
+    // Add the replacement grandChild as your child & push in as many nodes as possible
+    // 2)
+    // Find the grandChild with this key
+    // Replace the child with this newly selected parent (children list)
+    // In case the grandChild do not exists, pick the beginning node
+    set<NodeHandle> newChildren = children[key].getChildren();
+    if (newChildren.size() > 0) {
+        HNode newNode = grandChildWithThisKey(newChildren, (*replacementNode).first);
+
+        // 3)
+        // Get the capacity of the newNode
+        // And prepare the replacementChild, childrenToAddToThatBranch && noHelpAssistedToChildren
+        replacementNode = queryNodesSelectionAlgo.find(newNode.getKey());
+        if (replacementNode == queryNodesSelectionAlgo.end()) {
+                 //||(children[key].getChildren().find(newNode) == children[key].getChildren().end())) {
+            noOfChildren--;
+            cout << thisNode << ": fatal error" << endl;
+
+            for (set<NodeHandle>::iterator iter=children[key].getChildren().begin(); iter!=children[key].getChildren().end(); ++iter) {
+                HNewParentSelectedCall *chooseAlternate = new HNewParentSelectedCall();
+                chooseAlternate->setParent(NodeHandle::UNSPECIFIED_NODE);
+                chooseAlternate->setBitLength(HNEWPARENTSELECTEDCALL_L (chooseAlternate));
+                sendRouteRpcCall(OVERLAY_COMP, *iter, chooseAlternate);
+            }
+        } else {
+            int capacityLeft = (*replacementNode).second;
+            set<NodeHandle> newNodeChildren = newNode.getChildren();
+
+            // Minimum of the two candidates
+            capacityLeft = min(capacityLeft, (int)newNodeChildren.size());
+            set<NodeHandle>::iterator noHelpBegin = newNodeChildren.begin();
+            std::advance(noHelpBegin, capacityLeft);
+
+            // Splice the set out to get the required sets of lucky & unlucky children
+            set<NodeHandle> noHelpAssistedChildren(noHelpBegin, newNodeChildren.end());
+            set<NodeHandle> childrenToAddToThatBranch(newNodeChildren.begin(), noHelpBegin);
+
+            // TODO rectify this
+            newNode.setChildren(childrenToAddToThatBranch);
+            children[newNode.getKey()] = newNode;
+
+            // 4)
+            // Send various calls to the participants
+            sendReplacementMessages(childrenToAddToThatBranch,
+                    noHelpAssistedChildren, newNode);
+        }
+    } else {
+        cout << thisNode << ": no children left for the node " << key << endl;
+    }
+
+    children.erase(key);
+    leaveRequests.erase (key);
+}
+
+void HTopology::getGrandChildrenAt(BaseCallMessage* msg) {
+    // get the grandChildren available at the newly connected node's subtree
+    HGetChildrenCall* getChildrenCall = new HGetChildrenCall();
+    getChildrenCall->setForGrandChildrenAccumulation(true);
+    getChildrenCall->setBitLength(HGETCHILDRENCALL_L(getChildrenCall));
+    sendRouteRpcCall(OVERLAY_COMP, msg->getSrcNode(), getChildrenCall);
+}
+
+void HTopology::handleConvertRescueLinkCall (BaseCallMessage *msg) {
+    HConvertRescueLinkCall *convertCall = (HConvertRescueLinkCall *)msg;
+    cout << thisNode << ": got convert rescue link call from " << msg->getSrcNode() << endl;
+    if (rescueChildren.find(convertCall->getSrcNode().getKey()) == rescueChildren.end()) {
+        cout << thisNode << ": fake convert rescue call" << endl;
+        return;
+    }
+
+    HConvertRescueLinkResponse *convertResponse = new HConvertRescueLinkResponse();
+
+    if (capacity() > 0) {
+        // Add this into out children list
+        convertResponse->setJoined(true);
+
+        // add to children list && prepare ancestors & successor, predecessor
+        // if we are out of capacity => remove from bootstrapping
+        prepareAndSendJoinAcceptance(convertCall, convertResponse);
+
+        // get the grandChildren available at the newly connected node's subtree
+        getGrandChildrenAt(msg);
+
+        // Remove the source node from rescue children
+        rescueChildren.erase(convertCall->getSrcNode().getKey());
+    } else {
+        // We don't have the vacancy to fill this node's requirement
+        convertResponse->setJoined(false);
+    }
+
+    convertResponse->setBitLength(HCONVERTRESCUELINKRESPONSE_L(convertResponse));
+    sendRpcResponse(convertCall, convertResponse);
+}
+
+void HTopology::handleConvertRescueLinkResponse (BaseResponseMessage *msg) {
+    cout << thisNode << ": convert rescue link response: " << msg->getSrcNode() << endl;
+
+    HConvertRescueLinkResponse *convertResponse = (HConvertRescueLinkResponse *) msg;
+    if (rescueParent.isUnspecified() == true) return;
+    assert (rescueParent.getHandle() != convertResponse->getSrcNode());
+
+    if (convertResponse->getJoined() == true) {
+        // extract out common functions from handleJoinResponse
+        EV << "We got a REJOIN response from " << convertResponse->getSrcNode() << endl;
+        setOverlayLinksFromJoinResponse(convertResponse);
+
+        // DONE send parent addChildCall for our children [taken care by the rescue parent]
+
+        // set rescue parent to unspecified again
+        rescueParent = HNode::unspecifiedNode;
+    } else {
+        // Go ahead & look for re-join in the network
+        sendReJoinCall();
+    }
+}
+
+void HTopology::handleReJoinCall (BaseCallMessage *msg) {
+    HReJoinCall *mrpc = (HReJoinCall*) msg;
+    HReJoinResponse *rrpc = new HReJoinResponse ();
+    EV << thisNode << ": REJOIN received from " <<  msg->getSrcNode() << endl;
+
+    // TODO capacity()>0 && modeOfOperation==GENERAL_MODE
+    if (capacity()>0) {
+        // Add it to children set && prepare the response required && send the joining acceptance to the node
+        prepareAndSendJoinAcceptance(msg, rrpc);
+
+        // get the grandChildren available at the newly connected node's subtree
+        getGrandChildrenAt(msg);
+    } else {
+        // TODO may be check if anyone of them can support the children
+        // Try to keep the height of the tree as low as possible
+        EV << "REJOIN redirecting to one of my children: " << endl;
+        prepareAlternativeToJoin(rrpc);
+    }
+
+    rrpc->setBitLength(HREJOINRESPONSE_L(rrpc));
+    sendRpcResponse(mrpc, rrpc);
+}
+
+void HTopology::removeRescueLink() {
+    // remove your rescue link from the rescue parent
+    if (!rescueParent.isUnspecified()) {
+        HRemoveRescueLinkCall *removeRescueLinkCall =
+                new HRemoveRescueLinkCall();
+        removeRescueLinkCall->setBitLength(
+                HREMOVERESCUELINKCALL_L(removeRescueLinkCall));
+        sendRouteRpcCall(OVERLAY_COMP, rescueParent.getHandle(),
+                removeRescueLinkCall);
+
+        // Reset the rescue parent to unspecified node
+        rescueParent = HNode::unspecifiedNode;
+    }
+}
+
+void HTopology::handleReJoinResponse (BaseResponseMessage *msg) {
+    HReJoinResponse* mrpc = (HReJoinResponse*)msg;          // get Response message
+    if (mrpc->getJoined() == true) {
+        EV << "We got a REJOIN response from " << mrpc->getSrcNode() << endl;
+        cout << "We got a REJOIN response from " << mrpc->getSrcNode() << endl;
+
+        // Set parent, ancestors & mode of operation
+        setOverlayLinksFromJoinResponse(mrpc);
+
+        // remove your rescue link from the rescue parent
+        removeRescueLink();
+    } else {
+        EV << thisNode << ": is going to join the overlay rooted at" << mrpc->getSuccessorNode() << endl;
+        HReJoinCall *mcall = new HReJoinCall();
+        mcall->setBitLength(HREJOINCALL_L (mcall));
+
+        // go on & call the given node
+        assert (mrpc->getSuccessorNode().isUnspecified() == false);
+        EV << "REJOIN joining at " << mrpc->getSuccessorNode() <<  endl;
+        sendRouteRpcCall (OVERLAY_COMP, mrpc->getSuccessorNode(), mcall);
+    }
 }
 
 void HTopology::handleRescueJoinCall (BaseCallMessage *msg) {

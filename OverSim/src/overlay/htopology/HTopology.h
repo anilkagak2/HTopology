@@ -23,8 +23,10 @@
 #include <NodeHandle.h>
 #include <string>
 #include <vector>
+#include <set>
 #include <map>
 #include <algorithm>
+#include <iterator>
 #include <BootstrapList.h>
 #include "BaseOverlay.h"
 #include "HMessage_m.h"
@@ -34,6 +36,7 @@
 using std::endl;
 using std::vector;
 using std::string;
+using std::set;
 
 #define GENERAL_MODE 0
 #define RESCUE_MODE 1
@@ -41,6 +44,7 @@ using std::string;
 /*** DEBUG Settings ***/
 #define _HDEBUG_ 0
 #define _CURDEBUG_ 1
+#define _PROFILE_DEBUG_ 0
 /*** END DEBUG Settings ***/
 
 #define PARAMETERS_RESPONSE_BUFFER 4
@@ -140,6 +144,13 @@ class HTopology : public BaseOverlay {
     void handleRescueJoinResponse (BaseResponseMessage *msg);
     void handleRemoveRescueLinkCall (BaseCallMessage *msg);
 
+    void handleConvertRescueLinkCall (BaseCallMessage *msg);
+    void handleConvertRescueLinkResponse (BaseResponseMessage *msg);
+
+    void sendReJoinCall ();
+    void handleReJoinCall (BaseCallMessage *msg);
+    void handleReJoinResponse (BaseResponseMessage *msg);
+
     void handleChildAddedCall (BaseCallMessage *msg);
     void handleChildRemovedCall(BaseCallMessage *msg);
     void handleGetChildrenResponse (BaseResponseMessage *msg);
@@ -195,9 +206,37 @@ class HTopology : public BaseOverlay {
     vector<RescueNode> getRankedRescueNodes ();         // returns the RescueNode structures for the ranked rescue nodes
     vector<NodeHandle> getRankedRescueNodeHandles ();   // returns the NodeHandles for the ranked rescue nodes
 
+    HNode grandChildWithThisKey (set<NodeHandle>& newChildren, OverlayKey key);
+    // Getting a parent alternative [GParent couldn't find one]
+    void getAlternateParent();
+
+    // Do alternate arrangement for your grand children
+    void alternateArrangementForYourGrandChildren(const OverlayKey& leaveKey);
+
     // Advance Features
     void optimizeTree ();
     void calculateResourceAllocationPolicy ();
+    bool pickReplacement(int noOfChildrenToAdd, bool replacementDone,
+            std::map<OverlayKey, int>::iterator& it,
+            std::map<OverlayKey, int>& queryNodesSelectionAlgo);
+
+    void sendLeaveResponse(const OverlayKey& key);
+
+    void sendReplacementMessages(
+            const set<NodeHandle>& childrenToAddToThatBranch,
+            const set<NodeHandle>& noHelpAssistedChildren,
+            const HNode& newNode);
+
+    void prepareAndSendJoinAcceptance(BaseCallMessage* msg,
+            HJoinResponse* rrpc);
+
+    void prepareAlternativeToJoin(HJoinResponse* rrpc);
+
+    void setOverlayLinksFromJoinResponse(HJoinResponse* mrpc);
+
+    void getGrandChildrenAt(BaseCallMessage* msg);
+
+    void removeRescueLink();
 
   public:
     int nodeID;             // my ID in the overlay
