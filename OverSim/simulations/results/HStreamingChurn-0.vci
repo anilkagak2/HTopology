@@ -1,15 +1,15 @@
-file 88753 1397460299                                           
+file 11487 1397462124                                           
 version 2
-run HStreamingChurn-0-20140414-11:58:00-8468
+run HStreamingChurn-0-20140414-13:20:56-240
 attr configname HStreamingChurn
-attr datetime 20140414-11:58:00
+attr datetime 20140414-13:20:56
 attr experiment HStreamingChurn
 attr inifile htopology.ini
 attr iterationvars ""
 attr iterationvars2 $repetition=0
 attr measurement ""
 attr network oversim.underlay.simpleunderlay.SimpleUnderlayNetwork
-attr processid 8468
+attr processid 240
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -18,9 +18,9 @@ attr seedset 0
 
 vector 1  SimpleUnderlayNetwork.globalObserver.globalStatistics  "ParetoChurn: Session Time"  ETV
 vector 2  SimpleUnderlayNetwork.globalObserver.globalStatistics  "ParetoChurn: Time between creates"  ETV
-vector 3  SimpleUnderlayNetwork.globalObserver.globalStatistics  "ParetoChurn: Time between deletes"  ETV
-vector 4  SimpleUnderlayNetwork.globalObserver.globalStatistics  "GlobalNodeList: Number of nodes"  ETV
-1	870 29982 3968801 57135814 1000.519880386 8196.935023057 703 1.1752897720666 1516887.7242501 10134376.669463 4072037125924.4
-2	30852 27452 3968801 57135814 1000.519880386 8196.935023057 703 0.013493223 71.664769434 7198.171710391 143788.81030475
-3	58304 27379 4010470 57134328 1005.731979856 8196.721809899 701 0.015088872 1005.731979856 8196.721809899 1154315.6012437
-4	85683 3070 4363731 56786561 1050 8150 143 988 1013 143117 143238001
+vector 3  SimpleUnderlayNetwork.globalObserver.globalStatistics  "GlobalNodeList: Number of nodes"  ETV
+vector 4  SimpleUnderlayNetwork.globalObserver.globalStatistics  "ParetoChurn: Time between deletes"  ETV
+1	868 2661 73179 6947239 144.074201019 7126.320179271 64 6.0637786800093 144268.24497986 566582.73458326 29120633957.832
+2	3529 2497 73179 6947239 144.074201019 7126.320179271 64 0.441203699 426.592183496 7027.515904228 1413685.170997
+3	6026 2680 78107 7078817 150 7250 143 91 102 13704 1313836
+4	8706 2781 158175 7061215 252.340131552 7233.36442276 72 0.964052625 461.618612324 7233.36442276 1554157.4902068

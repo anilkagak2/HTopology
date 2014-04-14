@@ -668,7 +668,9 @@ void HTopology::handlePlayBackTimer (cMessage *msg) {
     /* DELETE SCHEDULED PACKETS WITH deadline < playBackSegmentID */
     for (map<int, HCacheElem>::iterator it=scheduledCache.begin(); it!=scheduledCache.end(); ) {
         if ((*it).first <= playBackSegmentID) {
+#if _HDEBUG_
             cout << thisNode << ": removing from scheduledCache" << (*it).first << endl;
+#endif
             scheduledCache.erase (it++);
         } else {
             break;
@@ -1015,7 +1017,9 @@ void HTopology::setNodesOneUp (BaseResponseMessage* msg) {
 void HTopology::prepareAndSendJoinAcceptance(BaseCallMessage* msg,
         HJoinResponse* rrpc) {
     EV << thisNode << ": will be adding node: " << msg->getSrcNode() << ": as child" << endl;
+#if _HDEBUG_
     cout << thisNode << ": will be adding node: " << msg->getSrcNode() << ": as child" << endl;
+#endif
     noOfChildren++;
 
     // we assume that node is a new comer => everything empty
@@ -1084,7 +1088,9 @@ void HTopology::prepareAndSendJoinAcceptance(BaseCallMessage* msg,
 }
 
 void HTopology::prepareAlternativeToJoin(HJoinResponse* rrpc) {
+#if _HDEBUG_
     cout << thisNode << ": preparing alternative : " << endl;
+#endif
     size_t size = children.size();
     int redirection = intuniform(0, size - 1);
     MapIterator iter = children.begin();
@@ -1165,6 +1171,7 @@ void HTopology::handleJoinResponse (BaseResponseMessage *msg) {
         if (mrpc->getSuccessorNode().isUnspecified()) {
             EV << "Incorrect response->" ;
             EV << "NEED HELP" << endl;
+#if _CURDEBUG_
             cout << "NEED HELP :msg class" << msg->getClassName() << endl;
             if (dynamic_cast<HReJoinResponse*>(msg))  {
                 cout << " it's rejoin response class" << endl;
@@ -1172,6 +1179,7 @@ void HTopology::handleJoinResponse (BaseResponseMessage *msg) {
             if (dynamic_cast<HConvertRescueLinkResponse*>(msg)) {
                 cout << " it's convert rescue link response class" << endl;
             }
+#endif
         } else {
             // go ahead & add yourself to the child
             EV << "joining at " << mrpc->getSuccessorNode() <<  endl;
@@ -1298,7 +1306,11 @@ void HTopology::handleLeaveCall (BaseCallMessage *msg) {
 void HTopology::handleRemoveRescueLinkCall (BaseCallMessage *msg) {
     HRemoveRescueLinkCall *mrpc = (HRemoveRescueLinkCall *)msg;
     if (mrpc->getSrcNode().getKey().isUnspecified()) {
+#if _HDEBUG_
         cout << thisNode << ": remove rescue link call, unspecified key " << mrpc->getSrcNode() << endl;
+#endif
+        delete msg;
+        return;
     }
 
     if (rescueChildren.find(mrpc->getSrcNode().getKey()) == rescueChildren.end()) {
@@ -1428,7 +1440,9 @@ void HTopology::addSegmentToCache (HVideoSegment& videoSegment) {
 
     // Don't accept packets missing the deadline
     if (videoSegment.segmentID < playBackSegmentID) {
+#if _HDEBUG_
         cout << thisNode << ": recvd segment (deadline gone) " << videoSegment.segmentID << endl;
+#endif
         return;
     }
 
@@ -1558,14 +1572,18 @@ void HTopology::handleCapacityResponse (BaseResponseMessage *msg) {
 
     HCapacityResponse *mrpc = (HCapacityResponse*)msg;          // get Response message
     if (mrpc->getParentNode().isUnspecified()) {
+#if _HDEBUG_
         cout << thisNode << "Got a capacity response but not valid parent handle"
                 << "from " << mrpc->getSrcNode() << endl;
+#endif
         return;
     }
 
     if (mrpc->getParentNode().getKey().isUnspecified()) {
+#if _HDEBUG_
         cout << thisNode << "Got a capacity response but not valid key for parent node"
                 << "from " << mrpc->getSrcNode() << endl;
+#endif
         return;
     }
 
@@ -1955,7 +1973,10 @@ void HTopology::getParametersForSelectionAlgo (const OverlayKey& key) {
     EV << "getParametersForSelectionAlgo : " << key << endl;
 
     if (key.isUnspecified()) {
+#if _HDEBUG_
         cout << "getParametersForSelectionAlgo --> key is unspecified" << endl;
+#endif
+        return;
     }
 
     if (leaveRequests.find(key) == leaveRequests.end()) {
@@ -2023,7 +2044,10 @@ void HTopology::sendLeaveResponse(const OverlayKey& key) {
 void HTopology::goAheadWithRestSelectionProcess(const OverlayKey& key) {
     EV << "Rest of the selection process for child replacement: " << key << endl;
     if (key.isUnspecified()) {
+#if _HDEBUG_
         cout << "goAheadWithRestSelectionProcess --> key is unspecified" << endl;
+#endif
+        return;
     }
 
     if (leaveRequests.find(key) == leaveRequests.end()) {
@@ -2141,7 +2165,9 @@ void HTopology::sendReJoinCall () {
     bootstrapNode = bootstrapList->getBootstrapNode(0);
 
     EV << "bootstrap is " << bootstrapNode << endl ;
+#if _HDEBUG_
     cout << thisNode << ": going to send rejoin call " << bootstrapNode << endl;
+#endif
 
     // Should not be the first node in the list
     assert (bootstrapNode.isUnspecified() == false);
@@ -2157,23 +2183,31 @@ void HTopology::sendReJoinCall () {
 // Getting a parent alternative [GParent couldn't find one]
 void HTopology::getAlternateParent() {
     if (modeOfOperation == RESCUE_MODE) {
+#if _HDEBUG_
         cout << thisNode << ": getAlternateParent -> rescue mode" << endl;
+#endif
 
         if (rescueParent.isUnspecified() == false) {
+#if _HDEBUG_
             cout << thisNode << ": getAlternateParent -> converting rescue link to parent-child" << endl;
+#endif
 
             // Try to convert the rescue link to parent-child link
             HConvertRescueLinkCall *msg = new HConvertRescueLinkCall();
             msg->setBitLength(HCONVERTRESCUELINKCALL_L(msg));
             sendRouteRpcCall(OVERLAY_COMP, rescueParent.getHandle(), msg);
         } else {
+#if _HDEBUG_
             cout << thisNode << ": getAlternateParent -> converting rescue link to parent-child" << endl;
+#endif
 
             // No Rescue parent for the help [rejoin the overlay network]
             sendReJoinCall();
         }
     } else {
+#if _HDEBUG_
         cout << thisNode << ": getAlternateParent -> general mode" << endl;
+#endif
         assert(modeOfOperation == GENERAL_MODE);
         // Simple rejoin the network [WHAT ABOUT THE PACKET SCHEDULING]
         sendReJoinCall();
@@ -2269,7 +2303,10 @@ void HTopology::alternateArrangementForYourGrandChildren(const OverlayKey& key) 
     // others need to see for themselves
     EV << "V2 - Rest of the selection process for child replacement: " << key << endl;
     if (key.isUnspecified()) {
+#if _HDEBUG_
         cout << "AlternateArrangement --> key is unspecified" << endl;
+#endif
+        return;
     }
     if (leaveRequests.find(key) == leaveRequests.end()) {
         EV << "some spurious call to alternateArrangement" << endl;
@@ -2363,9 +2400,13 @@ void HTopology::getGrandChildrenAt(BaseCallMessage* msg) {
 
 void HTopology::handleConvertRescueLinkCall (BaseCallMessage *msg) {
     HConvertRescueLinkCall *convertCall = (HConvertRescueLinkCall *)msg;
+#if _HDEBUG_
     cout << thisNode << ": got convert rescue link call from " << msg->getSrcNode() << endl;
+#endif
     if (rescueChildren.find(convertCall->getSrcNode().getKey()) == rescueChildren.end()) {
+#if _HDEBUG_
         cout << thisNode << ": fake convert rescue call" << endl;
+#endif
         return;
     }
 
@@ -2394,7 +2435,9 @@ void HTopology::handleConvertRescueLinkCall (BaseCallMessage *msg) {
 }
 
 void HTopology::handleConvertRescueLinkResponse (BaseResponseMessage *msg) {
+#if _HDEBUG_
     cout << thisNode << ": convert rescue link response: " << msg->getSrcNode() << endl;
+#endif
 
     HConvertRescueLinkResponse *convertResponse = (HConvertRescueLinkResponse *) msg;
     if (rescueParent.isUnspecified() == true) return;
@@ -2403,7 +2446,9 @@ void HTopology::handleConvertRescueLinkResponse (BaseResponseMessage *msg) {
     if (convertResponse->getJoined() == true) {
         // extract out common functions from handleJoinResponse
         EV << "We got a +ve response from " << convertResponse->getSrcNode() << endl;
+#if _HDEBUG_
         cout << thisNode << ": We got a +bve response from " << convertResponse->getSrcNode() << endl;
+#endif
         setOverlayLinksFromJoinResponse(convertResponse);
 
         // DONE send parent addChildCall for our children [taken care by the rescue parent]
@@ -2412,7 +2457,9 @@ void HTopology::handleConvertRescueLinkResponse (BaseResponseMessage *msg) {
         rescueParent = HNode::unspecifiedNode;
     } else {
         // Go ahead & look for re-join in the network
+#if _HDEBUG_
         cout << thisNode << ": We got a -ve convert response from " << convertResponse->getSrcNode() << endl;
+#endif
         sendReJoinCall();
     }
 }
@@ -2421,7 +2468,9 @@ void HTopology::handleReJoinCall (BaseCallMessage *msg) {
     HReJoinCall *mrpc = (HReJoinCall*) msg;
     HReJoinResponse *rrpc = new HReJoinResponse ();
     EV << thisNode << ": REJOIN received from " <<  msg->getSrcNode() << endl;
+#if _HDEBUG_
     cout << thisNode << ": REJOIN received from " <<  msg->getSrcNode() << endl;
+#endif
 
     // TODO capacity()>0 && modeOfOperation==GENERAL_MODE
     if (capacity()>0) {
@@ -2460,7 +2509,9 @@ void HTopology::handleReJoinResponse (BaseResponseMessage *msg) {
     HReJoinResponse* mrpc = (HReJoinResponse*)msg;          // get Response message
     if (mrpc->getJoined() == true) {
         EV << "We got a REJOIN response from " << mrpc->getSrcNode() << endl;
+#if _HDEBUG_
         cout << "We got a REJOIN response from " << mrpc->getSrcNode() << endl;
+#endif
 
         // Set parent, ancestors & mode of operation
         setOverlayLinksFromJoinResponse(mrpc);
