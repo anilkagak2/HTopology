@@ -1014,7 +1014,8 @@ void HTopology::setNodesOneUp (BaseResponseMessage* msg) {
 
 void HTopology::prepareAndSendJoinAcceptance(BaseCallMessage* msg,
         HJoinResponse* rrpc) {
-    EV<< thisNode << ": will be adding node: " << msg->getSrcNode() << ": as child" << endl;
+    EV << thisNode << ": will be adding node: " << msg->getSrcNode() << ": as child" << endl;
+    cout << thisNode << ": will be adding node: " << msg->getSrcNode() << ": as child" << endl;
     noOfChildren++;
 
     // we assume that node is a new comer => everything empty
@@ -1083,6 +1084,7 @@ void HTopology::prepareAndSendJoinAcceptance(BaseCallMessage* msg,
 }
 
 void HTopology::prepareAlternativeToJoin(HJoinResponse* rrpc) {
+    cout << thisNode << ": preparing alternative : " << endl;
     size_t size = children.size();
     int redirection = intuniform(0, size - 1);
     MapIterator iter = children.begin();
@@ -1159,15 +1161,22 @@ void HTopology::handleJoinResponse (BaseResponseMessage *msg) {
         mcall->setBitLength(JOINCALL_L (mcall));
 
         // go on & call the given node
-        assert (mrpc->getSuccessorNode().isUnspecified() == false);
-        /*if (mrpc->getSuccessorNode().isUnspecified()) {
+        // assert (mrpc->getSuccessorNode().isUnspecified() == false);
+        if (mrpc->getSuccessorNode().isUnspecified()) {
             EV << "Incorrect response->" ;
             EV << "NEED HELP" << endl;
-        } else {*/
+            cout << "NEED HELP :msg class" << msg->getClassName() << endl;
+            if (dynamic_cast<HReJoinResponse*>(msg))  {
+                cout << " it's rejoin response class" << endl;
+            }
+            if (dynamic_cast<HConvertRescueLinkResponse*>(msg)) {
+                cout << " it's convert rescue link response class" << endl;
+            }
+        } else {
             // go ahead & add yourself to the child
             EV << "joining at " << mrpc->getSuccessorNode() <<  endl;
             sendRouteRpcCall (OVERLAY_COMP, mrpc->getSuccessorNode(), mcall);
-        //}
+        }
     }
 }
 
@@ -1913,54 +1922,26 @@ void HTopology::handleRpcResponse(BaseResponseMessage* msg,
     // start a switch
     RPC_SWITCH_START(msg);
         // enters the following block if the message is of type MyNeighborResponse (note the shortened parameter!)
-        RPC_ON_RESPONSE(HCapacity) {
-            handleCapacityResponse(msg);
-        }
-
-        RPC_ON_RESPONSE(HGetParameters) {
-            handleGetParametersResponse(msg, rtt);
-        }
-
         RPC_ON_RESPONSE (HVideoSegment) {
             numRecvMessages[EVideoSegment]++;
             EV << "got an hVideoSegment call's response" << endl;
-        }
-
-        RPC_ON_RESPONSE(HScheduleSegments) {
-            handleScheduleSegmentsResponse(msg);
+            break;
         }
 
         RPC_ON_RESPONSE(HSelectParent) {
-            numRecvMessages[ESelectParent]++;
+            numRecvMessages[ESelectParent]++; break;
             // TODO, will there really be any response message of this sort?
         }
 
-        RPC_ON_RESPONSE(HGetChildren) {
-            //setNodesOneUp(msg);
-            handleGetChildrenResponse(msg);
-        }
-
-        RPC_ON_RESPONSE(HRegisterInBootstrapping) {
-            handleRegisterInBootstrappingResponse(msg);
-        }
-
-        RPC_ON_RESPONSE(HJoin) {
-            handleJoinResponse(msg);
-            // TODO when to delete which message?
-            // there'll be lots of memory leaks :D
-        }
-
-        RPC_ON_RESPONSE(HRescueJoin) {
-            handleRescueJoinResponse(msg);
-        }
-
-        RPC_ON_RESPONSE(HConvertRescueLink) {
-            handleConvertRescueLinkResponse(msg);
-        }
-
-        RPC_ON_RESPONSE(HReJoin) {
-            handleReJoinResponse(msg);
-        }
+        RPC_ON_RESPONSE(HCapacity)                  { handleCapacityResponse(msg);            break;      }
+        RPC_ON_RESPONSE(HGetParameters)             { handleGetParametersResponse(msg, rtt);  break;      }
+        RPC_ON_RESPONSE(HScheduleSegments)          { handleScheduleSegmentsResponse(msg);    break;      }
+        RPC_ON_RESPONSE(HGetChildren)               { handleGetChildrenResponse(msg);         break;      }
+        RPC_ON_RESPONSE(HRegisterInBootstrapping)   { handleRegisterInBootstrappingResponse(msg); break;  }
+        RPC_ON_RESPONSE(HRescueJoin)                { handleRescueJoinResponse(msg);          break;      }
+        RPC_ON_RESPONSE(HConvertRescueLink)         { handleConvertRescueLinkResponse(msg);   break;      }
+        RPC_ON_RESPONSE(HReJoin)                    { handleReJoinResponse(msg);              break;      }
+        RPC_ON_RESPONSE(HJoin)                      { handleJoinResponse(msg);                break;      }
 
     // end the switch
     RPC_SWITCH_END();
@@ -2337,7 +2318,8 @@ void HTopology::alternateArrangementForYourGrandChildren(const OverlayKey& key) 
 
             for (set<NodeHandle>::iterator iter=children[key].getChildren().begin(); iter!=children[key].getChildren().end(); ++iter) {
                 HNewParentSelectedCall *chooseAlternate = new HNewParentSelectedCall();
-                chooseAlternate->setParent(NodeHandle::UNSPECIFIED_NODE);
+                NodeHandle unspecified;
+                chooseAlternate->setParent(unspecified);
                 chooseAlternate->setBitLength(HNEWPARENTSELECTEDCALL_L (chooseAlternate));
                 sendRouteRpcCall(OVERLAY_COMP, *iter, chooseAlternate);
             }
@@ -2416,11 +2398,12 @@ void HTopology::handleConvertRescueLinkResponse (BaseResponseMessage *msg) {
 
     HConvertRescueLinkResponse *convertResponse = (HConvertRescueLinkResponse *) msg;
     if (rescueParent.isUnspecified() == true) return;
-    assert (rescueParent.getHandle() != convertResponse->getSrcNode());
+    assert (rescueParent.getHandle() == convertResponse->getSrcNode());
 
     if (convertResponse->getJoined() == true) {
         // extract out common functions from handleJoinResponse
-        EV << "We got a REJOIN response from " << convertResponse->getSrcNode() << endl;
+        EV << "We got a +ve response from " << convertResponse->getSrcNode() << endl;
+        cout << thisNode << ": We got a +bve response from " << convertResponse->getSrcNode() << endl;
         setOverlayLinksFromJoinResponse(convertResponse);
 
         // DONE send parent addChildCall for our children [taken care by the rescue parent]
@@ -2429,6 +2412,7 @@ void HTopology::handleConvertRescueLinkResponse (BaseResponseMessage *msg) {
         rescueParent = HNode::unspecifiedNode;
     } else {
         // Go ahead & look for re-join in the network
+        cout << thisNode << ": We got a -ve convert response from " << convertResponse->getSrcNode() << endl;
         sendReJoinCall();
     }
 }
@@ -2437,6 +2421,7 @@ void HTopology::handleReJoinCall (BaseCallMessage *msg) {
     HReJoinCall *mrpc = (HReJoinCall*) msg;
     HReJoinResponse *rrpc = new HReJoinResponse ();
     EV << thisNode << ": REJOIN received from " <<  msg->getSrcNode() << endl;
+    cout << thisNode << ": REJOIN received from " <<  msg->getSrcNode() << endl;
 
     // TODO capacity()>0 && modeOfOperation==GENERAL_MODE
     if (capacity()>0) {
