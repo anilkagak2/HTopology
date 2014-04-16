@@ -1,3 +1,20 @@
+
+Summary Evaluation Experiments:
+	H-Topology
+	-> stream startup time <= 12s (10buffer + 2s actual time)
+	-> overlay join time <= 2s
+	-> transfer time <= 2s 
+	-> HopCount = 5 (mean + dev) {worst case noted 6}
+	-> Continuity is poor ==> Needs improvement
+	-> Overhead ==> Not estimated right now {Can be done only after all the changes have been finalized}
+
+Other overlays {CoolStreaming, Anysee & Anysee2}
+	-> Stream startup time = 20s to 60s
+	-> HopCount = 7-8
+	-> Continuity = 0.9
+	-> Overhead = 1% of the actual traffic
+	{Transfer time is not given in most of the overlays}
+
 =================================== Target =====================================================
            Low Startup delay <= 2s
            Low End-To-End delay
@@ -6,10 +23,16 @@
 
 
 Comparison between different overlays:
-       Topology        Startup Delay       Transfer Delay  ControlOverhead     HeightOfTree    ContinuityIndex     HopCount[Transfer]
-       Coolstreaming   60s                                 1.6%
-       Anysee          20s                 200ms           1.0%                7[at max]
-       Anysee2
+       Topology        Startup Delay       Transfer Delay  ControlOverhead     HeightOfTree    BufferFull	ContinuityIndex     HopCount[Transfer]
+   **  Coolstreaming   60s                                 1.6%									35%			0.88				7-8			
+       Anysee          20s                 200ms           1.0%                7[at max]		56%			0.94				7
+       Anysee2		   20s				   				   0.9%				   7[at max]		56%			0.94				7
+   %%  HOWTO		   40s
+   	   mTreeBone	   20s					<Coolstreaming   1.0%
+   	   chunkySpread																												8-12	
+
+** -> no simulation available for more than 200 nodes
+%% -> not enough data available 
 
 Comparison between different configurations of HTopology
 =================================== Results ====================================================
@@ -21,8 +44,33 @@ Configuration	Startup							StreamStartup					TransferDelay						ContinuityIndex
 1000N-Pareto	(0.243, 0.226, 0.002, 2.104)	(5.542, 90.410, 0.193, 2396)	(1.7359, 0.4695, 0.2243, 3.7470)
 1000N-NoChurn	(0.272, 0.262, 0.002, 1.899)	(1.110, 0.443, 0.236, 3.187)	(1.8336, 0.4550, 0.2151, 3.4379)
        
-** There's a certain anamoly in 1000N-Pareto simulation for stream startup time.
+** There's a certain anomaly in 1000N-Pareto simulation for stream startup time.
 	A possible explanation could be that a node joined the overlay & before receiving any packet its parent went dead.
 	Leaving this guy to search for rescue parent's (& it couldn't find the rescue nodes on time to get the streaming started
 	==> YOUR DEADLINE SEGMENT SCHEDULING SHOULD REMOVE THIS DEFECT, IF NOT SOMETHING's seriously faulty here)
 =================================== End Results ================================================
+
+
+=================================== 2nd Set of Results ================================================
+After incorporating rejoin, rescueConversion & deadline segment scheduling[basic version]
+
+values = (mean, deviation, min, max)
+
+Configuration	Startup							StreamStartup***			TransferDelay		SegmentsMissingDeadline		Height				PacketsGenerated
+100N-Pareto		(0.24, 0.20, 0.007, 1.19)	(1.07, 0.39, 0.29, 2.22)	(1.14, 0.39, 0.18, 2.34)	(1.39, 2.92, 0, 14)		(2.5, 0.7, 1, 4)	7300
+100N-NoChurn	(0.22, 0.18, 0.012, 0.88)	(1.03, 0.35, 0.32, 1.84)	(1.25, 0.41, 0.22, 2.59)	(0,0,0,0)				(2.4, 0.6, 1, 3)	7300
+1000N-Pareto	(0.26, 0.22, 0.004, 1.85)	(1.43, 9.94, 0.24, 364)*	(1.76, 0.52, 0.22, 4.49)	(1088, 2199, 0, 6754)**	(3.8, 0.8, 1, 6)	8200
+1000N-NoChurn	(0.25, 0.22, 0.002, 1.63)	(1.08, 0.40, 0.21, 2.57)	(1.92, 0.51, 0.22, 3.77)	(0,0,0,0)				(3.6, 0.7, 1, 5)	8200
+
+MeasurementTime remains same for all these simulations(7200s)
+
+* This parameter has improved from the first set of results. 
+	As the rejoin & rescueConversion seems to have improved it from the initial value of 2396 to 354.
+	
+** This is a point of worry right now. It seems that the deadline segment scheduling is not working fine.
+	Need some improvement on this parameter, atleast within 100 or something similar.
+	
+*** Need to add an additional 10s buffer delay [before the packet can be actually played out to the user]
+Control Overhead is still not evaluated [Expected to be high]. Some optimizations will be required for the same.
+=================================== END 2nd Set of Results ==============================================
+
