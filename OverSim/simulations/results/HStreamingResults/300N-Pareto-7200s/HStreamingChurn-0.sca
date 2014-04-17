@@ -1,0 +1,718 @@
+version 2
+run HStreamingChurn-0-20140417-13:21:26-1056
+attr configname HStreamingChurn
+attr datetime 20140417-13:21:26
+attr experiment HStreamingChurn
+attr inifile htopology.ini
+attr iterationvars ""
+attr iterationvars2 $repetition=0
+attr measurement ""
+attr network oversim.underlay.simpleunderlay.SimpleUnderlayNetwork
+attr processid 1056
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+
+scalar SimpleUnderlayNetwork.underlayConfigurator 	"Terminals added" 	529
+scalar SimpleUnderlayNetwork.underlayConfigurator 	"Terminals removed" 	237
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"GlobalStatistics: Simulation Time" 	7500
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (application): Received Bytes/s from Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (application): Received Bytes/s from UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (application): Received Messages/s from Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (application): Received Messages/s from UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (application): Sent Bytes/s to Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (application): Sent Bytes/s to UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (application): Sent Messages/s to Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (application): Sent Messages/s to UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (bootstrapList): Received Bytes/s from Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (bootstrapList): Received Bytes/s from UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (bootstrapList): Received Messages/s from Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (bootstrapList): Received Messages/s from UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (bootstrapList): Sent Bytes/s to Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (bootstrapList): Sent Bytes/s to UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (bootstrapList): Sent Messages/s to Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (bootstrapList): Sent Messages/s to UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (neighborCache): Received Bytes/s from Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (neighborCache): Received Bytes/s from UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (neighborCache): Received Messages/s from Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (neighborCache): Received Messages/s from UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (neighborCache): Sent Bytes/s to Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (neighborCache): Sent Bytes/s to UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (neighborCache): Sent Messages/s to Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (neighborCache): Sent Messages/s to UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier2): Received Bytes/s from Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier2): Received Bytes/s from UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier2): Received Messages/s from Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier2): Received Messages/s from UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier2): Sent Bytes/s to Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier2): Sent Bytes/s to UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier2): Sent Messages/s to Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier2): Sent Messages/s to UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier3): Received Bytes/s from Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier3): Received Bytes/s from UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier3): Received Messages/s from Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier3): Received Messages/s from UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier3): Sent Bytes/s to Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier3): Sent Bytes/s to UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier3): Sent Messages/s to Overlay.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseApp (tier3): Sent Messages/s to UDP.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Dropped Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Dropped Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Forwarded App Data Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Forwarded App Data Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Forwarded App Lookup Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Forwarded App Lookup Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Forwarded Maintenance Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Forwarded Maintenance Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Forwarded Total Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Forwarded Total Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Join Retries.mean" 	2
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Measured Session Time.mean" 	4147.4862282961
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received App Data Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received App Data Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received App Lookup Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received App Lookup Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received Maintenance Bytes/s.mean" 	89348.492724855
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received Maintenance Messages/s.mean" 	1.8726028910642
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received Total Bytes/s.mean" 	89348.492724855
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Received Total Messages/s.mean" 	1.8726028910642
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent App Data Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent App Data Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent App Lookup Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent App Lookup Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent FailedNode Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent FailedNode Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent FailedNodeResponse Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent FailedNodeResponse Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent FindNode Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent FindNode Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent FindNodeResponse Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent FindNodeResponse Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Maintenance Bytes/s.mean" 	25245.650628328
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Maintenance Messages/s.mean" 	2.1885205986359
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Ping Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Ping Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Ping Response Bytes/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Ping Response Messages/s.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Total Bytes/s.mean" 	25245.650628328
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"BaseOverlay: Sent Total Messages/s.mean" 	2.1885205986359
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	PacketsGeneratedAtSource.mean 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	ParametersEstimationRounds.mean 	64.140151515152
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"SimpleTCP: Packets dropped due to network partitions.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"SimpleTCP: Packets dropped due to queue overflows.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"SimpleTCP: Packets dropped due to unavailable destination.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"SimpleTCP: Packets sent.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"SimpleUDP: Packets dropped due to network partitions.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"SimpleUDP: Packets dropped due to queue overflows.mean" 	14.988657844991
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"SimpleUDP: Packets dropped due to unavailable destination.mean" 	2140.8223062382
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"SimpleUDP: Packets dropped with bad checksum.mean" 	0
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"SimpleUDP: Packets sent.mean" 	11615.081285444
+statistic SimpleUnderlayNetwork.finisherModule 	"HTopology: SegmentsMissingDeadline"
+field count 488
+field mean 423.30737704918
+field stddev 1176.2028627406
+field sum 206574
+field sqrsum 761185994
+field min 0
+field max 4238
+attr type  int
+bin	-INF	0
+bin	-5	0
+bin	-4	0
+bin	-3	0
+bin	-2	0
+bin	-1	0
+bin	0	307
+bin	1	2
+bin	2	6
+bin	3	10
+bin	4	15
+bin	5	20
+bin	6	7
+bin	7	8
+bin	8	3
+bin	9	8
+bin	10	22
+bin	11	8
+bin	12	0
+bin	13	0
+bin	14	1
+bin	15	71
+statistic SimpleUnderlayNetwork.finisherModule 	"HTopology: StartupTime=JoinAccepted - JoinRequested"
+field count 523
+field mean 0.22796927512428
+field stddev 0.20746731241752
+field sum 119.22793089
+field sqrsum 49.648586926314
+field min 0.007073896
+field max 1.416783748
+bin	-INF	0
+bin	-0.4746447365	0
+bin	-0.4104155855	0
+bin	-0.3461864345	0
+bin	-0.2819572835	0
+bin	-0.2177281325	0
+bin	-0.1534989815	0
+bin	-0.0892698305	0
+bin	-0.0250406795	58
+bin	0.0391884715	105
+bin	0.1034176225	91
+bin	0.1676467735	87
+bin	0.2318759245	48
+bin	0.2961050755	42
+bin	0.3603342265	27
+bin	0.4245633775	14
+bin	0.4887925285	11
+bin	0.5530216795	8
+bin	0.6172508305	8
+bin	0.6814799815	6
+bin	0.7457091325	1
+bin	0.8099382835	6
+bin	0.8741674345	4
+bin	0.9383965855	4
+bin	1.0026257365	0
+bin	1.0668548875	1
+bin	1.1310840385	1
+bin	1.1953131895	0
+bin	1.2595423405	0
+bin	1.3237714915	0
+bin	1.3880006425	1
+bin	1.4522297935	0
+statistic SimpleUnderlayNetwork.finisherModule 	"HTopology: StreamingStartupTime=FirstPacketRecved - JoinRequested"
+field count 488
+field mean 1.1149375015615
+field stddev 1.1576172014046
+field sum 544.089500762
+field sqrsum 1259.2435724945
+field min 0.207692085
+field max 25.13398927
+bin	-INF	0
+bin	-0.6960956575	0
+bin	-0.57559062516667	0
+bin	-0.45508559283333	0
+bin	-0.3345805605	0
+bin	-0.21407552816667	0
+bin	-0.093570495833333	0
+bin	0.0269345365	0
+bin	0.14743956883333	4
+bin	0.26794460116667	18
+bin	0.3884496335	17
+bin	0.50895466583333	37
+bin	0.62945969816667	33
+bin	0.7499647305	49
+bin	0.87046976283333	51
+bin	0.99097479516667	56
+bin	1.1114798275	62
+bin	1.2319848598333	47
+bin	1.3524898921667	38
+bin	1.4729949245	28
+bin	1.5934999568333	21
+bin	1.7140049891667	12
+bin	1.8345100215	9
+bin	1.9550150538333	3
+bin	2.0755200861667	2
+bin	2.1960251185	0
+bin	2.3165301508333	0
+bin	2.4370351831667	0
+bin	2.5575402155	0
+bin	2.6780452478333	0
+bin	2.7985502801667	0
+bin	2.9190553125	1
+statistic SimpleUnderlayNetwork.finisherModule 	"HTopology: Transfer Delay"
+field count 1957113
+field mean 1.4450688157868
+field stddev 0.48463138729214
+field sum 2828162.965271
+field sqrsum 4546552.2693362
+field min 0.220916233
+field max 3.568899775
+bin	-INF	0
+bin	-0.795296588	0
+bin	-0.656458464	0
+bin	-0.51762034	0
+bin	-0.378782216	0
+bin	-0.239944092	0
+bin	-0.101105968	0
+bin	0.037732156	0
+bin	0.17657028	14051
+bin	0.315408404	9759
+bin	0.454246528	31436
+bin	0.593084652	64926
+bin	0.731922776	92366
+bin	0.8707609	136602
+bin	1.009599024	184008
+bin	1.148437148	210151
+bin	1.287275272	251812
+bin	1.426113396	243518
+bin	1.56495152	186396
+bin	1.703789644	148481
+bin	1.842627768	125638
+bin	1.981465892	87794
+bin	2.120304016	61769
+bin	2.25914214	42662
+bin	2.397980264	25916
+bin	2.536818388	16550
+bin	2.675656512	7919
+bin	2.814494636	4668
+bin	2.95333276	3213
+bin	3.092170884	4542
+bin	3.231009008	2609
+bin	3.369847132	327
+statistic SimpleUnderlayNetwork.finisherModule 	"Height of a tree node"
+field count 523
+field mean 3.0917782026769
+field stddev 0.72923967945983
+field sum 1617
+field sqrsum 5277
+field min 1
+field max 5
+attr type  int
+bin	-INF	0
+bin	-1	0
+bin	0	0
+bin	1	11
+bin	2	81
+bin	3	283
+bin	4	145
+bin	5	3
+bin	6	0
+statistic SimpleUnderlayNetwork.finisherModule 	"Packets Generated at source"
+field count 1
+field mean 7500
+field stddev -1.#IND
+field sum 7500
+field sqrsum 56250000
+field min 7500
+field max 7500
+bin	-INF	0
+bin	7499	0
+bin	7500	1
+bin	7501	0
+statistic SimpleUnderlayNetwork.finisherModule 	VideoSegmentReceived
+field count 528
+field mean 3674.5132575758
+field stddev 9911.5480074985
+field sum 1940143
+field sqrsum 58900920293
+field min 0
+field max 67604
+attr type  int
+bin	-INF	0
+bin	-13564	0
+bin	-13293	0
+bin	-13022	0
+bin	-12751	0
+bin	-12480	0
+bin	-12209	0
+bin	-11938	0
+bin	-11667	0
+bin	-11396	0
+bin	-11125	0
+bin	-10854	0
+bin	-10583	0
+bin	-10312	0
+bin	-10041	0
+bin	-9770	0
+bin	-9499	0
+bin	-9228	0
+bin	-8957	0
+bin	-8686	0
+bin	-8415	0
+bin	-8144	0
+bin	-7873	0
+bin	-7602	0
+bin	-7331	0
+bin	-7060	0
+bin	-6789	0
+bin	-6518	0
+bin	-6247	0
+bin	-5976	0
+bin	-5705	0
+bin	-5434	0
+bin	-5163	0
+bin	-4892	0
+bin	-4621	0
+bin	-4350	0
+bin	-4079	0
+bin	-3808	0
+bin	-3537	0
+bin	-3266	0
+bin	-2995	0
+bin	-2724	0
+bin	-2453	0
+bin	-2182	0
+bin	-1911	0
+bin	-1640	0
+bin	-1369	0
+bin	-1098	0
+bin	-827	0
+bin	-556	0
+bin	-285	0
+bin	-14	393
+bin	257	7
+bin	528	1
+bin	799	2
+bin	1070	4
+bin	1341	4
+bin	1612	1
+bin	1883	4
+bin	2154	5
+bin	2425	0
+bin	2696	2
+bin	2967	4
+bin	3238	1
+bin	3509	1
+bin	3780	2
+bin	4051	3
+bin	4322	2
+bin	4593	1
+bin	4864	4
+bin	5135	1
+bin	5406	1
+bin	5677	2
+bin	5948	4
+bin	6219	1
+bin	6490	5
+bin	6761	1
+bin	7032	1
+bin	7303	0
+bin	7574	2
+bin	7845	1
+bin	8116	1
+bin	8387	0
+bin	8658	2
+bin	8929	0
+bin	9200	0
+bin	9471	0
+bin	9742	1
+bin	10013	2
+bin	10284	3
+bin	10555	3
+bin	10826	2
+bin	11097	0
+bin	11368	1
+bin	11639	1
+bin	11910	0
+bin	12181	2
+bin	12452	0
+bin	12723	1
+bin	12994	1
+bin	13265	1
+bin	13536	1
+bin	13807	0
+bin	14078	0
+bin	14349	2
+bin	14620	1
+bin	14891	0
+bin	15162	0
+bin	15433	0
+bin	15704	1
+bin	15975	0
+bin	16246	2
+bin	16517	0
+bin	16788	1
+bin	17059	0
+bin	17330	1
+bin	17601	0
+bin	17872	0
+bin	18143	0
+bin	18414	0
+bin	18685	1
+bin	18956	0
+bin	19227	1
+bin	19498	0
+bin	19769	0
+bin	20040	0
+bin	20311	0
+bin	20582	0
+bin	20853	1
+bin	21124	1
+bin	21395	0
+bin	21666	1
+bin	21937	0
+bin	22208	1
+bin	22479	0
+bin	22750	0
+bin	23021	0
+bin	23292	0
+bin	23563	0
+bin	23834	0
+bin	24105	1
+bin	24376	0
+bin	24647	0
+bin	24918	0
+bin	25189	0
+bin	25460	3
+bin	25731	0
+bin	26002	1
+bin	26273	1
+bin	26544	1
+bin	26815	1
+bin	27086	0
+bin	27357	2
+bin	27628	0
+bin	27899	0
+bin	28170	1
+bin	28441	0
+bin	28712	0
+bin	28983	1
+bin	29254	1
+bin	29525	0
+bin	29796	0
+bin	30067	0
+bin	30338	1
+bin	30609	0
+bin	30880	0
+bin	31151	0
+bin	31422	0
+bin	31693	0
+bin	31964	1
+bin	32235	0
+bin	32506	0
+bin	32777	0
+bin	33048	0
+bin	33319	0
+bin	33590	0
+bin	33861	0
+bin	34132	1
+bin	34403	0
+bin	34674	0
+bin	34945	0
+bin	35216	0
+bin	35487	0
+bin	35758	1
+bin	36029	0
+bin	36300	0
+bin	36571	1
+bin	36842	1
+bin	37113	0
+bin	37384	1
+bin	37655	0
+bin	37926	0
+bin	38197	0
+bin	38468	0
+bin	38739	2
+bin	39010	0
+bin	39281	1
+bin	39552	0
+bin	39823	0
+bin	40094	0
+bin	40365	0
+bin	40636	9
+statistic SimpleUnderlayNetwork.finisherModule 	VideoSegmentSent
+field count 528
+field mean 3791.8428030303
+field stddev 3221.8908558201
+field sum 2002093
+field sqrsum 13062187955
+field min 0
+field max 16597
+attr type  int
+bin	-INF	0
+bin	-1942	0
+bin	-1903	0
+bin	-1864	0
+bin	-1825	0
+bin	-1786	0
+bin	-1747	0
+bin	-1708	0
+bin	-1669	0
+bin	-1630	0
+bin	-1591	0
+bin	-1552	0
+bin	-1513	0
+bin	-1474	0
+bin	-1435	0
+bin	-1396	0
+bin	-1357	0
+bin	-1318	0
+bin	-1279	0
+bin	-1240	0
+bin	-1201	0
+bin	-1162	0
+bin	-1123	0
+bin	-1084	0
+bin	-1045	0
+bin	-1006	0
+bin	-967	0
+bin	-928	0
+bin	-889	0
+bin	-850	0
+bin	-811	0
+bin	-772	0
+bin	-733	0
+bin	-694	0
+bin	-655	0
+bin	-616	0
+bin	-577	0
+bin	-538	0
+bin	-499	0
+bin	-460	0
+bin	-421	0
+bin	-382	0
+bin	-343	0
+bin	-304	0
+bin	-265	0
+bin	-226	0
+bin	-187	0
+bin	-148	0
+bin	-109	0
+bin	-70	0
+bin	-31	40
+bin	8	16
+bin	47	10
+bin	86	8
+bin	125	6
+bin	164	8
+bin	203	7
+bin	242	2
+bin	281	2
+bin	320	4
+bin	359	8
+bin	398	4
+bin	437	2
+bin	476	1
+bin	515	1
+bin	554	3
+bin	593	2
+bin	632	2
+bin	671	4
+bin	710	2
+bin	749	5
+bin	788	2
+bin	827	2
+bin	866	2
+bin	905	3
+bin	944	1
+bin	983	1
+bin	1022	1
+bin	1061	4
+bin	1100	1
+bin	1139	2
+bin	1178	1
+bin	1217	5
+bin	1256	1
+bin	1295	1
+bin	1334	3
+bin	1373	1
+bin	1412	2
+bin	1451	2
+bin	1490	2
+bin	1529	2
+bin	1568	0
+bin	1607	2
+bin	1646	4
+bin	1685	4
+bin	1724	2
+bin	1763	1
+bin	1802	2
+bin	1841	1
+bin	1880	5
+bin	1919	2
+bin	1958	2
+bin	1997	0
+bin	2036	2
+bin	2075	1
+bin	2114	0
+bin	2153	3
+bin	2192	3
+bin	2231	1
+bin	2270	1
+bin	2309	1
+bin	2348	4
+bin	2387	1
+bin	2426	0
+bin	2465	4
+bin	2504	1
+bin	2543	0
+bin	2582	1
+bin	2621	2
+bin	2660	2
+bin	2699	3
+bin	2738	1
+bin	2777	1
+bin	2816	0
+bin	2855	1
+bin	2894	2
+bin	2933	2
+bin	2972	4
+bin	3011	8
+bin	3050	5
+bin	3089	2
+bin	3128	6
+bin	3167	6
+bin	3206	3
+bin	3245	10
+bin	3284	3
+bin	3323	3
+bin	3362	5
+bin	3401	6
+bin	3440	5
+bin	3479	4
+bin	3518	3
+bin	3557	0
+bin	3596	1
+bin	3635	2
+bin	3674	0
+bin	3713	0
+bin	3752	2
+bin	3791	1
+bin	3830	0
+bin	3869	2
+bin	3908	0
+bin	3947	1
+bin	3986	2
+bin	4025	2
+bin	4064	0
+bin	4103	0
+bin	4142	0
+bin	4181	1
+bin	4220	0
+bin	4259	0
+bin	4298	1
+bin	4337	0
+bin	4376	1
+bin	4415	1
+bin	4454	0
+bin	4493	1
+bin	4532	0
+bin	4571	0
+bin	4610	3
+bin	4649	0
+bin	4688	1
+bin	4727	0
+bin	4766	0
+bin	4805	0
+bin	4844	2
+bin	4883	0
+bin	4922	0
+bin	4961	1
+bin	5000	1
+bin	5039	0
+bin	5078	1
+bin	5117	2
+bin	5156	1
+bin	5195	1
+bin	5234	0
+bin	5273	0
+bin	5312	1
+bin	5351	0
+bin	5390	1
+bin	5429	2
+bin	5468	2
+bin	5507	0
+bin	5546	0
+bin	5585	1
+bin	5624	1
+bin	5663	0
+bin	5702	1
+bin	5741	0
+bin	5780	1
+bin	5819	0
+bin	5858	176
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"Vector: GlobalNodeList: Number of nodes.mean" 	298.44055944056
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"Vector: ParetoChurn: Session Time.mean" 	10599.044619981
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"Vector: ParetoChurn: Time between creates.mean" 	31.495640768982
+scalar SimpleUnderlayNetwork.globalObserver.globalStatistics 	"Vector: ParetoChurn: Time between deletes.mean" 	30.656835748119
