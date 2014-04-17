@@ -1,0 +1,89 @@
+======================================
+N=600 && Paretor Churn
+======================================
+
+Starting...
+
+$ cd e:/omnetpp-4.3/git/HTopology/OverSim/simulations
+$ ../src/OverSim.exe -r 0 -n .;../src;../../inet/examples;../../inet/src -l ../../inet/src/inet htopology.ini
+
+OMNeT++ Discrete Event Simulation  (C) 1992-2013 Andras Varga, OpenSim Ltd.
+Version: 4.3, build: 130403-bf01aae, edition: Academic Public License -- NOT FOR COMMERCIAL USE
+See the license for distribution terms and warranty disclaimer
+Setting up Tkenv...
+Loading NED files from .: 0
+Loading NED files from ../src: 114
+Loading NED files from ../../inet/examples: 59
+Loading NED files from ../../inet/src: 183
+Loading NED files from e:\omnetpp-4.3\git\HTopology\inet\src: 183
+Loading NED files from e:\omnetpp-4.3\git\HTopology\OverSim\src: 114
+
+Loading images from e:\omnetpp-4.3\git\HTopology\OverSim\images: *: 2  
+Loading images from e:\omnetpp-4.3\images: *: 0  abstract/*: 90  background/*: 4  block/*: 320  device/*: 195  maps/*: 9  misc/*: 70  msg/*: 55  old/*: 111  status/*: 28  
+
+Plugin path: ./plugins
+1.0.2.31:1024 000000000000000000000000000000000000021f: parent has acknowledged my death.
+1.0.0.162:1024 00000000000000000000000000000000000000a2: parent has acknowledged my death.
+1.0.1.104:1024 0000000000000000000000000000000000000168: parent has acknowledged my death.
+1.0.0.170:1024 00000000000000000000000000000000000000aa: parent has acknowledged my death.
+1.0.1.42:1024 000000000000000000000000000000000000012a: parent has acknowledged my death.
+1.0.2.58:1024 000000000000000000000000000000000000023a: parent has acknowledged my death.
+1.0.2.161:1024 00000000000000000000000000000000000002a1: parent has acknowledged my death.
+1.0.0.239:1024 00000000000000000000000000000000000000ef: parent has acknowledged my death.
+1.0.0.115:1024 0000000000000000000000000000000000000073: parent has acknowledged my death.
+1.0.2.124:1024 000000000000000000000000000000000000027c: parent has acknowledged my death.
+1.0.0.133:1024 0000000000000000000000000000000000000085: parent has acknowledged my death.
+1.0.2.97:1024 0000000000000000000000000000000000000261: parent has acknowledged my death.
+1.0.1.226:1024 00000000000000000000000000000000000001e2: parent has acknowledged my death.
+1.0.0.233:1024 00000000000000000000000000000000000000e9: parent has acknowledged my death.
+1.0.2.103:1024 0000000000000000000000000000000000000267: parent has acknowledged my death.
+1.0.1.146:1024 0000000000000000000000000000000000000192: parent has acknowledged my death.
+1.0.0.160:1024 00000000000000000000000000000000000000a0: parent has acknowledged my death.
+1.0.1.73:1024 0000000000000000000000000000000000000149: parent has acknowledged my death.
+1.0.1.235:1024 00000000000000000000000000000000000001eb: parent has acknowledged my death.
+1.0.1.19:1024 0000000000000000000000000000000000000113: parent has acknowledged my death.
+1.0.1.248:1024 00000000000000000000000000000000000001f8: parent has acknowledged my death.
+1.0.0.203:1024 00000000000000000000000000000000000000cb: parent has acknowledged my death.
+1.0.0.178:1024 00000000000000000000000000000000000000b2: parent has acknowledged my death.
+1.0.1.22:1024 0000000000000000000000000000000000000116: parent has acknowledged my death.
+1.0.0.93:1024 000000000000000000000000000000000000005d: parent has acknowledged my death.
+1.0.0.51:1024 0000000000000000000000000000000000000033: parent has acknowledged my death.
+1.0.0.139:1024 000000000000000000000000000000000000008b: parent has acknowledged my death.
+1.0.0.101:1024 0000000000000000000000000000000000000065: parent has acknowledged my death.
+1.0.2.130:1024 0000000000000000000000000000000000000282: parent has acknowledged my death.
+1.0.0.73:1024 0000000000000000000000000000000000000049: parent has acknowledged my death.
+1.0.2.183:1024 00000000000000000000000000000000000002b7: parent has acknowledged my death.
+1.0.2.139:1024 000000000000000000000000000000000000028b: parent has acknowledged my death.
+1.0.0.208:1024 00000000000000000000000000000000000000d0: parent has acknowledged my death.
+1.0.1.186:1024 00000000000000000000000000000000000001ba: parent has acknowledged my death.
+1.0.1.255:1024 00000000000000000000000000000000000001ff: parent has acknowledged my death.
+1.0.1.231:1024 00000000000000000000000000000000000001e7: parent has acknowledged my death.
+1.0.1.5:1024 0000000000000000000000000000000000000105: parent has acknowledged my death.
+1.0.2.146:1024 0000000000000000000000000000000000000292: parent has acknowledged my death.
+1.0.2.176:1024 00000000000000000000000000000000000002b0: parent has acknowledged my death.
+1.0.2.209:1024 00000000000000000000000000000000000002d1: parent has acknowledged my death.
+1.0.2.218:1024 00000000000000000000000000000000000002da: parent has acknowledged my death.
+1.0.1.247:1024 00000000000000000000000000000000000001f7: parent has acknowledged my death.
+1.0.0.63:1024 000000000000000000000000000000000000003f: parent has acknowledged my death.
+1.0.2.26:1024 000000000000000000000000000000000000021a: parent has acknowledged my death.
+1.0.2.85:1024 0000000000000000000000000000000000000255: parent has acknowledged my death.
+1.0.2.25:1024 0000000000000000000000000000000000000219: parent has acknowledged my death.
+1.0.1.183:1024 00000000000000000000000000000000000001b7: parent has acknowledged my death.
+1.0.1.217:1024 00000000000000000000000000000000000001d9: parent has acknowledged my death.
+1.0.0.41:1024 0000000000000000000000000000000000000029: parent has acknowledged my death.
+1.0.2.234:1024 00000000000000000000000000000000000002ea: parent has acknowledged my death.
+Assertion failed: rescueChildren.find(rescueChild.getHandle().getKey()) == rescueChildren.end(), file overlay/htopology/HTopology.cc, line 2552
+
+This application has requested the Runtime to terminate it in an unusual way.
+Please contact the application's support team for more information.
+
+Simulation terminated with exit code: 255
+Working directory: e:/omnetpp-4.3/git/HTopology/OverSim/simulations
+Command line: ../src/OverSim.exe -r 0 -n .;../src;../../inet/examples;../../inet/src -l ../../inet/src/inet htopology.ini
+
+Environment variables:
+OMNETPP_ROOT=e:/omnetpp-4.3
+PATH=;e:/omnetpp-4.3/git/HTopology/inet/src;e:\omnetpp-4.3\bin;e:\omnetpp-4.3\msys\bin;e:\omnetpp-4.3\mingw\bin;e:/omnetpp-4.3/ide/jre/bin/client;e:/omnetpp-4.3/ide/jre/bin;e:/omnetpp-4.3/ide/jre/lib/i386;.;E:\omnetpp-4.3\msys\local\bin;e:\omnetpp-4.3\mingw\bin;E:\omnetpp-4.3\msys\bin;e:\omnetpp-4.3\bin;c:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;c:\Program Files (x86)\GTK2-Runtime\lib;c:\Windows\system32;c:\Windows;c:\Windows\System32\Wbem;c:\Windows\System32\WindowsPowerShell\v1.0\;c:\Program Files (x86)\SMLNJ\bin\;c:\Program Files\Microsoft\Web Platform Installer\;c:\Program Files (x86)\Microsoft ASP.NET\ASP.NET Web Pages\v1.0\;c:\Program Files\Microsoft SQL Server\110\Tools\Binn\;c:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;c:\Program Files (x86)\Java\jdk1.6.0_20\bin\;c:\Program Files (x86)\Java\jdk1.6.0_20\jre\lib\rt.jar;c:\Program Files (x86)\Java\jdk1.6.0_20\lib\dt.jar;c:\Program Files (x86)\Nmap;c:\Python32;c:\Program Files (x86)\SSH Communications Security\SSH Secure Shell;c:\Program Files (x86)\MiKTeX 2.9\miktex\bin\;c:\cygwin64\bin;.;.;.;.;e:\omnetpp-4.3;
+OMNETPP_IMAGE_PATH=e:\omnetpp-4.3\images
+
+=================================
